@@ -1,0 +1,117 @@
+{
+  "sources": {
+    "FDM": {
+      "repo": "135crewdog/FDM",
+      "branch": "baseline/jsbsim",
+      "commit": "e47882503ab765d575a38b5bcd59fd41da76b1ae"
+    },
+    "wings": {
+      "repo": "135crewdog/wings",
+      "branch": "main",
+      "commit": "557a8d04e4b443f537e948aa0b79c245dcae7d88"
+    }
+  },
+  "files": {
+    "icons/icon-32.png": {
+      "from": "wings:icons/icon-32.png",
+      "how": "byte for byte",
+      "original": "49afba779fd270084ec08f95a36fbdf9604125f91fa7e34438795cf12a25ae80",
+      "copy": "49afba779fd270084ec08f95a36fbdf9604125f91fa7e34438795cf12a25ae80"
+    },
+    "icons/icon-180.png": {
+      "from": "wings:icons/icon-180.png",
+      "how": "byte for byte",
+      "original": "527bd4497e2d19300be8c29881bcbd2b2d6646c9bf55c82dcb91ca1cfc261088",
+      "copy": "527bd4497e2d19300be8c29881bcbd2b2d6646c9bf55c82dcb91ca1cfc261088"
+    },
+    "icons/icon-192.png": {
+      "from": "wings:icons/icon-192.png",
+      "how": "byte for byte",
+      "original": "38cfc3a34baf5568dd4a8c8bd4bdcc9532af1a899f308c6352f19660ab4338db",
+      "copy": "38cfc3a34baf5568dd4a8c8bd4bdcc9532af1a899f308c6352f19660ab4338db"
+    },
+    "icons/icon-512.png": {
+      "from": "wings:icons/icon-512.png",
+      "how": "byte for byte",
+      "original": "0df4ecb75eecc002365151797bf21893429ae1c5e4b5f06eeb6453cdc119bf82",
+      "copy": "0df4ecb75eecc002365151797bf21893429ae1c5e4b5f06eeb6453cdc119bf82"
+    },
+    "index.html": {
+      "from": "wings:index.html",
+      "how": "adapted",
+      "original": "3a2075338783276886d304fb1adc8948472f6b65eebadfa43b651e4473c629d5"
+    },
+    "style.css": {
+      "from": "wings:style.css",
+      "how": "adapted",
+      "original": "0ddfb347ed2a0145ce3c2d6b76645180ddc0da2b23502ca1968da1d40db10b60"
+    },
+    "sw.js": {
+      "from": "wings:sw.js",
+      "how": "adapted",
+      "original": "13ed87c9dfe0106eeb9405a7a79dc28e42126d4bdef64f2cc61f8e887438b9f7"
+    },
+    "manifest.webmanifest": {
+      "from": "wings:manifest.webmanifest",
+      "how": "adapted",
+      "original": "19064276f8b7755a2be8373c68e9b4448792c0b9e7260a652592e1597ec6a402"
+    },
+    "src/main.js": {
+      "from": "wings:src/main.js",
+      "how": "adapted",
+      "original": "7d86f0b14987b4f11e1223e11a447764003bec4e409a1bb1401acff93ec4926e"
+    },
+    "src/version.js": {
+      "from": "wings:src/version.js",
+      "how": "adapted",
+      "original": "402da74acfdfff6fbb0fc98b02216dbe3b1cb1d62e765a6757ce6cdc517e73e0"
+    },
+    "tests/app.test.js": {
+      "from": "wings:tests/app.test.js",
+      "how": "adapted",
+      "original": "88cfdd1ede9c0a25cd90120049e4e256fb15b94258ad25354a027fadc5f00b87"
+    },
+    ".github/workflows/test.yml": {
+      "from": "wings:.github/workflows/test.yml",
+      "how": "adapted",
+      "original": "f0b5789194593c18abb253820bf73b6febb82a191cc8d9737912823d68fe83c5"
+    },
+    ".github/workflows/pages.yml": {
+      "from": "wings:.github/workflows/pages.yml",
+      "how": "adapted",
+      "original": "efc87c8d0ff880755cc8e24ed5a9b91f7f2859777ea7a4a77dea46b1d63f81db"
+    },
+    "tests/browser/app.chromium.mjs": {
+      "from": "FDM:tests/page.chromium.mjs",
+      "how": "adapted",
+      "original": "88c5b534cbe3f5fa3d754809c18df7b19187e1137eeb538a0dae237740859c18"
+    },
+    "jsbsim/pins.env": {
+      "from": "FDM:pins.env",
+      "how": "byte for byte",
+      "original": "d8e3d45b7e721b73c23f8a1e4367384871a3c347334519f5191f486b35ac9283",
+      "copy": "d8e3d45b7e721b73c23f8a1e4367384871a3c347334519f5191f486b35ac9283"
+    },
+    "jsbsim/scripts/fetch-jsbsim-data.sh": {
+      "from": "FDM:scripts/fetch-jsbsim-data.sh",
+      "how": "byte for byte",
+      "original": "babbe88791ebaeb251a1e7f5b32c519c16763382fa547753247f1a942a37f512",
+      "copy": "babbe88791ebaeb251a1e7f5b32c519c16763382fa547753247f1a942a37f512"
+    },
+    "jsbsim/scripts/check-data.sh": {
+      "from": "FDM:scripts/check-data.sh",
+      "how": "changed",
+      "original": "11315d91d6f640918d8e407012d0ed8990a3d58d424743c4d1fa73841b073094",
+      "why": "In FDM the data sat at the repo's root; here it sits one folder down, in jsbsim/.",
+      "copy": "0d077eb69ea720e622f40a735f24150a5a132efe4f514201a20749d951e93333"
+    }
+  },
+  "trees": {
+    "jsbsim/jsbsim-data": {
+      "from": "FDM:jsbsim-data",
+      "how": "byte for byte",
+      "files": 485,
+      "tree": "a21932a0bb810451aebe61e0088812cc3f10f45b"
+    }
+  }
+}
