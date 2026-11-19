@@ -4,7 +4,9 @@ name: Tests
 
 on:
   push:
+    branches-ignore: [main]   # on main, the Pages workflow runs the tests
   pull_request:
+  workflow_call:
 
 jobs:
   test:

@@ -1,0 +1,131 @@
+// The app's own bookkeeping. After 135crewdog/wings, tests/app.test.js,
+// commit 557a8d0 (itself after Rage's): the version is the same in all three
+// places, and the service worker's file list matches the app, so an update
+// never leaves a phone on old files or a new file uncached.
+// Added for FSG: the iPhone platform rules in CLAUDE.md that a test can read
+// straight from the source (the shared origin's prefixes, relative paths,
+// no skipWaiting on its own, full screen).
+import { test } from 'node:test';
+import assert from 'node:assert/strict';
+import { readFileSync, readdirSync, existsSync, statSync } from 'node:fs';
+import { join, posix } from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { APP_VERSION } from '../src/version.js';
+
+const root = fileURLToPath(new URL('..', import.meta.url));
+const read = (file) => readFileSync(join(root, file), 'utf8');
+const sw = read('sw.js');
+const html = read('index.html');
+const manifest = JSON.parse(read('manifest.webmanifest'));
+
+// Source with its comments taken out, so a rule's name in a comment doesn't count as code.
+const code = (source) => source.replace(/\/\*[^]*?\*\//g, '').replace(/^\s*\/\/.*$/gm, '').replace(/\s\/\/ .*$/gm, '');
+
+// Every file the app loads: src/main.js and whatever it imports, followed to
+// the end. There is no import map yet; Three.js brings one in milestone 2.
+function resolve(specifier, from) {
+  if (specifier.startsWith('.')) return './' + posix.normalize(posix.join(posix.dirname(from), specifier));
+  throw new Error(`${from} imports ${specifier}, which is not a relative path`);
+}
+function filesLoaded(entry) {
+  const seen = new Set();
+  const visit = (file) => {
+    if (seen.has(file)) return;
+    seen.add(file);
+    const source = read(file);
+    // import ... from '...', export ... from '...', import '...', and import('...')
+    const imports = [/^\s*(?:import|export)\b[^'";]*?\bfrom\s*['"]([^'"\n]+)['"]/gm, /^\s*import\s*['"]([^'"\n]+)['"]/gm, /\bimport\(\s*['"]([^'"\n]+)['"]\s*\)/g];
+    for (const pattern of imports) for (const m of source.matchAll(pattern)) visit(resolve(m[1], file));
+  };
+  visit(entry);
+  return [...seen];
+}
+// Every .js file under src/, for the rules that hold for all the app's code.
+function sources(dir = 'src') {
+  return readdirSync(join(root, dir)).flatMap((name) => {
+    const file = `${dir}/${name}`;
+    if (statSync(join(root, file)).isDirectory()) return sources(file);
+    return file.endsWith('.js') ? [file] : [];
+  });
+}
+const listed = [...sw.matchAll(/['"](\.\/[^'"]*)['"]/g)].map((m) => m[1]);
+
+// ---- Wings' tests ----
+
+test('the version is the same in src/version.js, sw.js and CHANGELOG.md', () => {
+  const inSw = sw.match(/const VERSION = '([^']+)'/);
+  assert.ok(inSw, 'VERSION in sw.js');
+  assert.equal(inSw[1], APP_VERSION, 'VERSION in sw.js equals APP_VERSION');
+  const newest = read('CHANGELOG.md').match(/^## (\S+)/m);
+  assert.ok(newest, 'a version heading in CHANGELOG.md');
+  assert.equal(newest[1], APP_VERSION, 'the newest CHANGELOG.md entry equals APP_VERSION');
+  console.log(`  version ${APP_VERSION}`);
+});
+
+test('sw.js caches every file the app loads, and lists only files that exist', () => {
+  const files = listed.filter((f) => f !== './');
+  assert.ok(listed.includes('./'), 'the app\'s own address is cached');
+  assert.deepEqual(files.filter((f) => !existsSync(join(root, f))), [], 'listed but not on disk');
+  const modules = filesLoaded('./src/main.js');
+  assert.deepEqual(modules.filter((m) => !files.includes(m)), [], 'loaded by the app but not in sw.js');
+  // What index.html and the manifest name: the stylesheet, the icons, the manifest itself.
+  const named = [...html.matchAll(/\b(?:href|src)="([^"]+)"/g)].map((m) => m[1]).concat(manifest.icons.map((icon) => icon.src));
+  assert.deepEqual(named.filter((f) => !files.includes(f)), [], 'named by index.html or the manifest but not in sw.js');
+  assert.equal(new Set(files).size, files.length, 'no file listed twice');
+  console.log(`  ${files.length} files cached, ${modules.length} loaded by the app's code`);
+});
+
+test('sw.js lists no code the app does not load', () => {
+  const loaded = filesLoaded('./src/main.js');
+  assert.deepEqual(listed.filter((f) => f.startsWith('./src/') && !loaded.includes(f)), [], 'cached but never loaded');
+});
+
+// ---- added for FSG: the platform rules a test can read from the source ----
+
+test('the shared origin: every cache is fsg-, only fsg- caches are deleted, every storage key is fsg.', () => {
+  const worker = code(sw);
+  assert.match(worker, /const CACHE = `fsg-\$\{VERSION\}`;/, 'the cache is named fsg-<version>');
+  const opened = [...worker.matchAll(/caches\.open\(([^)]*)\)/g)].map((m) => m[1]);
+  assert.ok(opened.length > 0 && opened.every((name) => name === 'CACHE'), `caches opened: ${opened}`);
+  const deletes = [...worker.matchAll(/caches\.delete\(/g)];
+  assert.equal(deletes.length, 1, 'one place deletes caches');
+  assert.match(worker, /keys\.filter\(\(k\) => k\.startsWith\('fsg-'\) && k !== CACHE\)\.map\(\(k\) => caches\.delete\(k\)\)/, 'and it deletes only caches that start with fsg-');
+  for (const file of sources()) {
+    const source = code(read(file));
+    assert.doesNotMatch(source, /\bcaches\./, `${file} leaves the caches to sw.js`);
+    // Storage is reached only through named keys, and every key starts with "fsg.".
+    for (const m of source.matchAll(/(?:local|session)Storage\.\w+\(([^,)]*)/g)) assert.match(m[1], /^[A-Z_]+_KEY$/, `${file}: storage key ${m[1]}`);
+    for (const m of source.matchAll(/\b[A-Z_]+_KEY = ([^;]+);/g)) assert.match(m[1], /^'fsg\.[A-Za-z]+'$/, `${file}: ${m[0]}`);
+  }
+});
+
+test('every path is relative', () => {
+  const paths = [...html.matchAll(/\b(?:href|src)="([^"]+)"/g)].map((m) => m[1])
+    .concat([manifest.id, manifest.start_url, manifest.scope], manifest.icons.map((icon) => icon.src), listed);
+  assert.ok(paths.length > 10);
+  assert.deepEqual(paths.filter((p) => !p.startsWith('./')), [], 'not relative');
+  for (const file of sources()) {
+    const source = code(read(file));
+    for (const m of source.matchAll(/(?:register|fetch|new URL|new Worker)\(\s*['"`]([^'"`]+)['"`]/g)) assert.ok(m[1].startsWith('./') || m[1].startsWith('../'), `${file}: ${m[1]}`);
+  }
+});
+
+test('the service worker skips waiting only when the app posts the pilot\'s tap', () => {
+  const worker = code(sw);
+  assert.equal([...worker.matchAll(/skipWaiting/g)].length, 1, 'skipWaiting appears once');
+  assert.match(worker, /addEventListener\('message', \(event\) => \{\s*if \(event\.data === 'skip-waiting'\) self\.skipWaiting\(\);\s*\}\);/);
+  // And the app posts it only from the update button's tap.
+  const main = code(read('src/main.js'));
+  assert.equal([...main.matchAll(/'skip-waiting'/g)].length, 1);
+  assert.match(main, /button\.addEventListener\('click', \(\) => \{[^}]*postMessage\('skip-waiting'\);\s*\}\);/);
+});
+
+test('full screen: standalone, viewport-fit=cover, no zooming, a rotate screen in portrait', () => {
+  assert.equal(manifest.display, 'standalone');
+  const viewport = html.match(/<meta name="viewport" content="([^"]+)"/)[1];
+  for (const part of ['viewport-fit=cover', 'user-scalable=no', 'maximum-scale=1']) assert.ok(viewport.includes(part), part);
+  assert.match(html, /<meta name="apple-mobile-web-app-capable" content="yes">/);
+  const css = read('style.css');
+  assert.match(css, /@media \(orientation: portrait\) \{[^}]*\{[^}]*\} #rotate \{ display: flex; \} \}/, 'portrait shows the rotate screen');
+  for (const rule of ['overflow: hidden', 'user-select: none', 'touch-action: none', 'overscroll-behavior: none']) assert.ok(css.includes(rule), rule);
+});
