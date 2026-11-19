@@ -1,0 +1,50 @@
+<!doctype html>
+<!-- After 135crewdog/wings, index.html, commit 557a8d0: cut down to the start
+     screen, the pause screen with its Developer switch, the developer overlay
+     and the rotate screen. Nothing flies yet. -->
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+  <title>FSG</title>
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="FSG">
+  <meta name="theme-color" content="#2f7fd6">
+  <link rel="manifest" href="./manifest.webmanifest">
+  <link rel="apple-touch-icon" href="./icons/icon-180.png">
+  <link rel="icon" href="./icons/icon-32.png">
+  <link rel="stylesheet" href="./style.css">
+</head>
+<body>
+  <section id="screen-start" class="screen">
+    <div class="card">
+      <h1>FSG</h1>
+      <button id="settings" class="btn">Settings</button>
+      <button class="btn update" hidden>New version, tap to update</button>
+      <p class="about version"></p>
+    </div>
+  </section>
+
+  <section id="screen-pause" class="screen" hidden>
+    <div class="card" aria-label="Settings">
+      <button id="back" class="btn primary">Back</button>
+      <div class="row">
+        <span id="dev-label">Developer</span>
+        <button id="dev-switch" class="switch" role="switch" aria-checked="false" aria-labelledby="dev-label"></button>
+      </div>
+      <button class="btn update" hidden>New version, tap to update</button>
+    </div>
+  </section>
+
+  <pre id="dev" hidden></pre>
+
+  <section id="rotate">
+    <h1>Rotate your phone</h1>
+    <p>FSG is flown in landscape. If it won't rotate, turn off Portrait Orientation Lock in Control Center.</p>
+  </section>
+
+  <script type="module" src="./src/main.js"></script>
+</body>
+</html>
