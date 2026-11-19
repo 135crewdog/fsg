@@ -78,7 +78,7 @@ A rebuild must give the committed files byte for byte. `.github/workflows/rebuil
 
 ## The tests
 
-`npm test`, from the repo's root, runs them all, one file at a time (they share a fixtures folder). They need the native answer keys, which are built, not committed:
+`npm test`, from the repo's root, runs them all, one file at a time. It first prepares the test fixtures in `build/fixtures/` (the committed ones in `tests/fixtures/` plus a generated test aircraft), as FDM's `scripts/run-all-tests.sh` did; the tests share that folder. They need the native answer keys, which are built, not committed:
 
 ```
 jsbsim/scripts/build-native.sh         # once; needs cmake, ninja, g++ and git; a few minutes
