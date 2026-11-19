@@ -51,6 +51,15 @@ export const FILES = [
       ['git rev-parse HEAD:jsbsim-data/COPYING', 'git rev-parse "HEAD:${PREFIX}jsbsim-data/COPYING"'],
     ],
   },
+
+  // The build: the C++ host layer, the build description and scripts, and the binaries they made.
+  copy('FDM', 'CMakeLists.txt', 'jsbsim/CMakeLists.txt'),
+  ...['c_api.cpp', 'fdm_codes.h', 'fdm_host.cpp', 'fdm_host.h', 'grid_ground.cpp', 'grid_ground.h', 'host_logger.cpp', 'host_logger.h',
+    'native_main.cpp', 'scenario_runner.cpp', 'scenario_runner.h'].map((f) => copy('FDM', `host/${f}`, `jsbsim/host/${f}`)),
+  ...['ground_oracle.cpp', 'host_selftest.cpp'].map((f) => copy('FDM', `tests/native/${f}`, `jsbsim/tests/native/${f}`)),
+  ...['build.sh', 'setup-toolchain.sh', 'check-flags.mjs', 'write-build-info.mjs', 'check-binaries.mjs', 'selftest-build.sh']
+    .map((f) => copy('FDM', `scripts/${f}`, `jsbsim/scripts/${f}`)),
+  ...['fdm-weh.mjs', 'fdm-weh.wasm', 'fdm-jseh.mjs', 'fdm-jseh.wasm', 'build-info.json'].map((f) => copy('FDM', `dist-wasm/${f}`, `jsbsim/dist-wasm/${f}`)),
 ];
 
 // Whole folders, byte for byte. Checked by git's own id for the folder (a hash of every name, mode and byte in it).
