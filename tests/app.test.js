@@ -11,6 +11,8 @@ import { readFileSync, readdirSync, existsSync, statSync } from 'node:fs';
 import { join, posix } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { APP_VERSION } from '../src/version.js';
+import { BUILDS, DATA } from '../src/fdm.js';
+import { C172X_FILES } from '../src/sim/c172x-files.js';
 
 const root = fileURLToPath(new URL('..', import.meta.url));
 const read = (file) => readFileSync(join(root, file), 'utf8');
@@ -33,8 +35,9 @@ function filesLoaded(entry) {
     if (seen.has(file)) return;
     seen.add(file);
     const source = read(file);
-    // import ... from '...', export ... from '...', import '...', and import('...')
-    const imports = [/^\s*(?:import|export)\b[^'";]*?\bfrom\s*['"]([^'"\n]+)['"]/gm, /^\s*import\s*['"]([^'"\n]+)['"]/gm, /\bimport\(\s*['"]([^'"\n]+)['"]\s*\)/g];
+    // import ... from '...', export ... from '...', import '...', import('...'), and the Worker's own file
+    const imports = [/^\s*(?:import|export)\b[^'";]*?\bfrom\s*['"]([^'"\n]+)['"]/gm, /^\s*import\s*['"]([^'"\n]+)['"]/gm, /\bimport\(\s*['"]([^'"\n]+)['"]\s*\)/g,
+      /\bnew Worker\(\s*new URL\(\s*['"]([^'"\n]+)['"]/g];
     for (const pattern of imports) for (const m of source.matchAll(pattern)) visit(resolve(m[1], file));
   };
   visit(entry);
@@ -49,6 +52,10 @@ function sources(dir = 'src') {
   });
 }
 const listed = [...sw.matchAll(/['"](\.\/[^'"]*)['"]/g)].map((m) => m[1]);
+// What the app fetches that is not code it imports: JSBSim's two builds and the test aircraft's data.
+// src/fdm.js names them relative to src/.
+const fromSrc = (path) => './' + posix.normalize(posix.join('src', path));
+const assets = Object.values(BUILDS).flatMap((build) => [build.module, build.wasm]).map(fromSrc).concat(C172X_FILES.map((file) => fromSrc(DATA + file)));
 
 // ---- Wings' tests ----
 
@@ -68,16 +75,35 @@ test('sw.js caches every file the app loads, and lists only files that exist', (
   assert.deepEqual(files.filter((f) => !existsSync(join(root, f))), [], 'listed but not on disk');
   const modules = filesLoaded('./src/main.js');
   assert.deepEqual(modules.filter((m) => !files.includes(m)), [], 'loaded by the app but not in sw.js');
+  assert.ok(modules.includes('./src/sim/worker.js'), 'the Worker\'s own file and what it imports are followed');
+  assert.deepEqual(assets.filter((a) => !files.includes(a)), [], 'fetched by the app but not in sw.js');
   // What index.html and the manifest name: the stylesheet, the icons, the manifest itself.
   const named = [...html.matchAll(/\b(?:href|src)="([^"]+)"/g)].map((m) => m[1]).concat(manifest.icons.map((icon) => icon.src));
   assert.deepEqual(named.filter((f) => !files.includes(f)), [], 'named by index.html or the manifest but not in sw.js');
   assert.equal(new Set(files).size, files.length, 'no file listed twice');
-  console.log(`  ${files.length} files cached, ${modules.length} loaded by the app's code`);
+  console.log(`  ${files.length} files cached: ${modules.length} loaded by the app's code, ${assets.length} JSBSim files`);
 });
 
-test('sw.js lists no code the app does not load', () => {
-  const loaded = filesLoaded('./src/main.js');
-  assert.deepEqual(listed.filter((f) => f.startsWith('./src/') && !loaded.includes(f)), [], 'cached but never loaded');
+test('sw.js lists no code or data the app does not load', () => {
+  const loaded = filesLoaded('./src/main.js').concat(assets);
+  assert.deepEqual(listed.filter((f) => (f.startsWith('./src/') || f.startsWith('./jsbsim/')) && !loaded.includes(f)), [], 'cached but never loaded');
+});
+
+test('each JSBSim build is an Emscripten file with its .wasm beside it, and both are cached', () => {
+  for (const [key, build] of Object.entries(BUILDS)) {
+    assert.equal(build.wasm, build.module.replace(/\.mjs$/, '.wasm'), `${key}: the .wasm has the .mjs's name`);
+    // The Emscripten file fetches the .wasm itself, by this name, from its own folder.
+    const name = posix.basename(build.wasm);
+    assert.ok(read(fromSrc(build.module)).includes(`new URL("${name}",import.meta.url)`), `${key}: the .mjs loads ${name} from beside itself`);
+    for (const file of [build.module, build.wasm]) assert.ok(listed.includes(fromSrc(file)), `${fromSrc(file)} is in sw.js`);
+  }
+  assert.deepEqual(Object.keys(BUILDS), ['weh', 'jseh'], 'the fast build and the fallback');
+});
+
+test('the credit on the pause screen names the JSBSim that is pinned', () => {
+  const tag = read('jsbsim/pins.env').match(/^JSBSIM_TAG=v(.+)$/m)[1];
+  assert.ok(html.includes(`<p class="about">Flight model: JSBSim ${tag}, LGPL 2.1</p>`), `JSBSim ${tag}`);
+  assert.match(read('jsbsim/jsbsim-data/COPYING'), /GNU LESSER GENERAL PUBLIC LICENSE\s+Version 2\.1/, 'and its licence is in the repo');
 });
 
 test('the simulation code has no DOM or Three.js code, so it runs headless in Node', () => {

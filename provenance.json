@@ -86,6 +86,11 @@
       "how": "adapted",
       "original": "88c5b534cbe3f5fa3d754809c18df7b19187e1137eeb538a0dae237740859c18"
     },
+    "src/fdm.js": {
+      "from": "FDM:web/page.ts",
+      "how": "adapted",
+      "original": "3e1cfb6df28e1fbbf856308026d1197d77394072c5a11d6eb0d6c2834e7ca609"
+    },
     "jsbsim/pins.env": {
       "from": "FDM:pins.env",
       "how": "byte for byte",

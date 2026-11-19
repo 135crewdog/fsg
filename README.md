@@ -36,6 +36,13 @@ python3 -m http.server 8000
 
 Then open <http://localhost:8000/>.
 
+## How JSBSim runs in the app
+
+- `src/fdm.js`, on the page, starts a module Worker, `src/sim/worker.js`, and posts it the seven JSBSim files the Cessna 172 test aircraft needs (`src/sim/c172x-files.js`), fetched as they are from `jsbsim/jsbsim-data/`.
+- The Worker imports the Emscripten file `jsbsim/dist-wasm/fdm-weh.mjs`, which fetches `fdm-weh.wasm` from beside itself. If that build doesn't start, a fresh Worker tries the fallback build, `fdm-jseh`.
+- Every one of those files is in `sw.js`, so it all works offline.
+- For now only the developer overlay uses it (Settings, Developer on): it shows JSBSim starting, `c172x` loading, and the time one step of physics takes.
+
 ## The one build
 
 The app itself is not built. JSBSim is: C++ to WebAssembly, by `jsbsim/scripts/build.sh`, with its output committed in `jsbsim/dist-wasm/`. It is rebuilt only when JSBSim or the C++ host layer changes, and a rebuild must reproduce the committed files byte for byte (`.github/workflows/rebuild.yml`). `jsbsim/README.md` has the steps.

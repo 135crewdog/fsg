@@ -3,6 +3,7 @@
 // milestone 0 needs. The platform rules and the update logic are Rage's
 // (135crewdog/rage, src/main.js), by way of Wings.
 import { APP_VERSION } from './version.js';
+import { start as startJsbsim } from './fdm.js';
 
 const $ = (id) => document.getElementById(id);
 for (const el of document.querySelectorAll('.version')) el.textContent = APP_VERSION;
@@ -22,19 +23,46 @@ let devOn = false;
 let offline = 'not yet';   // yes once the service worker has every file cached
 // Opened from the home screen, or in a browser tab? iOS says with navigator.standalone.
 const installed = () => navigator.standalone === true || window.matchMedia('(display-mode: standalone)').matches;
+let jsbsimLines = [];
 const showDev = () => {
   if (!devOn) return;
   $('dev').textContent = [
     `FSG ${APP_VERSION}`,
     installed() ? 'home-screen app' : 'browser tab',
     `offline ready: ${offline}`,
+    ...jsbsimLines,
   ].join('\n');
 };
+
+// JSBSim, shown on the overlay: with Developer on, a Worker starts JSBSim,
+// loads the Cessna 172 test aircraft and times its step, and the overlay
+// says so line by line. It runs each time the switch goes on, and never
+// otherwise: with Developer off the app starts no Worker.
+let jsbsim = null, jsbsimRunning = false;
+const runJsbsim = () => {
+  if (jsbsimRunning) return;
+  jsbsimRunning = true;
+  jsbsim = null;
+  jsbsimLines = ['JSBSim: starting'];
+  showDev();
+  let first = true;
+  startJsbsim((line) => {
+    if (first) jsbsimLines = [];
+    first = false;
+    jsbsimLines.push(line);
+    showDev();
+  }).then((result) => { jsbsim = result; }, (error) => {
+    jsbsim = { error: String(error?.message ?? error) };
+    jsbsimLines.push(`JSBSim did not start: ${jsbsim.error}`);
+  }).finally(() => { jsbsimRunning = false; showDev(); });
+};
+
 const setDev = (on) => {
   devOn = on;
   devSwitch.setAttribute('aria-checked', String(on));
   $('dev').hidden = !on;
   showDev();
+  if (on) runJsbsim();
   try { localStorage.setItem(DEV_KEY, on ? 'on' : 'off'); } catch { /* storage may be blocked; the choice still holds for this visit */ }
 };
 let savedDev = null;
@@ -46,6 +74,7 @@ devSwitch.addEventListener('click', () => setDev(devSwitch.getAttribute('aria-ch
 window.fsg = Object.freeze({
   version: APP_VERSION,
   get offline() { return offline; },
+  get jsbsim() { return jsbsim; },   // null until JSBSim has run; then its numbers, or { error }
 });
 
 $('settings').addEventListener('click', () => { show('pause'); checkForUpdate(); });
