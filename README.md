@@ -8,7 +8,9 @@ A flight sim game for the iPhone: a home-screen web app at <https://135crewdog.g
 - `docs/milestones/`: each milestone's approved plan, its "done" lines and its results. Milestone 0 (setup) is under way: `docs/milestones/0.md`.
 - `docs/ideas.md`: ideas, not built until the owner picks one.
 - `index.html`, `style.css`, `sw.js`, `manifest.webmanifest`, `icons/`, `src/`: the app. Plain HTML, CSS and JavaScript; nothing is built.
-- `tests/`: the tests.
+- `jsbsim/`: everything about JSBSim, copied from `135crewdog/FDM`. Its `README.md` says where each piece came from.
+- `tools/from-fdm.mjs` and `provenance.json`: the script that copied pieces in from FDM and Wings, and the record of what it copied.
+- `tests/`, `jsbsim/tests/`: the tests.
 
 ## Running the tests
 
