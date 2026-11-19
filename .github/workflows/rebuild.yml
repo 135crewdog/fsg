@@ -32,12 +32,17 @@ jobs:
           cmake --version | head -1; ninja --version; g++ --version | head -1
       - name: JSBSim and Emscripten at the pins
         run: jsbsim/scripts/setup-toolchain.sh
+      # JSBSim's own build file (src/CMakeLists.txt) stamps " [GitHub build N/commit ...]" into its version
+      # text whenever GITHUB_RUN_NUMBER is set, which makes the .wasm files 29 and 30 bytes longer than the
+      # committed ones. So the builds here run without that one variable, as a build anywhere else does.
+      # (Found on this workflow's first run; a build elsewhere with the variable set by hand gave GitHub's
+      # files byte for byte. docs/milestones/0.md has the numbers.)
       - name: Build
-        run: jsbsim/scripts/build.sh
+        run: env -u GITHUB_RUN_NUMBER jsbsim/scripts/build.sh
       - name: Byte for byte the committed files?
         run: node jsbsim/scripts/compare-rebuild.mjs
       - name: A broken source file stops the build; a clean build elsewhere gives the same files
-        run: jsbsim/scripts/selftest-build.sh
+        run: env -u GITHUB_RUN_NUMBER jsbsim/scripts/selftest-build.sh
       - name: Keep the rebuilt files if anything went wrong
         if: failure()
         uses: actions/upload-artifact@v7

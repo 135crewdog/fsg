@@ -46,6 +46,8 @@ jsbsim/scripts/build.sh                # native answer keys, then both WebAssemb
 node jsbsim/scripts/compare-rebuild.mjs
 ```
 
+One thing in the environment changes the result: JSBSim's own build file stamps the build number into its version text when it finds `GITHUB_RUN_NUMBER` (or `TRAVIS`, or `APPVEYOR`) set, as on a GitHub Actions machine. The committed files were built without the stamp, so build without those variables: `env -u GITHUB_RUN_NUMBER jsbsim/scripts/build.sh`.
+
 A rebuild must give the committed files byte for byte. `.github/workflows/rebuild.yml` does exactly these steps in GitHub Actions whenever anything that feeds the build changes, and fails on any difference. The committed binaries are never replaced by a rebuild that differs: FDM's test evidence belongs to those exact files.
 
 ## JSBSim itself
