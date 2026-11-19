@@ -39,6 +39,7 @@ export const FILES = [
   ...['index.html', 'style.css', 'sw.js', 'manifest.webmanifest', 'src/main.js', 'src/version.js', 'tests/app.test.js',
     '.github/workflows/test.yml', '.github/workflows/pages.yml'].map((f) => adapted('wings', f)),
   adapted('FDM', 'tests/page.chromium.mjs', 'tests/browser/app.chromium.mjs'),
+  adapted('FDM', 'web/page.ts', 'src/fdm.js'),   // how the page starts the Worker, and the fallback marker
 
   // JSBSim's pins and data, from FDM.
   copy('FDM', 'pins.env', 'jsbsim/pins.env'),
