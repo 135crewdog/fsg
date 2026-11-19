@@ -152,6 +152,29 @@ check(!(await visible('#screen-start .update')), 'and the offer is gone');
   await q.waitForFunction(() => window.fsg.jsbsim !== null, null, { timeout: 60000 });
   check((await q.evaluate(() => window.fsg.jsbsim.build)) === 'weh', 'which it does');
   await died.close();
+
+  // (c) The Worker's own file fails to load, and fails while the aircraft files are still on their way.
+  //     Neither build can start: the overlay must say so, not sit at "starting", and the switch must retry.
+  const noWorker = await browser.newContext({ viewport: { width: 852, height: 393 }, serviceWorkers: 'block' });
+  await noWorker.route('**/src/sim/worker.js', (route) => route.abort());
+  await noWorker.route('**/jsbsim-data/**', async (route) => { await new Promise((done) => setTimeout(done, 400)); await route.continue(); });
+  const w = await noWorker.newPage();
+  await w.addInitScript(() => { try { localStorage.setItem('fsg.dev', 'on'); } catch { /* not yet on the page's origin */ } });
+  await w.goto(base);
+  const settled = await w.waitForFunction(() => window.fsg.jsbsim !== null, null, { timeout: 20000 }).then(() => true, () => false);
+  const r3 = settled ? await w.evaluate(() => window.fsg.jsbsim) : null;
+  const b3 = await w.locator('#dev').textContent();
+  check(settled && typeof r3.error === 'string' && b3.includes('JSBSim did not start'), 'the Worker itself fails to load: the overlay says so', settled ? b3.split('\n').slice(3).join(' | ') : `stuck at: ${b3.split('\n').slice(3).join(' | ')}`);
+  check((await w.evaluate(() => localStorage.getItem('fsg.fdmStarting'))) === null, 'and the marker is cleared');
+  if (settled) {
+    await noWorker.unroute('**/src/sim/worker.js');
+    await w.click('#settings');
+    await w.click('#dev-switch');   // off
+    await w.click('#dev-switch');   // on again: a fresh try
+    await w.waitForFunction(() => window.fsg.jsbsim !== null && !window.fsg.jsbsim.error, null, { timeout: 60000 }).catch(() => {});
+    check((await w.evaluate(() => window.fsg.jsbsim?.build)) === 'weh', 'switching Developer off and on tries again, and now it starts');
+  }
+  await noWorker.close();
 }
 
 check(errors.length === 0, 'no console errors', errors.join(' | '));

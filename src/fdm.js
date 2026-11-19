@@ -40,24 +40,31 @@ async function run(build, say) {
   const worker = new Worker(new URL('./sim/worker.js', import.meta.url), { type: 'module' });
   const client = new WorkerClient((message, transfer) => worker.postMessage(message, transfer ?? []));
   worker.onmessage = (event) => client.receive(event.data);
-  worker.onerror = (event) => client.failAll(`worker error: ${event.message ?? 'it did not load'}`);
+  // A Worker that fails (its own file or one of its imports did not load, say) answers nothing from then on.
+  // So the failure is kept: it ends the requests already waiting, and every request made after it.
+  let dead = null;
+  worker.onerror = (event) => {
+    dead = new Error(`the Worker failed: ${event.message || 'it did not load'}`);
+    client.failAll(dead.message);
+  };
+  const request = (body, transfer) => (dead ? Promise.reject(dead) : client.request(body, transfer));
   try {
     const files = new Map();
     for (const path of C172X_FILES) files.set(path, await fetchBytes(DATA + path));
     const pack = buildPack(files);
-    const init = await client.request({ type: 'init', moduleUrl: new URL(BUILDS[build].module, import.meta.url).href, packs: [['/data', pack]] }, [pack.buffer]);
+    const init = await request({ type: 'init', moduleUrl: new URL(BUILDS[build].module, import.meta.url).href, packs: [['/data', pack]] }, [pack.buffer]);
     const version = init.version.match(/^JSBSim [\d.]+/)?.[0] ?? init.version;
     say(`${version}   ${BUILDS[build].name}`);
 
     const before = performance.now();
-    const created = await client.request({ type: 'create', model: 'c172x', ic: 'reset01', dt: DT, outputs: ['position/h-sl-ft', 'velocities/vtrue-kts'] });
+    const created = await request({ type: 'create', model: 'c172x', ic: 'reset01', dt: DT, outputs: ['position/h-sl-ft', 'velocities/vtrue-kts'] });
     const loadMs = performance.now() - before;
-    await client.request({ type: 'dispose' });
+    await request({ type: 'dispose' });
     say(`c172x loaded in ${Math.round(loadMs)} ms`);
 
     // FDM's benchmark, unchanged: c172x in the air, the middle one of five timed batches of 3,000 steps.
     // (On iPhone the clock ticks in whole milliseconds, so only whole batches are timed.)
-    const { result } = await client.request({ type: 'bench', options: { dt: DT, forces: 0, fixtureAircraftPath: '' } });
+    const { result } = await request({ type: 'bench', options: { dt: DT, forces: 0, fixtureAircraftPath: '' } });
     say(`${result.usPerStep.toFixed(1)} µs per step   (${result.batchSteps} steps at 1/120 s)`);
     return { build, version: init.version, loadMs, usPerStep: result.usPerStep, startAltitudeFt: created.curr[0], endAltitudeFt: result.endAltitudeFt, endAirspeedKt: result.endAirspeedKt };
   } finally {

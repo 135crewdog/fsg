@@ -53,6 +53,7 @@ const runJsbsim = () => {
     showDev();
   }).then((result) => { jsbsim = result; }, (error) => {
     jsbsim = { error: String(error?.message ?? error) };
+    if (first) jsbsimLines = [];   // nothing started: the error takes the place of "starting"
     jsbsimLines.push(`JSBSim did not start: ${jsbsim.error}`);
   }).finally(() => { jsbsimRunning = false; showDev(); });
 };
