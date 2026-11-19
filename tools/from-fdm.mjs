@@ -10,8 +10,9 @@
 import { createHash } from 'node:crypto';
 import { execFileSync } from 'node:child_process';
 import { chmodSync, existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { stripTypeScriptTypes } from 'node:module';
 import { tmpdir } from 'node:os';
-import { dirname, join } from 'node:path';
+import { dirname, join, posix } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 export const ROOT = fileURLToPath(new URL('..', import.meta.url));
@@ -24,10 +25,13 @@ export const SOURCES = {
 // ---- what is copied ----
 // how: 'byte for byte'  the copy is the original, bit for bit
 //      'changed'        the original with the listed replacements, and nothing else
+//      'types removed'  TypeScript made into plain JavaScript by removeTypes() below, then the
+//                       listed replacements if any, and nothing else
 //      'adapted'        rewritten on purpose for FSG; only the original's hash is recorded,
 //                       and the file says at its top where it came from
 const copy = (source, from, to = from) => ({ source, from, to, how: 'byte for byte' });
 const adapted = (source, from, to = from) => ({ source, from, to, how: 'adapted' });
+const typesRemoved = (from, to, extra = {}) => ({ source: 'FDM', from, to, how: 'types removed', ...extra });
 
 export const FILES = [
   // The app shell, from Wings.
@@ -60,6 +64,31 @@ export const FILES = [
   ...['build.sh', 'setup-toolchain.sh', 'check-flags.mjs', 'write-build-info.mjs', 'check-binaries.mjs', 'selftest-build.sh']
     .map((f) => copy('FDM', `scripts/${f}`, `jsbsim/scripts/${f}`)),
   ...['fdm-weh.mjs', 'fdm-weh.wasm', 'fdm-jseh.mjs', 'fdm-jseh.wasm', 'build-info.json'].map((f) => copy('FDM', `dist-wasm/${f}`, `jsbsim/dist-wasm/${f}`)),
+
+  // The JavaScript side: FDM's wrapper, fixed-step loop and Worker (TypeScript there), now the app's simulation code.
+  ...['core', 'codes', 'files', 'loop', 'bench', 'worker-handler', 'worker'].map((f) => typesRemoved(`ts/${f}.ts`, `src/sim/${f}.js`)),
+
+  // FDM's tests, with the data they need. They stay in FDM's layout, under jsbsim/.
+  typesRemoved('ts/node.ts', 'jsbsim/tests/lib/node.js', {
+    why: 'This file moved two folders down (FDM: ts/; FSG: jsbsim/tests/lib/), so the root of the build, jsbsim/, is two folders up.',
+    replace: [['export const REPO_ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");', 'export const REPO_ROOT = join(dirname(fileURLToPath(import.meta.url)), "..", "..");']],
+  }),
+  typesRemoved('tests/lib/harness.ts', 'jsbsim/tests/lib/harness.js', {
+    why: 'FDM committed its result files in results/. FSG writes them to build/results/, which is not committed: FDM\'s evidence stays in FDM.',
+    replace: [
+      ['export const RESULTS_DIR = join(REPO_ROOT, "results");', 'export const RESULTS_DIR = join(REPO_ROOT, "build", "results");'],
+      ['writes them to results/<name>.txt;', 'writes them to build/results/<name>.txt;'],
+    ],
+  }),
+  ...['compare', 'fixtures', 'grids', 'node-worker', 'scenario'].map((f) => typesRemoved(`tests/lib/${f}.ts`, `jsbsim/tests/lib/${f}.js`)),
+  ...['compare-selftest', 'wrapper', 'loop', 'load', 'ground', 'forces', 'parity'].map((f) => typesRemoved(`tests/${f}.test.ts`, `jsbsim/tests/${f}.test.js`)),
+  ...['aircraft/broken_xml/broken_xml.xml', 'nasa/aircraft/brick_damped/brick_damped.xml', 'nasa/aircraft/brick_damped/reset_Atmos_03.xml',
+    'nasa/aircraft/sphere/reset_Atmos_01.xml', 'nasa/aircraft/sphere/sphere.xml', 'nasa/scripts/Atmos_01.xml', 'nasa/scripts/Atmos_03.xml',
+    'scripts/t_integrators.xml', 'scripts/t_short.xml', 'scripts/t_terminate.xml'].map((f) => copy('FDM', `tests/fixtures/${f}`, `jsbsim/tests/fixtures/${f}`)),
+  ...['01_sim_01', '01_sim_02', '01_sim_03', '01_sim_04', '01_sim_06', '02_sim_01', '02_sim_02', '02_sim_04', '02_sim_06', '03_sim_01', '03_sim_02', '03_sim_04', '03_sim_06']
+    .map((f) => copy('FDM', `tests/reference/nasa/Atmos_${f}.csv`, `jsbsim/tests/reference/nasa/Atmos_${f}.csv`)),
+  copy('FDM', 'tests/reference/nasa/README.md', 'jsbsim/tests/reference/nasa/README.md'),
+  copy('FDM', 'tests/rng-elements.md', 'jsbsim/tests/rng-elements.md'),
 ];
 
 // Whole folders, byte for byte. Checked by git's own id for the folder (a hash of every name, mode and byte in it).
@@ -85,17 +114,96 @@ export function treeOnDisk(folder) {
   }
 }
 
+/**
+ * TypeScript to plain JavaScript, by removing the types and nothing else.
+ * Node's own stripper blanks every type out with spaces and leaves all other characters where they were.
+ * On top of that, so the result reads as source:
+ *  - lines that were nothing but types are kept as // comments, where they were (they describe the
+ *    Worker's messages and the options); `import type` lines are dropped;
+ *  - the blanks left inside a line are closed up.
+ */
+export function removeTypes(source) {
+  const blanked = stripTypeScriptTypes(source);
+  if (blanked.length !== source.length) throw new Error('the stripper changed the length');
+  const was = source.split('\n'), now = blanked.split('\n');
+  const out = [];
+  let run = [];   // consecutive lines that were only types
+  const flush = () => {
+    const indent = Math.min(...run.map((line) => line.match(/^\s*/)[0].length));
+    for (const line of run) out.push(`${line.slice(0, indent)}// ${line.slice(indent)}`);
+    run = [];
+  };
+  let inImportType = false;
+  for (let i = 0; i < was.length; i++) {
+    const a = was[i], b = now[i];
+    if (a !== b && b.trim() === '') {
+      const ends = /from\s+["'][^"']+["'];?\s*$/.test(a);
+      if (inImportType) { if (ends) inImportType = false; } else if (/^\s*import type\b/.test(a)) inImportType = !ends; else run.push(a);
+      continue;
+    }
+    if (run.length) flush();
+    if (a === b) { out.push(a); continue; }
+    // Part of the line was types: take the blanked characters out, and the one space each leaves over.
+    let line = '';
+    for (let j = 0; j < a.length;) {
+      if (a[j] === b[j]) { line += a[j++]; continue; }
+      let k = j;
+      while (k < a.length && (a[k] !== b[k] || (a[k] === ' ' && k + 1 < a.length && a[k + 1] !== b[k + 1]))) k++;   // one blanked span, with the single spaces inside it
+      const after = a[k] ?? '';
+      if (line.endsWith(' ') && (after === '' || /[;,)\]} ]/.test(after))) line = line.slice(0, -1);   // "x as T;" becomes "x;"
+      else if (after === ' ' && (line === '' || /[\s({\[]$/.test(line))) k++;                          // "private x" becomes "x"
+      j = k;
+    }
+    if (/^\s*(import|export)\b/.test(line)) line = line.replace(/,\s*}/, ' }');   // "{ a, type B }" becomes "{ a }"
+    out.push(line.replace(/\s+$/, ''));
+  }
+  if (run.length) flush();
+  return out.join('\n');
+}
+
+// Where each converted file went: its old path in FDM to its new path here.
+const MOVED = new Map(FILES.filter((f) => f.how === 'types removed').map((f) => [f.from, f.to]));
+
+/** ".ts" becomes ".js": in every relative path the code names, and in the file names its comments mention. */
+function renameTs(text, entry) {
+  // "./x.ts" and "../ts/x.ts" in import lines, import() and new URL(): the same file, at its new place.
+  text = text.replace(/(["'])(\.{1,2}\/[^"'\n]*\.ts)\1/g, (all, quote, path) => {
+    const to = MOVED.get(posix.normalize(posix.join(posix.dirname(entry.from), path)));
+    if (!to) throw new Error(`${entry.from} names ${path}, which is not copied`);
+    const relative = posix.relative(posix.dirname(entry.to), to);
+    return quote + (relative.startsWith('.') ? relative : `./${relative}`) + quote;
+  });
+  // In whole-line comments: "ts/worker.ts" is now src/sim/worker.js, and a bare "codes.ts" is codes.js.
+  return text.split('\n').map((line) => {
+    if (!/^\s*(\/\/|\/?\*)/.test(line)) return line;
+    return line.replace(/\b(ts\/)?([a-z-]+)\.ts\b/g, (all, folder, name) => {
+      const to = MOVED.get(`ts/${name}.ts`);
+      if (!to) return all;
+      return folder ? to : `${name}.js`;
+    });
+  }).join('\n');
+}
+
+const header = (entry) => `// From 135crewdog/FDM, ${entry.from}, commit ${SOURCES.FDM.commit.slice(0, 7)}. Made by tools/from-fdm.mjs: the types are removed
+// (a line that was only types is kept as a comment), ".ts" in file names becomes ".js", and import paths
+// follow FSG's folders.${entry.why ? ` Also changed: ${entry.replace.length === 1 ? 'one line' : `${entry.replace.length} lines`}, listed in tools/from-fdm.mjs.` : ' Nothing else is changed.'}
+// In the comments below, host/, dist-wasm/, jsbsim-data/, build/ and tests/ are folders of jsbsim/; REPORT.md
+// and RESEARCH.md are FDM's, at that commit; and "TypeScript" means this file, which is now JavaScript.
+`;
+
+function replaceOnce(text, entry) {
+  for (const [find, put] of entry.replace ?? []) {
+    if (text.split(find).length !== 2) throw new Error(`${entry.from}: expected exactly one "${find.trim()}"`);
+    text = text.replace(find, () => put);
+  }
+  return text;
+}
+
 /** The bytes a copy must have, made from the original. */
 function derive(entry, original) {
   if (entry.how === 'byte for byte') return original;
-  if (entry.how === 'changed') {
-    let text = original.toString('utf8');
-    for (const [find, put] of entry.replace) {
-      if (text.split(find).length !== 2) throw new Error(`${entry.from}: expected exactly one "${find.trim()}"`);
-      text = text.replace(find, () => put);
-    }
-    return Buffer.from(text);
-  }
+  if (entry.how === 'changed') return Buffer.from(replaceOnce(original.toString('utf8'), entry));
+  if (entry.how === 'types removed') return Buffer.from(header(entry) + replaceOnce(renameTs(removeTypes(original.toString('utf8')), entry), entry));
   throw new Error(`${entry.to}: ${entry.how} files are not derived`);
 }
 

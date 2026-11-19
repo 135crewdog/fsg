@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Test fixture written for this project. Same run settings as JSBSim's own Atmos_02.xml (dt 0.01 s, 30 s). -->
+<runscript name="NASA EOM Check Case Atmos 03 (project fixture)">
+  <description>NASA TM-2015-218675 atmospheric check case 03: tumbling brick with aerodynamic damping, no drag</description>
+  <use aircraft="brick_damped" initialize="reset_Atmos_03"/>
+  <run start="0.0" end="30" dt="0.01"/>
+</runscript>

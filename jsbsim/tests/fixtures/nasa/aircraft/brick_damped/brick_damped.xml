@@ -1,0 +1,107 @@
+<?xml version="1.0"?>
+<!--
+  Test fixture written for this project (not part of JSBSim's data).
+  NASA TM-2015-218675 "brick" with aerodynamic rate damping, for atmospheric check case 03.
+  It is JSBSim's own check_cases/NASA_EOM_2015/aircraft/brick/brick.xml (planet and mass properties unchanged)
+  plus reference dimensions and three damping moments.
+  Source of the aerodynamic model: https://nescacademy.nasa.gov/workshop/FlightSim/2015/models/brick_aero.dml
+    S = 0.22222 ft2, b = 0.33333 ft, c = 0.66667 ft
+    Cl = Clp * p b / (2 V),  Cm = Cmq * q c / (2 V),  Cn = Cnr * r b / (2 V),  Clp = Cmq = Cnr = -1.0
+    Clr = Cnp = 0; CL = CY = 0; airspeed V is not taken below 0.5 ft/s
+  Case 03 sets CD = 0 (https://nescacademy.nasa.gov/flightsim/2015/atmospheric/acc03).
+-->
+<fdm_config name="NASA EOM brick with rate damping" version="2.0" release="BETA">
+  <fileheader/>
+  <planet name="NASA EOM Earth">
+    <equatorial_radius>20925646.9951</equatorial_radius>
+    <semiminor_axis>20855487.2626682</semiminor_axis>
+    <rotation_rate>7.29211302386770E-05</rotation_rate>
+    <J2>1.08262982000000E-03</J2>
+  </planet>
+  <metrics>
+    <wingarea unit="FT2"> 0.22222 </wingarea>
+    <wingspan unit="FT"> 0.33333 </wingspan>
+    <chord unit="FT"> 0.66667 </chord>
+  </metrics>
+  <mass_balance>
+    <ixx unit="SLUG*FT2"> 0.001894220 </ixx>
+    <iyy unit="SLUG*FT2"> 0.006211019 </iyy>
+    <izz unit="SLUG*FT2"> 0.007194665 </izz>
+    <emptywt unit="SLUG"> 0.155404754 </emptywt>
+  </mass_balance>
+  <ground_reactions/>
+  <aerodynamics>
+    <axis name="ROLL">
+      <function name="aero/moment/roll-damping-lbsft">
+        <description>qbar S b Clp (p b / 2V), Clp = -1.0</description>
+        <product>
+          <property>aero/qbar-psf</property>
+          <property>metrics/Sw-sqft</property>
+          <property>metrics/bw-ft</property>
+          <value>-1.0</value>
+          <quotient>
+            <product>
+              <property>velocities/p-aero-rad_sec</property>
+              <property>metrics/bw-ft</property>
+            </product>
+            <product>
+              <value>2.0</value>
+              <max>
+                <property>velocities/vt-fps</property>
+                <value>0.5</value>
+              </max>
+            </product>
+          </quotient>
+        </product>
+      </function>
+    </axis>
+    <axis name="PITCH">
+      <function name="aero/moment/pitch-damping-lbsft">
+        <description>qbar S c Cmq (q c / 2V), Cmq = -1.0</description>
+        <product>
+          <property>aero/qbar-psf</property>
+          <property>metrics/Sw-sqft</property>
+          <property>metrics/cbarw-ft</property>
+          <value>-1.0</value>
+          <quotient>
+            <product>
+              <property>velocities/q-aero-rad_sec</property>
+              <property>metrics/cbarw-ft</property>
+            </product>
+            <product>
+              <value>2.0</value>
+              <max>
+                <property>velocities/vt-fps</property>
+                <value>0.5</value>
+              </max>
+            </product>
+          </quotient>
+        </product>
+      </function>
+    </axis>
+    <axis name="YAW">
+      <function name="aero/moment/yaw-damping-lbsft">
+        <description>qbar S b Cnr (r b / 2V), Cnr = -1.0</description>
+        <product>
+          <property>aero/qbar-psf</property>
+          <property>metrics/Sw-sqft</property>
+          <property>metrics/bw-ft</property>
+          <value>-1.0</value>
+          <quotient>
+            <product>
+              <property>velocities/r-aero-rad_sec</property>
+              <property>metrics/bw-ft</property>
+            </product>
+            <product>
+              <value>2.0</value>
+              <max>
+                <property>velocities/vt-fps</property>
+                <value>0.5</value>
+              </max>
+            </product>
+          </quotient>
+        </product>
+      </function>
+    </axis>
+  </aerodynamics>
+</fdm_config>

@@ -80,6 +80,15 @@ test('sw.js lists no code the app does not load', () => {
   assert.deepEqual(listed.filter((f) => f.startsWith('./src/') && !loaded.includes(f)), [], 'cached but never loaded');
 });
 
+test('the simulation code has no DOM or Three.js code, so it runs headless in Node', () => {
+  const files = sources('src/sim');
+  for (const file of files) {
+    assert.doesNotMatch(code(read(file)), /\b(document|window|navigator|localStorage|sessionStorage|requestAnimationFrame|THREE)\b\s*[.(]/, `${file} uses nothing from the page`);
+  }
+  assert.ok(files.length >= 7, 'the wrapper, the loop and the Worker are there');
+  console.log(`  ${files.length} headless files`);
+});
+
 // ---- added for FSG: the platform rules a test can read from the source ----
 
 test('the shared origin: every cache is fsg-, only fsg- caches are deleted, every storage key is fsg.', () => {
