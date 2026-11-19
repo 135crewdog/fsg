@@ -1,0 +1,23 @@
+<?xml version="1.0"?>
+<!--
+  Test fixture written for this project. NASA TM-2015-218675 atmospheric check case 03, initial conditions
+  (https://nescacademy.nasa.gov/flightsim/2015/atmospheric/acc03):
+    latitude 0, longitude 0, altitude 30000 ft MSL; velocity 0; attitude 0;
+    body rate relative to the local frame: roll 9.995821927, pitch 20, yaw 30 deg/s.
+  These are the same values as JSBSim's own reset_Atmos_02.xml (case 02 and 03 start the same way).
+-->
+<initialize name="Check case C1.3" version="2.0">
+  <position frame="ECEF">
+    <altitudeMSL unit="FT"> 30000.0 </altitudeMSL>
+  </position>
+  <velocity frame="LOCAL">
+    <x> 0.0 </x>
+    <y> 0.0 </y>
+    <z> 0.0 </z>
+  </velocity>
+  <attitude_rate unit="DEG/SEC" frame="BODY">
+    <x> 9.995821927 </x>
+    <y> 20.0 </y>
+    <z> 30.0 </z>
+  </attitude_rate>
+</initialize>

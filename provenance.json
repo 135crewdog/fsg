@@ -254,6 +254,284 @@
       "how": "byte for byte",
       "original": "0e44fb3fa494963bcaa5a89d215ae0200d2c559775087a5e39f1ad49c05e9576",
       "copy": "0e44fb3fa494963bcaa5a89d215ae0200d2c559775087a5e39f1ad49c05e9576"
+    },
+    "src/sim/core.js": {
+      "from": "FDM:ts/core.ts",
+      "how": "types removed",
+      "original": "358308dedf6988a1ab155a52a4f5354fa1ef13d6f670872b2f016ae9de33b892",
+      "copy": "2a7aecedb225b2af3d9223cba51b5fd5a16699af1a43f232d51295608514756e"
+    },
+    "src/sim/codes.js": {
+      "from": "FDM:ts/codes.ts",
+      "how": "types removed",
+      "original": "690329b1d84ffc35a84ac4f187b8c058002838c24f171a060e569583253cf539",
+      "copy": "931fe0481a99110633e05a48bc131bc0c1a8367d538c918ca55ab1f9d4244408"
+    },
+    "src/sim/files.js": {
+      "from": "FDM:ts/files.ts",
+      "how": "types removed",
+      "original": "8fe7b5ef332a20e49be6ebd2ab88242391c867f3773f31d8a951fdf20d1d1a40",
+      "copy": "c12e09075aba2ef8a6d929bfa87f821a6f9efd1b37d2dd413457b23cb66016cb"
+    },
+    "src/sim/loop.js": {
+      "from": "FDM:ts/loop.ts",
+      "how": "types removed",
+      "original": "78359d6ef302038ae662f2d1ba45d874e7142840aa773b867594fd371f7edcba",
+      "copy": "1c9862b5572a669071a5def52e737b60f5fbd41ba4bfd8f004fca63ecae30eb6"
+    },
+    "src/sim/bench.js": {
+      "from": "FDM:ts/bench.ts",
+      "how": "types removed",
+      "original": "784fee431bafa6148af2e2a8a882b1f0b4a0a2976a2f890ef82e464191722e9d",
+      "copy": "bd8ca2d8f67ac83ae89a48cb6b0b48bd5b4b3fbc0af86de10b8b2bcc372d03d9"
+    },
+    "src/sim/worker-handler.js": {
+      "from": "FDM:ts/worker-handler.ts",
+      "how": "types removed",
+      "original": "a27a522dfa8a824815071c0e52cf26e4c33dfb98e7faa8811756d76225a2c097",
+      "copy": "0a3910d59eff4163166af4873876295ed283cf3986d9e8a5509c185f3606735a"
+    },
+    "src/sim/worker.js": {
+      "from": "FDM:ts/worker.ts",
+      "how": "types removed",
+      "original": "32bff1315abc2e0056f9653cfb476fd1a20024a522053f3f2b8b1f5edaef1b34",
+      "copy": "e698832c5e04cb776adc1862397fedf6b5abab6ee7f1b2170c6497cfb85c2e11"
+    },
+    "jsbsim/tests/lib/node.js": {
+      "from": "FDM:ts/node.ts",
+      "how": "types removed",
+      "original": "8ea3c84d1266012a6bc2b35923eaf93a79892fe31dabaf209eac28d9ea5bddf9",
+      "why": "This file moved two folders down (FDM: ts/; FSG: jsbsim/tests/lib/), so the root of the build, jsbsim/, is two folders up.",
+      "copy": "5466821cf696f4d472e2de54bcf980377dcf1fbbb561a709b6c55697dfca18fc"
+    },
+    "jsbsim/tests/lib/harness.js": {
+      "from": "FDM:tests/lib/harness.ts",
+      "how": "types removed",
+      "original": "9d60fb9da47a2f170dd2241d76c5dddb1822f7cb4c2a8bae9fa6035f0cac73db",
+      "why": "FDM committed its result files in results/. FSG writes them to build/results/, which is not committed: FDM's evidence stays in FDM.",
+      "copy": "d4cd435b939f4c17e76e0f9591a5f0b476235dfc18a5c44fc4101b09450b6532"
+    },
+    "jsbsim/tests/lib/compare.js": {
+      "from": "FDM:tests/lib/compare.ts",
+      "how": "types removed",
+      "original": "99d73b405b70845621ad9ac80a106ed8ed02f069b2c30c2c21bcdc57d2799fe1",
+      "copy": "ff0964855f43cd757b020c5870aae83a4b1177791c66fe5e8736645be2c25406"
+    },
+    "jsbsim/tests/lib/fixtures.js": {
+      "from": "FDM:tests/lib/fixtures.ts",
+      "how": "types removed",
+      "original": "3ad40eec552370b366ff0414e0ef996340ddadc47c0e8e8129e9f8ae276b9e6a",
+      "copy": "3582038011b594cc65264a4c4105afccd6cc11eeff51960e219ec5d0b076b004"
+    },
+    "jsbsim/tests/lib/grids.js": {
+      "from": "FDM:tests/lib/grids.ts",
+      "how": "types removed",
+      "original": "06aff9e1ac12e056016d4d8b6eef5f82ac4dbf350ef1b7682ff348cc3273eef2",
+      "copy": "2d4d828b183507bb8b99a172c950002605e1fe369c9c669861c26f9b4ed37f4b"
+    },
+    "jsbsim/tests/lib/node-worker.js": {
+      "from": "FDM:tests/lib/node-worker.ts",
+      "how": "types removed",
+      "original": "72872f126dd3a5482ef51efd1a10abbe9c949699fe54b977a16bc7b735a43392",
+      "copy": "94e99256b0226f1693b2421ecd43a5ad01f91eb4cb69f9c3b13131a5a0d7bc43"
+    },
+    "jsbsim/tests/lib/scenario.js": {
+      "from": "FDM:tests/lib/scenario.ts",
+      "how": "types removed",
+      "original": "a0b1d863a52a681c6df67f15c4c0ab35a0958c0b181e8a3fd7e730c3eb2f6b1e",
+      "copy": "5f343df5d7f8b32cd44d32e8bfda85f0465f13ca4ca4ff8ac2becd6c064d891c"
+    },
+    "jsbsim/tests/compare-selftest.test.js": {
+      "from": "FDM:tests/compare-selftest.test.ts",
+      "how": "types removed",
+      "original": "5b6a141d91ce04fbe647d8b2268d5338b41876e5b335ca5e0a407cca73ac7029",
+      "copy": "05d5069e3b555726e1fe8ec4d1a3a7c8e494691dd06ab3e5ad07cb6fb3db2ced"
+    },
+    "jsbsim/tests/wrapper.test.js": {
+      "from": "FDM:tests/wrapper.test.ts",
+      "how": "types removed",
+      "original": "27e5cb78c4d568e9e02951a7090f661c898de1242b175226f34d2f5e89946eaf",
+      "copy": "5e3411a4936da7f18b633dce822663e1b504db43367b413701e614aaf62bc709"
+    },
+    "jsbsim/tests/loop.test.js": {
+      "from": "FDM:tests/loop.test.ts",
+      "how": "types removed",
+      "original": "7ac3c748ec1ac90560635ec65403ef3156adf5675ccafe4bc6c8ccf21e136c9e",
+      "copy": "db666b24daef67af972e2b4918bd1cebe670475d8e40e837949dc98c1de9ca90"
+    },
+    "jsbsim/tests/load.test.js": {
+      "from": "FDM:tests/load.test.ts",
+      "how": "types removed",
+      "original": "c1a7078298ce7132182370fe275a79668af738df842728380fd0291dc5224ca4",
+      "copy": "f0c6e1d74678050bf4de3cfaf7a80542f6504188a628744b13b0cd1374cac52a"
+    },
+    "jsbsim/tests/ground.test.js": {
+      "from": "FDM:tests/ground.test.ts",
+      "how": "types removed",
+      "original": "3b2698b2152d2776e300b675c3c8ef676db512bdfa1ac9fcbe264d2a017e657b",
+      "copy": "ebf9b0508e862b06a9a00c6593ee2f5eeca78ed62347e277f2b367089d8a725c"
+    },
+    "jsbsim/tests/forces.test.js": {
+      "from": "FDM:tests/forces.test.ts",
+      "how": "types removed",
+      "original": "01092c99961e11b5d2433a71654f70d521b12fdc3753f62ff537ab36158d3a70",
+      "copy": "0f9d79b70afa55587bce3ff82ae4110e559f99eb11b5ef8f3b9ce90ca2de6171"
+    },
+    "jsbsim/tests/parity.test.js": {
+      "from": "FDM:tests/parity.test.ts",
+      "how": "types removed",
+      "original": "b797b1bff21ccec6d54d4a5192d3d218ed5141c0d3336fe86b96cd89af69805a",
+      "copy": "984ac835d1ebb691de9da7d23e6fe7dd62307aead65c9f4bca541afc9ddd495c"
+    },
+    "jsbsim/tests/fixtures/aircraft/broken_xml/broken_xml.xml": {
+      "from": "FDM:tests/fixtures/aircraft/broken_xml/broken_xml.xml",
+      "how": "byte for byte",
+      "original": "9724a911c6d02c8f3f73fb144f2fd39c55e50bb0716d3db19ae9fdcf94a200eb",
+      "copy": "9724a911c6d02c8f3f73fb144f2fd39c55e50bb0716d3db19ae9fdcf94a200eb"
+    },
+    "jsbsim/tests/fixtures/nasa/aircraft/brick_damped/brick_damped.xml": {
+      "from": "FDM:tests/fixtures/nasa/aircraft/brick_damped/brick_damped.xml",
+      "how": "byte for byte",
+      "original": "1a0208768f55d176fbe824b57bb9cdbe3ccd919e803b1d869a06feb39e9dc1c7",
+      "copy": "1a0208768f55d176fbe824b57bb9cdbe3ccd919e803b1d869a06feb39e9dc1c7"
+    },
+    "jsbsim/tests/fixtures/nasa/aircraft/brick_damped/reset_Atmos_03.xml": {
+      "from": "FDM:tests/fixtures/nasa/aircraft/brick_damped/reset_Atmos_03.xml",
+      "how": "byte for byte",
+      "original": "4e7745135d0904199b75481b19ffc96b8bc7ba05a8c5bbef001415f7bc71eac7",
+      "copy": "4e7745135d0904199b75481b19ffc96b8bc7ba05a8c5bbef001415f7bc71eac7"
+    },
+    "jsbsim/tests/fixtures/nasa/aircraft/sphere/reset_Atmos_01.xml": {
+      "from": "FDM:tests/fixtures/nasa/aircraft/sphere/reset_Atmos_01.xml",
+      "how": "byte for byte",
+      "original": "e66c13d20f6fa60acd7a26150b8751e98e1b8cab1447319f97b8e288229ff231",
+      "copy": "e66c13d20f6fa60acd7a26150b8751e98e1b8cab1447319f97b8e288229ff231"
+    },
+    "jsbsim/tests/fixtures/nasa/aircraft/sphere/sphere.xml": {
+      "from": "FDM:tests/fixtures/nasa/aircraft/sphere/sphere.xml",
+      "how": "byte for byte",
+      "original": "b76ff83e2c485f9f922ef798e0d03f37345971ef4292a43969f82d548be99497",
+      "copy": "b76ff83e2c485f9f922ef798e0d03f37345971ef4292a43969f82d548be99497"
+    },
+    "jsbsim/tests/fixtures/nasa/scripts/Atmos_01.xml": {
+      "from": "FDM:tests/fixtures/nasa/scripts/Atmos_01.xml",
+      "how": "byte for byte",
+      "original": "adcafbe7dfc6de2b324c797970ab31ba2d9ac24a9c6dd6ce33adb6faed12a2ba",
+      "copy": "adcafbe7dfc6de2b324c797970ab31ba2d9ac24a9c6dd6ce33adb6faed12a2ba"
+    },
+    "jsbsim/tests/fixtures/nasa/scripts/Atmos_03.xml": {
+      "from": "FDM:tests/fixtures/nasa/scripts/Atmos_03.xml",
+      "how": "byte for byte",
+      "original": "78abdb2720fd19fac007ab8f5e0b7cc606672b3b82a8fffd0015511fdcc0e47d",
+      "copy": "78abdb2720fd19fac007ab8f5e0b7cc606672b3b82a8fffd0015511fdcc0e47d"
+    },
+    "jsbsim/tests/fixtures/scripts/t_integrators.xml": {
+      "from": "FDM:tests/fixtures/scripts/t_integrators.xml",
+      "how": "byte for byte",
+      "original": "9ab9f1eaed9a6ed12fa2b1c6b5c94518815d8c3d45b36fdb860aeff4d674ca06",
+      "copy": "9ab9f1eaed9a6ed12fa2b1c6b5c94518815d8c3d45b36fdb860aeff4d674ca06"
+    },
+    "jsbsim/tests/fixtures/scripts/t_short.xml": {
+      "from": "FDM:tests/fixtures/scripts/t_short.xml",
+      "how": "byte for byte",
+      "original": "67a2e0d1c1ea338d620ff5202b6d19faf6ad29ae4c05201c0678f4242961b1af",
+      "copy": "67a2e0d1c1ea338d620ff5202b6d19faf6ad29ae4c05201c0678f4242961b1af"
+    },
+    "jsbsim/tests/fixtures/scripts/t_terminate.xml": {
+      "from": "FDM:tests/fixtures/scripts/t_terminate.xml",
+      "how": "byte for byte",
+      "original": "d6833117c28305250aeb5fc6b56d9acf9b80eec5af7bff4c4b47e33891470cad",
+      "copy": "d6833117c28305250aeb5fc6b56d9acf9b80eec5af7bff4c4b47e33891470cad"
+    },
+    "jsbsim/tests/reference/nasa/Atmos_01_sim_01.csv": {
+      "from": "FDM:tests/reference/nasa/Atmos_01_sim_01.csv",
+      "how": "byte for byte",
+      "original": "314e8abc76d2bad68340c69cd075b9f733f7f9561e76e97b14577214bb20233e",
+      "copy": "314e8abc76d2bad68340c69cd075b9f733f7f9561e76e97b14577214bb20233e"
+    },
+    "jsbsim/tests/reference/nasa/Atmos_01_sim_02.csv": {
+      "from": "FDM:tests/reference/nasa/Atmos_01_sim_02.csv",
+      "how": "byte for byte",
+      "original": "fd26815d1fa0ed1ee140cc565738f1cfe88fa37cbf3100f714ec39bc940cb152",
+      "copy": "fd26815d1fa0ed1ee140cc565738f1cfe88fa37cbf3100f714ec39bc940cb152"
+    },
+    "jsbsim/tests/reference/nasa/Atmos_01_sim_03.csv": {
+      "from": "FDM:tests/reference/nasa/Atmos_01_sim_03.csv",
+      "how": "byte for byte",
+      "original": "95b31ab8af669c388c86bb2a3dcad4bdeb1f4f5355b2bc605cd628ecb6ee77fc",
+      "copy": "95b31ab8af669c388c86bb2a3dcad4bdeb1f4f5355b2bc605cd628ecb6ee77fc"
+    },
+    "jsbsim/tests/reference/nasa/Atmos_01_sim_04.csv": {
+      "from": "FDM:tests/reference/nasa/Atmos_01_sim_04.csv",
+      "how": "byte for byte",
+      "original": "92a20844dbd2ef14d6fd8a0253495f26266e1888bce021300bff4c75e5cfb904",
+      "copy": "92a20844dbd2ef14d6fd8a0253495f26266e1888bce021300bff4c75e5cfb904"
+    },
+    "jsbsim/tests/reference/nasa/Atmos_01_sim_06.csv": {
+      "from": "FDM:tests/reference/nasa/Atmos_01_sim_06.csv",
+      "how": "byte for byte",
+      "original": "c6183a9bd84a47915f52258d5892daa42c5228ba46a1ad64b744b788e096584a",
+      "copy": "c6183a9bd84a47915f52258d5892daa42c5228ba46a1ad64b744b788e096584a"
+    },
+    "jsbsim/tests/reference/nasa/Atmos_02_sim_01.csv": {
+      "from": "FDM:tests/reference/nasa/Atmos_02_sim_01.csv",
+      "how": "byte for byte",
+      "original": "deb423c19bcdd1b99fdf6c0d2bbd1b6c1db5b68410a8e1dbe7a6cedb1b724f79",
+      "copy": "deb423c19bcdd1b99fdf6c0d2bbd1b6c1db5b68410a8e1dbe7a6cedb1b724f79"
+    },
+    "jsbsim/tests/reference/nasa/Atmos_02_sim_02.csv": {
+      "from": "FDM:tests/reference/nasa/Atmos_02_sim_02.csv",
+      "how": "byte for byte",
+      "original": "2e8f3fd6481f3c10325a0e28167f3c3bc12e50df0244adb04105bdbf8d51c566",
+      "copy": "2e8f3fd6481f3c10325a0e28167f3c3bc12e50df0244adb04105bdbf8d51c566"
+    },
+    "jsbsim/tests/reference/nasa/Atmos_02_sim_04.csv": {
+      "from": "FDM:tests/reference/nasa/Atmos_02_sim_04.csv",
+      "how": "byte for byte",
+      "original": "adc7aa647ed38ae74280979e5c4e4d6d950799c6350ce842f7f3d2fd731e241a",
+      "copy": "adc7aa647ed38ae74280979e5c4e4d6d950799c6350ce842f7f3d2fd731e241a"
+    },
+    "jsbsim/tests/reference/nasa/Atmos_02_sim_06.csv": {
+      "from": "FDM:tests/reference/nasa/Atmos_02_sim_06.csv",
+      "how": "byte for byte",
+      "original": "b4f97de225adcd15f5d3a91fab718b2e0cddd94efa6b752e461b169ff4931d1a",
+      "copy": "b4f97de225adcd15f5d3a91fab718b2e0cddd94efa6b752e461b169ff4931d1a"
+    },
+    "jsbsim/tests/reference/nasa/Atmos_03_sim_01.csv": {
+      "from": "FDM:tests/reference/nasa/Atmos_03_sim_01.csv",
+      "how": "byte for byte",
+      "original": "7caaa2c3accc1b050274294bdc64c79ba0393351fde47ca9d74601a0a0d30142",
+      "copy": "7caaa2c3accc1b050274294bdc64c79ba0393351fde47ca9d74601a0a0d30142"
+    },
+    "jsbsim/tests/reference/nasa/Atmos_03_sim_02.csv": {
+      "from": "FDM:tests/reference/nasa/Atmos_03_sim_02.csv",
+      "how": "byte for byte",
+      "original": "d30ea5b84b2f8b810d58d4b135e263d4f32ba1d383561a6497c55b2a55b23f4d",
+      "copy": "d30ea5b84b2f8b810d58d4b135e263d4f32ba1d383561a6497c55b2a55b23f4d"
+    },
+    "jsbsim/tests/reference/nasa/Atmos_03_sim_04.csv": {
+      "from": "FDM:tests/reference/nasa/Atmos_03_sim_04.csv",
+      "how": "byte for byte",
+      "original": "df90029dc7365b14370c0d245a4ef3cba3624984b2957a20d3ce0c5f3c2a54eb",
+      "copy": "df90029dc7365b14370c0d245a4ef3cba3624984b2957a20d3ce0c5f3c2a54eb"
+    },
+    "jsbsim/tests/reference/nasa/Atmos_03_sim_06.csv": {
+      "from": "FDM:tests/reference/nasa/Atmos_03_sim_06.csv",
+      "how": "byte for byte",
+      "original": "6fe7e96ed69970947c0f604f6110329c037155911e340b4524dc777048409215",
+      "copy": "6fe7e96ed69970947c0f604f6110329c037155911e340b4524dc777048409215"
+    },
+    "jsbsim/tests/reference/nasa/README.md": {
+      "from": "FDM:tests/reference/nasa/README.md",
+      "how": "byte for byte",
+      "original": "894d572c58e503c28c89bcab05517c0fd578d73477c5cf820ed10ff570668615",
+      "copy": "894d572c58e503c28c89bcab05517c0fd578d73477c5cf820ed10ff570668615"
+    },
+    "jsbsim/tests/rng-elements.md": {
+      "from": "FDM:tests/rng-elements.md",
+      "how": "byte for byte",
+      "original": "4f16bc792c9ef6853bed5787d2da72481692978334ff7e672fa664180b61cc8e",
+      "copy": "4f16bc792c9ef6853bed5787d2da72481692978334ff7e672fa664180b61cc8e"
     }
   },
   "trees": {

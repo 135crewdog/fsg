@@ -1,0 +1,28 @@
+<?xml version="1.0"?>
+<!--
+  Test fixture written for this project (not part of JSBSim's data).
+  NASA TM-2015-218675 "atmospheric spheroid", used here for atmospheric check case 01 (dropped sphere, no drag).
+  Source of the numbers: https://nescacademy.nasa.gov/flightsim/2015/bodies and
+  https://nescacademy.nasa.gov/workshop/FlightSim/2015/models/cannonball_inertia.dml
+    mass 1 slug; Ixx = Iyy = Izz = 3.6 slug ft2; products of inertia 0; centre of mass at the reference point.
+  Case 01 sets CD = 0 (the body's usual CD is 0.1), so there is no aerodynamics section content.
+  The <planet> block is copied unchanged from JSBSim's own check_cases/NASA_EOM_2015/aircraft/brick/brick.xml.
+-->
+<fdm_config name="NASA EOM atmospheric spheroid, dragless" version="2.0" release="BETA">
+  <fileheader/>
+  <planet name="NASA EOM Earth">
+    <equatorial_radius>20925646.9951</equatorial_radius>
+    <semiminor_axis>20855487.2626682</semiminor_axis>
+    <rotation_rate>7.29211302386770E-05</rotation_rate>
+    <J2>1.08262982000000E-03</J2>
+  </planet>
+  <metrics/>
+  <mass_balance>
+    <ixx unit="SLUG*FT2"> 3.6 </ixx>
+    <iyy unit="SLUG*FT2"> 3.6 </iyy>
+    <izz unit="SLUG*FT2"> 3.6 </izz>
+    <emptywt unit="SLUG"> 1.0 </emptywt>
+  </mass_balance>
+  <ground_reactions/>
+  <aerodynamics/>
+</fdm_config>

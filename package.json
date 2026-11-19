@@ -3,6 +3,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "test": "node --test \"tests/*.test.js\" \"jsbsim/tests/*.test.js\""
+    "pretest": "node -e \"import('./jsbsim/tests/lib/fixtures.js').then((m) => m.prepareFixtures())\"",
+    "test": "node --test --test-concurrency=1 \"tests/*.test.js\" \"jsbsim/tests/*.test.js\""
   }
 }

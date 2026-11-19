@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Test fixture: sets simulation/terminate at 0.25 s; the script itself would run for 10 s. -->
+<runscript name="terminate script">
+  <use aircraft="c172x" initialize="reset01"/>
+  <run start="0.0" end="10" dt="0.008333333333333333">
+    <event name="terminate">
+      <condition> simulation/sim-time-sec ge 0.25 </condition>
+      <set name="simulation/terminate" value="1"/>
+    </event>
+  </run>
+</runscript>

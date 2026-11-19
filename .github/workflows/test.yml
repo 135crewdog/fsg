@@ -1,5 +1,6 @@
 # Runs the tests on every push and pull request.
-# After 135crewdog/wings, .github/workflows/test.yml, commit 557a8d0.
+# After 135crewdog/wings, .github/workflows/test.yml, commit 557a8d0. Added for FSG: the native answer keys,
+# which FDM's tests compare the WebAssembly builds with.
 name: Tests
 
 on:
@@ -10,10 +11,34 @@ on:
 
 jobs:
   test:
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-24.04   # the compiler FDM built its answer key with (g++ 13.3)
+    timeout-minutes: 45
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-node@v7
         with:
           node-version: 22
+      # Native JSBSim, built from the pinned source with the same C++ host layer. It takes a few minutes,
+      # so it is kept between runs and rebuilt only when something that feeds it changes.
+      - name: The native answer keys, from an earlier run if nothing changed
+        id: native
+        uses: actions/cache@v6
+        with:
+          path: |
+            jsbsim/build/native/fdm_native
+            jsbsim/build/native-asserts/fdm_native
+          key: native-ubuntu-24.04-${{ hashFiles('jsbsim/pins.env', 'jsbsim/CMakeLists.txt', 'jsbsim/host/**', 'jsbsim/tests/native/**', 'jsbsim/scripts/build-native.sh', 'jsbsim/scripts/check-flags.mjs') }}
+      - name: Build the native answer keys
+        if: steps.native.outputs.cache-hit != 'true'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y cmake ninja-build g++
+          jsbsim/scripts/build-native.sh
       - run: npm test
+      - name: Keep the tests' result files
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: test-results
+          path: jsbsim/build/results
+          if-no-files-found: ignore

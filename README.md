@@ -10,13 +10,15 @@ A flight sim game for the iPhone: a home-screen web app at <https://135crewdog.g
 - `index.html`, `style.css`, `sw.js`, `manifest.webmanifest`, `icons/`, `src/`: the app. Plain HTML, CSS and JavaScript; nothing is built.
 - `jsbsim/`: everything about JSBSim, copied from `135crewdog/FDM`. Its `README.md` says where each piece came from.
 - `tools/from-fdm.mjs` and `provenance.json`: the script that copied pieces in from FDM and Wings, and the record of what it copied.
+- `src/sim/`: the simulation code: the JSBSim wrapper, the fixed-step loop and the Worker. No DOM code, so it runs in Node too.
 - `tests/`, `jsbsim/tests/`: the tests.
 
 ## Running the tests
 
-You need Node 22 or later and nothing else: there are no dependencies to install.
+You need Node 22 or later; there are no dependencies to install. The tests of the JSBSim build compare it with native JSBSim, which is built once on your machine (it needs `cmake`, `ninja`, `g++` and `git`, and takes a few minutes):
 
 ```
+jsbsim/scripts/build-native.sh
 npm test
 ```
 
