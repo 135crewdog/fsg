@@ -1,0 +1,17 @@
+# Runs the tests on every push and pull request.
+# After 135crewdog/wings, .github/workflows/test.yml, commit 557a8d0.
+name: Tests
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+      - run: npm test
