@@ -1,0 +1,67 @@
+{
+  "jsbsim": {
+    "tag": "v1.3.3",
+    "commit": "66f7fafc07fe13e7ede9db20873030fed2881713",
+    "patches": [],
+    "source_clean": true
+  },
+  "emscripten": {
+    "version": "6.0.13",
+    "emcc": "emcc (Emscripten gcc/clang-like replacement + linker emulating GNU ld) 6.0.13 (e13ee988ce3d87a738dd8f3661d02223308c412a)"
+  },
+  "memory": {
+    "fixed_bytes": 16777216,
+    "growth": false,
+    "stack_bytes": 1048576
+  },
+  "source_date_epoch": 1792105025,
+  "host_sources_sha256": "d42c1008be3c1fa2c44794cde5c796d01da1743f35f0d5c116e16ade13ab6d78",
+  "data_trees": {
+    "TREE_aircraft": "962d46764e278f7f1907b6ca86d3af0585d69a76",
+    "TREE_engine": "209e17a602c99cd8a021d1c41515622f463bee68",
+    "TREE_systems": "a87444bcb6776b6c59c27fc2de3094e8dcd2d353",
+    "TREE_scripts": "14394154199758f25132437c04192a5b3b9b9fcf",
+    "TREE_check_cases_NASA_EOM_2015": "224e8cfbdbb2522346666a587fa2632dc245c477",
+    "BLOB_COPYING": "3394995abc5463238286bc53ce7608839b5d0ba7"
+  },
+  "native_answer_key": {
+    "compiler": "c++ (Ubuntu 13.3.0-6ubuntu2~24.04.1) 13.3.0",
+    "compile_flags_cxx": "-DJSBSIM_VERSION=\\\"1.3.3\\\" -fexceptions -ffp-contract=off -ffile-prefix-map=.=. -O3 -DNDEBUG -std=gnu++17 -fPIC"
+  },
+  "variants": {
+    "weh": {
+      "exceptions": "-fwasm-exceptions",
+      "files": {
+        "fdm-weh.wasm": {
+          "bytes": 1734938,
+          "sha256": "ab2357c849ba72d8e9e26a42b071ff9009e12a1756307a3aa53acd32e26353eb"
+        },
+        "fdm-weh.mjs": {
+          "bytes": 82263,
+          "sha256": "ef1fc74eb7bdac8d086567234dbc12bb01539a7d7c0e533cec90e6d1a6d99acc"
+        }
+      },
+      "compile_flags_cxx": "-DJSBSIM_VERSION=\\\"1.3.3\\\" -fwasm-exceptions -ffp-contract=off -ffile-prefix-map=.=. -O3 -DNDEBUG -std=gnu++17 -fPIC",
+      "compile_flags_c_expat": "-fwasm-exceptions -ffp-contract=off -ffile-prefix-map=.=. -O3 -DNDEBUG -fPIC",
+      "compile_flags_host": "-DJSBSIM_VERSION=\\\"1.3.3\\\" -fwasm-exceptions -ffp-contract=off -ffile-prefix-map=.=. -O3 -DNDEBUG -std=gnu++17",
+      "link_flags": "-O3 -fwasm-exceptions -sWASM_LEGACY_EXCEPTIONS=1 -sMODULARIZE=1 -sEXPORT_ES6=1 -sEXPORT_NAME=createFdmModule -sENVIRONMENT=web,worker,node -sALLOW_MEMORY_GROWTH=0 -sINITIAL_MEMORY=16777216 -sSTACK_SIZE=1048576 -sABORTING_MALLOC=0 -sFORCE_FILESYSTEM=1 -sEXIT_RUNTIME=0 -sEXPORTED_FUNCTIONS=_main,_malloc,_free -sEXPORTED_RUNTIME_METHODS=FS,HEAPF64,HEAP32,HEAPU8,UTF8ToString,stringToUTF8,lengthBytesUTF8"
+    },
+    "jseh": {
+      "exceptions": "-fexceptions",
+      "files": {
+        "fdm-jseh.wasm": {
+          "bytes": 2236922,
+          "sha256": "5631da24f912a5104e394f2356a1dba4fa6854aa2011c881fa017957e4c4185d"
+        },
+        "fdm-jseh.mjs": {
+          "bytes": 94843,
+          "sha256": "130ccb9f9e6c04afa8fb2eede03de67e6185574c9b266137555155ed7f40e874"
+        }
+      },
+      "compile_flags_cxx": "-DJSBSIM_VERSION=\\\"1.3.3\\\" -fexceptions -ffp-contract=off -ffile-prefix-map=.=. -O3 -DNDEBUG -std=gnu++17 -fPIC",
+      "compile_flags_c_expat": "-fexceptions -ffp-contract=off -ffile-prefix-map=.=. -O3 -DNDEBUG -fPIC",
+      "compile_flags_host": "-DJSBSIM_VERSION=\\\"1.3.3\\\" -fexceptions -ffp-contract=off -ffile-prefix-map=.=. -O3 -DNDEBUG -std=gnu++17",
+      "link_flags": "-O3 -fexceptions -sWASM_LEGACY_EXCEPTIONS=1 -sMODULARIZE=1 -sEXPORT_ES6=1 -sEXPORT_NAME=createFdmModule -sENVIRONMENT=web,worker,node -sALLOW_MEMORY_GROWTH=0 -sINITIAL_MEMORY=16777216 -sSTACK_SIZE=1048576 -sABORTING_MALLOC=0 -sFORCE_FILESYSTEM=1 -sEXIT_RUNTIME=0 -sEXPORTED_FUNCTIONS=_main,_malloc,_free -sEXPORTED_RUNTIME_METHODS=FS,HEAPF64,HEAP32,HEAPU8,UTF8ToString,stringToUTF8,lengthBytesUTF8"
+    }
+  }
+}

@@ -1,0 +1,46 @@
+# Rebuilds JSBSim's WebAssembly from the pinned sources and fails on any byte of difference from the
+# committed files. The method is GitHub's own "check-dist" workflow (actions/typescript-action).
+# It runs only when something that feeds the build changes, and on request. It is slow (two full builds),
+# so it must not be made a required check: when skipped it would stay pending and block every merge.
+name: Rebuild
+
+on:
+  pull_request:
+    paths:
+      - jsbsim/pins.env
+      - jsbsim/CMakeLists.txt
+      - jsbsim/host/**
+      - jsbsim/tests/native/**
+      - jsbsim/scripts/**
+      - jsbsim/dist-wasm/**
+      - .github/workflows/rebuild.yml
+  workflow_dispatch:
+
+jobs:
+  rebuild:
+    runs-on: ubuntu-24.04   # the compiler FDM built with (g++ 13.3)
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+      - name: CMake, Ninja and the compiler
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y cmake ninja-build g++
+          cmake --version | head -1; ninja --version; g++ --version | head -1
+      - name: JSBSim and Emscripten at the pins
+        run: jsbsim/scripts/setup-toolchain.sh
+      - name: Build
+        run: jsbsim/scripts/build.sh
+      - name: Byte for byte the committed files?
+        run: node jsbsim/scripts/compare-rebuild.mjs
+      - name: A broken source file stops the build; a clean build elsewhere gives the same files
+        run: jsbsim/scripts/selftest-build.sh
+      - name: Keep the rebuilt files if anything went wrong
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: rebuilt-dist-wasm
+          path: jsbsim/dist-wasm

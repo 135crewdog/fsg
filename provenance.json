@@ -104,6 +104,156 @@
       "original": "11315d91d6f640918d8e407012d0ed8990a3d58d424743c4d1fa73841b073094",
       "why": "In FDM the data sat at the repo's root; here it sits one folder down, in jsbsim/.",
       "copy": "0d077eb69ea720e622f40a735f24150a5a132efe4f514201a20749d951e93333"
+    },
+    "jsbsim/CMakeLists.txt": {
+      "from": "FDM:CMakeLists.txt",
+      "how": "byte for byte",
+      "original": "424720451385f2d001a73a82978e541ae03b2d47e216c7b1c576ee2c3c93be7a",
+      "copy": "424720451385f2d001a73a82978e541ae03b2d47e216c7b1c576ee2c3c93be7a"
+    },
+    "jsbsim/host/c_api.cpp": {
+      "from": "FDM:host/c_api.cpp",
+      "how": "byte for byte",
+      "original": "ebae0cac1718d5883d043f3305fdb76a75d7ec228184e8bc36edd19d21a91e01",
+      "copy": "ebae0cac1718d5883d043f3305fdb76a75d7ec228184e8bc36edd19d21a91e01"
+    },
+    "jsbsim/host/fdm_codes.h": {
+      "from": "FDM:host/fdm_codes.h",
+      "how": "byte for byte",
+      "original": "7ac512ec1120193e910141c368158023271dbba8e2ce0db391e713f1ff82777d",
+      "copy": "7ac512ec1120193e910141c368158023271dbba8e2ce0db391e713f1ff82777d"
+    },
+    "jsbsim/host/fdm_host.cpp": {
+      "from": "FDM:host/fdm_host.cpp",
+      "how": "byte for byte",
+      "original": "01bdc6b1340a8c8235ab6b10fd4291a7243d52e21b90f3b18a45ac1948118693",
+      "copy": "01bdc6b1340a8c8235ab6b10fd4291a7243d52e21b90f3b18a45ac1948118693"
+    },
+    "jsbsim/host/fdm_host.h": {
+      "from": "FDM:host/fdm_host.h",
+      "how": "byte for byte",
+      "original": "cf6cc1155d12c2fae70db095da3144b926218f374ad3f3ae2c68c85d3e602bf5",
+      "copy": "cf6cc1155d12c2fae70db095da3144b926218f374ad3f3ae2c68c85d3e602bf5"
+    },
+    "jsbsim/host/grid_ground.cpp": {
+      "from": "FDM:host/grid_ground.cpp",
+      "how": "byte for byte",
+      "original": "469dc341930d33671bea84665ac4cce1ed4693013ab1fe6059df660775513b14",
+      "copy": "469dc341930d33671bea84665ac4cce1ed4693013ab1fe6059df660775513b14"
+    },
+    "jsbsim/host/grid_ground.h": {
+      "from": "FDM:host/grid_ground.h",
+      "how": "byte for byte",
+      "original": "359ebc28e9f50c59463073447d94e646055028a97bb23ed9dabb779cf5de58bf",
+      "copy": "359ebc28e9f50c59463073447d94e646055028a97bb23ed9dabb779cf5de58bf"
+    },
+    "jsbsim/host/host_logger.cpp": {
+      "from": "FDM:host/host_logger.cpp",
+      "how": "byte for byte",
+      "original": "1b9fd3c42bb01e5feeeb0b273c384ac892871a910f86040133c64f25ea522816",
+      "copy": "1b9fd3c42bb01e5feeeb0b273c384ac892871a910f86040133c64f25ea522816"
+    },
+    "jsbsim/host/host_logger.h": {
+      "from": "FDM:host/host_logger.h",
+      "how": "byte for byte",
+      "original": "736d13fdbab6a6946a6aa30ecbe9dc16548da5c15ddf09f275d954108d1f5d0c",
+      "copy": "736d13fdbab6a6946a6aa30ecbe9dc16548da5c15ddf09f275d954108d1f5d0c"
+    },
+    "jsbsim/host/native_main.cpp": {
+      "from": "FDM:host/native_main.cpp",
+      "how": "byte for byte",
+      "original": "86e3651b2c2aea6142ebb1097ee8fb8ec72d6b80a41746c825c12454adecc34c",
+      "copy": "86e3651b2c2aea6142ebb1097ee8fb8ec72d6b80a41746c825c12454adecc34c"
+    },
+    "jsbsim/host/scenario_runner.cpp": {
+      "from": "FDM:host/scenario_runner.cpp",
+      "how": "byte for byte",
+      "original": "5234459909a4ff875a5a2490dae72446e4423523d075e26411a4afb6849c554c",
+      "copy": "5234459909a4ff875a5a2490dae72446e4423523d075e26411a4afb6849c554c"
+    },
+    "jsbsim/host/scenario_runner.h": {
+      "from": "FDM:host/scenario_runner.h",
+      "how": "byte for byte",
+      "original": "238e63337ef7b83dde57057a6fffabdb5539142ef81d8e41a44adce1629690cd",
+      "copy": "238e63337ef7b83dde57057a6fffabdb5539142ef81d8e41a44adce1629690cd"
+    },
+    "jsbsim/tests/native/ground_oracle.cpp": {
+      "from": "FDM:tests/native/ground_oracle.cpp",
+      "how": "byte for byte",
+      "original": "959d3130ac57ca6b9e2f2b2cd56afb46f4e99068c833cbbc20e197bb6cdd2418",
+      "copy": "959d3130ac57ca6b9e2f2b2cd56afb46f4e99068c833cbbc20e197bb6cdd2418"
+    },
+    "jsbsim/tests/native/host_selftest.cpp": {
+      "from": "FDM:tests/native/host_selftest.cpp",
+      "how": "byte for byte",
+      "original": "1adcad36c8c47f947ee25ee011e694e6a7fe889bd2f96ef8b54eed5419205cb1",
+      "copy": "1adcad36c8c47f947ee25ee011e694e6a7fe889bd2f96ef8b54eed5419205cb1"
+    },
+    "jsbsim/scripts/build.sh": {
+      "from": "FDM:scripts/build.sh",
+      "how": "byte for byte",
+      "original": "d831c96633a74b602aab4f934c7ccafb7111b04cb2627dcebe9b1838f1ccba44",
+      "copy": "d831c96633a74b602aab4f934c7ccafb7111b04cb2627dcebe9b1838f1ccba44"
+    },
+    "jsbsim/scripts/setup-toolchain.sh": {
+      "from": "FDM:scripts/setup-toolchain.sh",
+      "how": "byte for byte",
+      "original": "083d2d9347b19a9132d2993211fd8fbd010f151b564d0b4d84766ff752d2debf",
+      "copy": "083d2d9347b19a9132d2993211fd8fbd010f151b564d0b4d84766ff752d2debf"
+    },
+    "jsbsim/scripts/check-flags.mjs": {
+      "from": "FDM:scripts/check-flags.mjs",
+      "how": "byte for byte",
+      "original": "73874a34cab630f1b653a6d7e5fc7f8a0bd33904e92fd3b8e193c955a1af2a5a",
+      "copy": "73874a34cab630f1b653a6d7e5fc7f8a0bd33904e92fd3b8e193c955a1af2a5a"
+    },
+    "jsbsim/scripts/write-build-info.mjs": {
+      "from": "FDM:scripts/write-build-info.mjs",
+      "how": "byte for byte",
+      "original": "d2717963295b2633ee9d68a0ed007e92caa15cac0b56ff612d49d9d7b6c601f2",
+      "copy": "d2717963295b2633ee9d68a0ed007e92caa15cac0b56ff612d49d9d7b6c601f2"
+    },
+    "jsbsim/scripts/check-binaries.mjs": {
+      "from": "FDM:scripts/check-binaries.mjs",
+      "how": "byte for byte",
+      "original": "048bc16e03393a37d64a6ef8eb11449b0ad3411f9dee5e211aa6794b07baedd7",
+      "copy": "048bc16e03393a37d64a6ef8eb11449b0ad3411f9dee5e211aa6794b07baedd7"
+    },
+    "jsbsim/scripts/selftest-build.sh": {
+      "from": "FDM:scripts/selftest-build.sh",
+      "how": "byte for byte",
+      "original": "dea14aaa671942eea3ff2b6cae598f52cc1eee1f11372ea939cf8080356e7322",
+      "copy": "dea14aaa671942eea3ff2b6cae598f52cc1eee1f11372ea939cf8080356e7322"
+    },
+    "jsbsim/dist-wasm/fdm-weh.mjs": {
+      "from": "FDM:dist-wasm/fdm-weh.mjs",
+      "how": "byte for byte",
+      "original": "ef1fc74eb7bdac8d086567234dbc12bb01539a7d7c0e533cec90e6d1a6d99acc",
+      "copy": "ef1fc74eb7bdac8d086567234dbc12bb01539a7d7c0e533cec90e6d1a6d99acc"
+    },
+    "jsbsim/dist-wasm/fdm-weh.wasm": {
+      "from": "FDM:dist-wasm/fdm-weh.wasm",
+      "how": "byte for byte",
+      "original": "ab2357c849ba72d8e9e26a42b071ff9009e12a1756307a3aa53acd32e26353eb",
+      "copy": "ab2357c849ba72d8e9e26a42b071ff9009e12a1756307a3aa53acd32e26353eb"
+    },
+    "jsbsim/dist-wasm/fdm-jseh.mjs": {
+      "from": "FDM:dist-wasm/fdm-jseh.mjs",
+      "how": "byte for byte",
+      "original": "130ccb9f9e6c04afa8fb2eede03de67e6185574c9b266137555155ed7f40e874",
+      "copy": "130ccb9f9e6c04afa8fb2eede03de67e6185574c9b266137555155ed7f40e874"
+    },
+    "jsbsim/dist-wasm/fdm-jseh.wasm": {
+      "from": "FDM:dist-wasm/fdm-jseh.wasm",
+      "how": "byte for byte",
+      "original": "5631da24f912a5104e394f2356a1dba4fa6854aa2011c881fa017957e4c4185d",
+      "copy": "5631da24f912a5104e394f2356a1dba4fa6854aa2011c881fa017957e4c4185d"
+    },
+    "jsbsim/dist-wasm/build-info.json": {
+      "from": "FDM:dist-wasm/build-info.json",
+      "how": "byte for byte",
+      "original": "0e44fb3fa494963bcaa5a89d215ae0200d2c559775087a5e39f1ad49c05e9576",
+      "copy": "0e44fb3fa494963bcaa5a89d215ae0200d2c559775087a5e39f1ad49c05e9576"
     }
   },
   "trees": {

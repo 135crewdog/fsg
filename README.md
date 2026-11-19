@@ -34,6 +34,10 @@ python3 -m http.server 8000
 
 Then open <http://localhost:8000/>.
 
+## The one build
+
+The app itself is not built. JSBSim is: C++ to WebAssembly, by `jsbsim/scripts/build.sh`, with its output committed in `jsbsim/dist-wasm/`. It is rebuilt only when JSBSim or the C++ host layer changes, and a rebuild must reproduce the committed files byte for byte (`.github/workflows/rebuild.yml`). `jsbsim/README.md` has the steps.
+
 ## Versions
 
 `APP_VERSION` in `src/version.js`, `VERSION` in `sw.js` and the newest entry in `CHANGELOG.md` change together on every deploy a player would notice. The tests fail if they disagree. Every file the app needs is listed in `sw.js`, so it works offline.
