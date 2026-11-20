@@ -2,6 +2,10 @@
 
 What changed in each version a player can see, newest first.
 
+## 0.0.6
+
+- Fixed: if the app was closed or updated while the Developer run was going, the next launch used the slower fallback build of JSBSim. It now uses the fast build again. Nothing new to see.
+
 ## 0.0.5
 
 - The game now runs inside the Worker, on the Worker's own clock. With Developer on, the overlay starts a Cessna parked on the runway of the test field for ten seconds and shows one line: the steps a second, and the time one step of the whole game takes. The two-clock comparison of 0.0.4 is gone: the Worker's clock was chosen. Nothing flies on screen yet.

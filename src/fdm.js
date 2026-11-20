@@ -62,7 +62,11 @@ async function flyOnRunway(request, states, say) {
 
 // Set while the fast build is starting. If the app dies there (Safari 26.0
 // and 26.1 did, WebKit bug 299629), the marker is still set at the next
-// launch, which then goes straight to the fallback build.
+// launch, which then goes straight to the fallback build. It is cleared as
+// soon as JSBSim has loaded an aircraft and stepped, not when the run ends:
+// an app closed or updated while the game is running has not died starting.
+// (Found on the owner's phone at 0.0.5: the marker was held for the whole
+// run, he took an update during one, and the next launch used the fallback.)
 const STARTING_KEY = 'fsg.fdmStarting';
 const marker = {
   get() { try { return localStorage.getItem(STARTING_KEY); } catch { return null; } },
@@ -75,8 +79,11 @@ async function fetchBytes(path) {
   return new Uint8Array(await response.arrayBuffer());
 }
 
-/** One build, in a fresh Worker: start JSBSim, load c172x, time the step, run the game with a parked airplane. The Worker is ended afterwards. */
-async function run(build, say) {
+/**
+ * One build, in a fresh Worker: start JSBSim, load c172x, time the step, run the game with a parked airplane.
+ * `started` is called once the build has shown it starts. The Worker is ended afterwards.
+ */
+async function run(build, say, started = () => {}) {
   const worker = new Worker(new URL('./sim/worker.js', import.meta.url), { type: 'module' });
   const client = new WorkerClient((message, transfer) => worker.postMessage(message, transfer ?? []));
   // A state the Worker posts unasked (the game, on the Worker's own clock) is not an answer to a request.
@@ -108,6 +115,7 @@ async function run(build, say) {
     // (On iPhone the clock ticks in whole milliseconds, so only whole batches are timed.)
     const { result } = await request({ type: 'bench', options: { dt: DT, forces: 0, fixtureAircraftPath: '' } });
     say(`${result.usPerStep.toFixed(1)} µs per step   (${result.batchSteps} steps at 1/120 s)`);
+    started();   // this build has loaded an aircraft and run 15,000 steps: it starts
     const flight = await flyOnRunway(request, states, say);
     return { build, version: init.version, loadMs, usPerStep: result.usPerStep, startAltitudeFt: created.curr[0], endAltitudeFt: result.endAltitudeFt, endAirspeedKt: result.endAirspeedKt, flight };
   } finally {
@@ -127,7 +135,7 @@ export async function start(say = () => {}) {
   }
   marker.set(true);
   try {
-    return await run('weh', say);
+    return await run('weh', say, () => marker.set(false));
   } catch {
     return await run('jseh', say);
   } finally {
