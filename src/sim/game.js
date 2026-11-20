@@ -91,6 +91,10 @@ export class Flight {
   controls;
   /** Set by an airborne start: the throttle and stick that hold the trimmed flight (the checkride starts from these). */
   trimmed = null;
+  /** The grid the flight was started on. */
+  ground;
+  /** With `record`: the inputs given to every step and the state after it, from the first step on. */
+  recorded = null;
   #at = new Map();   // where each name is in the state
 
   /**
@@ -100,10 +104,16 @@ export class Flight {
    *
    * For the checkride only, `airborne: { heightFt, knots }` starts it in the air instead: clean, level and
    * steady at that height and speed by JSBSim's own trim. The game never does: every flight starts parked.
+   *
+   * `record: true` keeps the tape: every step's inputs and the state after it (tape()). The start and the tape
+   * are the whole flight, so native JSBSim can fly it again. A flight trimmed into the air is not one: JSBSim's
+   * trim is not something the tape holds.
    */
-  static start(module, aircraft, { at = FIELD.start, ground = fieldGround(), settleSeconds = SETTLE_SECONDS, airborne = null, onEvent } = {}) {
+  static start(module, aircraft, { at = FIELD.start, ground = fieldGround(), settleSeconds = SETTLE_SECONDS, airborne = null, record = false, onEvent } = {}) {
+    if (record && airborne) throw new Error('an airborne start cannot be recorded: its trim is not part of the tape');
     const flight = new Flight();
     flight.aircraft = aircraft;
+    flight.ground = ground;
     const fdm = flight.fdm = Fdm.create(module, { dt: DT, ground, onEvent });
     try {
       fdm.loadModel(aircraft.model);
@@ -132,6 +142,7 @@ export class Flight {
       flight.inputs = fdm.bindInputs(flight.inputNames);
       fdm.runIC();
       flight.state = fdm.curr;
+      if (record) flight.recorded = { inputs: [], states: [Float64Array.from(flight.state)] };
 
       if (airborne) {
         // JSBSim's own trim: level and steady at this speed. It sets the throttle and the stick it needs, and
@@ -170,7 +181,31 @@ export class Flight {
 
   /** Runs n steps; returns JSBSim's result code (0 is ok; see codes.js). */
   step(n = 1) {
-    return this.fdm.step(n);
+    if (!this.recorded) return this.fdm.step(n);
+    for (let k = 0; k < n; k++) {
+      const inputs = Float64Array.from(this.inputs);
+      const result = this.fdm.step(1);
+      if (this.fdm.stepsInLastCall === 1) {
+        this.recorded.inputs.push(inputs);
+        this.recorded.states.push(Float64Array.from(this.state));
+      }
+      if (result !== 0) return result;
+    }
+    return 0;
+  }
+
+  /**
+   * The recorded flight: its start (aircraft, step, ground, the values set before the first step) and its tape
+   * (the names of the inputs, and one row of them for every step), with the states it went through.
+   */
+  tape() {
+    if (!this.recorded) throw new Error('this flight was not started with record: true');
+    const pack = (rows, width) => { const all = new Float64Array(rows.length * width); rows.forEach((row, i) => all.set(row, i * width)); return all; };
+    return {
+      model: this.aircraft.model, dt: DT, ground: this.ground, sets: this.startSets,
+      ins: this.inputNames, inputs: pack(this.recorded.inputs, this.inputNames.length), steps: this.recorded.inputs.length,
+      states: { columns: this.stateNames, rows: this.recorded.states.length, data: pack(this.recorded.states, this.stateNames.length) },
+    };
   }
 
   /** One of JSBSim's numbers, by name. For tests and the start; too slow for every step. */
