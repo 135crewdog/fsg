@@ -28,4 +28,24 @@ export const C172X = {
     speedbrake: { to: [] },
     brake: { to: ['fcs/left-brake-cmd-norm', 'fcs/right-brake-cmd-norm'] },
   },
+  /**
+   * The game's assists (src/sim/assists.js).
+   *   trim   Neutral speed 100 knots: JSBSim's own pitch and roll trim for level flight at 100 knots and
+   *          2,000 ft, set once. tests/assists.test.js re-derives them. (The roll trim holds the wings level
+   *          against the engine's torque at that power.)
+   *   feet   The game's: this file has no yaw damper. JSBSim's rudder command is positive nose left.
+   *   steer  Upstream's file gives a pilot no nosewheel steering: its autopilot system writes the steering
+   *          command every step (systems/Autopilot.xml, `ap/roll-command-selector-steering`), zero unless the
+   *          autopilot is flying. So on the ground the stick works the rudder, and below 30 knots the wheel
+   *          brake on the inside of the turn, at half strength at a standstill: how a pilot steers an
+   *          airplane whose nosewheel only casters.
+   */
+  assists: {
+    trim: { knots: 100, heightFt: 2000, sets: [['fcs/pitch-trim-cmd-norm', 0.2187], ['fcs/roll-trim-cmd-norm', -0.0749]] },
+    feet: { to: 'fcs/rudder-cmd-norm', sign: -1 },
+    steer: {
+      rudder: { to: 'fcs/rudder-cmd-norm', sign: -1 },
+      brakes: { left: 'fcs/left-brake-cmd-norm', right: 'fcs/right-brake-cmd-norm', strength: 0.5, untilKt: 30 },
+    },
+  },
 };

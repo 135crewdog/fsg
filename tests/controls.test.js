@@ -7,6 +7,7 @@ import { readFileSync } from 'node:fs';
 import { C172X } from '../src/sim/aircraft/c172x.js';
 import { F16 } from '../src/sim/aircraft/f16.js';
 import { FdmError } from '../src/sim/core.js';
+import { assistWrites } from '../src/sim/assists.js';
 import { DT, Flight, PARKED, STATE, commandsFor } from '../src/sim/game.js';
 import { FT, toWorld } from '../src/sim/world.js';
 import { VARIANTS, loadVariant } from '../jsbsim/tests/lib/node.js';
@@ -49,7 +50,8 @@ for (const variant of VARIANTS) {
         table.push(`${control}: ${to.length ? to.map((command) => `${command} = ${flight.get(command)}`).join(', ') : 'nothing (the airplane has none)'}`);
       }
       console.log(`  ${name}, given pitch 0.25 back, roll 0.5 left, throttle 0.75, all four toggles on:\n    ${table.join('\n    ')}`);
-      assert.deepEqual(flight.inputNames, commandsFor(aircraft, PARKED).map(([command]) => command));
+      // The inputs are those commands, then the ones the assists alone write (tests/assists.test.js lists them).
+      assert.deepEqual(flight.inputNames, [...new Set([...commandsFor(aircraft, PARKED).map(([command]) => command), ...assistWrites(aircraft.assists)])]);
       // A control the airplane does not have does nothing to it.
       seconds(flight, 6);
       if (aircraft === C172X) {
