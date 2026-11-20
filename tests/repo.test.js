@@ -16,7 +16,7 @@ test('package.json has no dependencies: CLAUDE.md says to ask before adding one'
 });
 
 test('the files every session reads are where CLAUDE.md says they are', () => {
-  for (const file of ['CLAUDE.md', 'README.md', 'docs/ideas.md', 'docs/milestones/0.md']) {
+  for (const file of ['CLAUDE.md', 'README.md', 'docs/ideas.md', 'docs/milestones/0.md', 'docs/milestones/1.md']) {
     assert.ok(existsSync(join(root, file)), file);
   }
   assert.match(readFileSync(join(root, 'CLAUDE.md'), 'utf8'), /^# FSG: Flight Sim Game\n/);
