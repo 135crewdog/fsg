@@ -40,6 +40,7 @@ const FT = 0.3048;
  * The test terrain, on 10 m posts like Hawaii's: the flat field round the origin, and things to hit.
  *   the sea        everything more than 3 km south of the runway: water at sea level
  *   a lake         400 m across, 2 km north and 1 km east of the numbers: water at sea level
+ * Water is at sea level wherever it is: where the slope meets the sea, the coast is a cliff.
  *   a slope        from 5 km east of the numbers the ground rises to the east at 5 degrees, for 4 km
  *   a hill         1,000 ft high and 3 km across at its foot, 6 km north and 2 km east of the numbers
  *   a face         from 10 km north the ground rises to the north at 30 degrees, to 5,000 ft
@@ -54,14 +55,15 @@ export const TEST_TERRAIN = {
 export function testTerrain() {
   const { slope, hill, face, lake, sea } = TEST_TERRAIN;
   const tan = (degrees) => Math.tan((degrees * Math.PI) / 180);
+  const water = (north, east) => north < sea.southOf || Math.hypot(north - lake.north, east - lake.east) < lake.radius;
   const height = (north, east) => {
+    if (water(north, east)) return 0;
     const onSlope = (Math.min(Math.max(east, slope.fromEast), slope.toEast) - slope.fromEast) * tan(slope.degrees) / FT;
     const fromHill = Math.hypot(north - hill.north, east - hill.east);
     const onHill = fromHill < hill.radius ? hill.heightFt * (1 - fromHill / hill.radius) : 0;
     const onFace = Math.min(Math.max(north - face.fromNorth, 0) * tan(face.degrees) / FT, face.topFt);
     return Math.max(onSlope, onHill, onFace);
   };
-  const water = (north, east) => north < sea.southOf || Math.hypot(north - lake.north, east - lake.east) < lake.radius;
   return sourceFrom(height, { water });
 }
 

@@ -36,6 +36,16 @@ test('the test terrain is what it says: a flat field, a sea, a lake, a 5 degree 
   assert.equal(heightAt(t, hill.north, hill.east), hill.heightFt);
   const steep = (heightAt(t, face.fromNorth + 1010, 0) - heightAt(t, face.fromNorth + 1000, 0)) * FT / 10;
   assert.ok(Math.abs(Math.atan(steep) * 180 / Math.PI - face.degrees) < 0.01);
+  // Water is at sea level wherever it is, also where the sea lies under the line of the slope (Codex's
+  // finding on pull request 14: the sea there stood 287 ft high). Every water post of the whole terrain:
+  assert.ok(waterAt(t, -4000, 6000) && heightAt(t, -4000, 6000) === 0, `the sea south of the slope is at ${heightAt(t, -4000, 6000)} ft`);
+  let water = 0;
+  for (let row = -600; row <= 1200; row += 3) {
+    const heights = t.heights(row, -900, 1, 1900);
+    for (let column = 0; column < 1900; column++) if (t.water(row, column - 900)) { water++; assert.equal(heights[column], 0, `water post ${row}, ${column - 900}`); }
+  }
+  assert.ok(water > 100000, `${water} water posts looked at`);
+  assert.ok(heightAt(t, sea.southOf + 100, 6000) > 200, 'the slope stands where the sea is not: the coast there is a cliff');
 });
 
 test('a patch is cut on the terrain\'s own posts, round the place asked for', () => {
