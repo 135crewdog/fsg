@@ -42,6 +42,8 @@ export const FILES = [
   ...['icons/icon-32.png', 'icons/icon-180.png', 'icons/icon-192.png', 'icons/icon-512.png'].map((f) => copy('wings', f)),
   ...['index.html', 'style.css', 'sw.js', 'manifest.webmanifest', 'src/main.js', 'src/version.js', 'tests/app.test.js',
     '.github/workflows/test.yml', '.github/workflows/pages.yml'].map((f) => adapted('wings', f)),
+  // The model handoff and the reader its test uses, from Wings (milestone 2). Both files are the same at Wings' later commits.
+  ...['docs/models.md', 'models/glb.mjs'].map((f) => adapted('wings', f)),
   adapted('FDM', 'tests/page.chromium.mjs', 'tests/browser/app.chromium.mjs'),
   adapted('FDM', 'web/page.ts', 'src/fdm.js'),   // how the page starts the Worker, and the fallback marker
 
