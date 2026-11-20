@@ -213,6 +213,26 @@ check(!(await visible('#screen-start .update')), 'and the offer is gone');
   await failing.close();
 }
 
+// 9. The app goes away while the game is running (the pilot takes an update, or closes the app, mid-flight):
+//    the fast build had started long before, so the next launch must use it again, not the fallback. Found
+//    on the owner's phone at 0.0.5: he took the update while 0.0.4's Developer run was still going, and
+//    0.0.5 opened on the fallback build.
+{
+  const leaving = await browser.newContext({ viewport: { width: 852, height: 393 }, serviceWorkers: 'block' });
+  const g = await leaving.newPage();
+  await g.addInitScript(() => { try { localStorage.setItem('fsg.dev', 'on'); } catch { /* not yet on the page's origin */ } });
+  await g.goto(base);
+  await g.waitForFunction(() => document.getElementById('dev').textContent.includes('µs per step'), null, { timeout: 60000 });   // JSBSim has started and stepped
+  await new Promise((done) => setTimeout(done, 2000));
+  check((await g.evaluate(() => window.fsg.jsbsim)) === null, 'the game is running in the Worker when the app goes away');
+  await g.reload();
+  await g.waitForFunction(() => window.fsg.jsbsim !== null, null, { timeout: 60000 });
+  const r = await g.evaluate(() => window.fsg.jsbsim);
+  const b = await g.locator('#dev').textContent();
+  check(!r.error && r.build === 'weh' && b.includes('wasm exceptions'), 'the next launch starts the fast build again', r.error ?? b.split('\n').slice(3).join(' | '));
+  await leaving.close();
+}
+
 check(errors.length === 0, 'no console errors', errors.join(' | '));
 console.log(`\nChromium ${browser.version()} (headless), FSG ${version}: ${failed ? `${failed} FAILED` : 'all passed'}`);
 await browser.close();
