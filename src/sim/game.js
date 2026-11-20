@@ -1,12 +1,13 @@
 // One flight: a fresh JSBSim, one aircraft, standing where the game put it. New in FSG, milestone 1.
-// This file grows through the milestone (ground patches, assists, rules); so far it starts a flight parked
-// on the runway, takes the seven controls in and gives the state out.
+// This file grows through the milestone (assists, rules); so far it starts a flight parked on the runway,
+// takes the seven controls in, gives the state out, and keeps a patch of ground under the airplane.
 //
 // A flight is a start and a tape (docs/milestones/1.md): the start is a list of values set before JSBSim's
 // first step; after that, everything the game does to JSBSim goes through one array of inputs, every step.
 // That is what lets native JSBSim replay a flight, and it is the fast path (one array, no names).
 import { Fdm, FdmError } from './core.js';
-import { FIELD, fieldGround, toLatLon, toWorld } from './world.js';
+import { PATCH_MARGIN, PATCH_POSTS, cutPatch, flatSource, postsInside } from './ground.js';
+import { FIELD, toLatLon, toWorld } from './world.js';
 
 /** The physics step, seconds: 120 steps a second. */
 export const DT = 1 / 120;
@@ -91,6 +92,17 @@ export class Flight {
   controls;
   /** Set by an airborne start: the throttle and stick that hold the trimmed flight (the checkride starts from these). */
   trimmed = null;
+  /** The terrain the flight is over (src/sim/ground.js), and the patch of it JSBSim has now. */
+  terrain;
+  patch;
+  /** Posts along a side of a patch, and how near its edge the airplane may come before a new one is cut. */
+  patchPosts;
+  patchMargin;
+  /** True while the flight is held still because the ground ahead has not loaded. */
+  waiting = false;
+  /** How many patches have been cut after the first, and how many steps ended outside the patch they were run on (0, or the patch logic is wrong). */
+  swaps = 0;
+  stepsOutside = 0;
   /** The grid the flight was started on. */
   ground;
   /** With `record`: the inputs given to every step and the state after it, from the first step on. */
@@ -100,7 +112,9 @@ export class Flight {
   /**
    * Starts a flight: `aircraft` (src/sim/aircraft/) parked at `at` (metres north and east, heading in degrees
    * true), on its wheels, engine running at idle, brakes on, gear and flaps down, and settled.
-   * `ground` is the grid under it; `module` is a loaded FdmModule holding the aircraft's files.
+   * `terrain` is the ground it is over, a terrain source (src/sim/ground.js; the flat test field if left out);
+   * `module` is a loaded FdmModule holding the aircraft's files. Returns null if the ground at the start has
+   * not loaded: a flight never starts over ground that is not there.
    *
    * For the checkride only, `airborne: { heightFt, knots }` starts it in the air instead: clean, level and
    * steady at that height and speed by JSBSim's own trim. The game never does: every flight starts parked.
@@ -109,11 +123,15 @@ export class Flight {
    * are the whole flight, so native JSBSim can fly it again. A flight trimmed into the air is not one: JSBSim's
    * trim is not something the tape holds.
    */
-  static start(module, aircraft, { at = FIELD.start, ground = fieldGround(), settleSeconds = SETTLE_SECONDS, airborne = null, record = false, onEvent } = {}) {
+  static start(module, aircraft, { at = FIELD.start, terrain = flatSource(FIELD.heightFt), patchPosts = PATCH_POSTS, patchMargin = PATCH_MARGIN,
+    settleSeconds = SETTLE_SECONDS, airborne = null, record = false, nudge = 0, onEvent } = {}) {
     if (record && airborne) throw new Error('an airborne start cannot be recorded: its trim is not part of the tape');
+    const patch = cutPatch(terrain, at.north, at.east, patchPosts);
+    if (!patch) return null;
+    const ground = patch.grid;
     const flight = new Flight();
     flight.aircraft = aircraft;
-    flight.ground = ground;
+    Object.assign(flight, { terrain, patch, patchPosts, patchMargin, ground });
     const fdm = flight.fdm = Fdm.create(module, { dt: DT, ground, onEvent });
     try {
       fdm.loadModel(aircraft.model);
@@ -131,12 +149,17 @@ export class Flight {
         ...(airborne ? aircraft.controls.gear.to.map(() => ['gear/gear-pos-norm', 0]) : []),   // in the air the gear is already up
       ];
       for (const [name, value] of flight.startSets) fdm.setByName(name, value);
+      // For tests that measure how far a flight differs from itself: the start height moved by `nudge` last
+      // digits (2^-28 ft, one unit in the last place of an Earth-sized number, as FDM's tests do).
+      if (nudge) fdm.setByName('ic/h-sl-ft', fdm.getByName('ic/h-sl-ft') + nudge * 2 ** -28);
 
       flight.stateNames = STATE.map(([name]) => name);
       // Every wheel and airframe contact point the aircraft file has: wheels are gear/unit[k], the rest contact/unit[k].
       const units = fdm.getByName('gear/num-units');
       for (let k = 0; k < units; k++) flight.stateNames.push(fdm.has(`gear/unit[${k}]/WOW`) ? `gear/unit[${k}]/WOW` : `contact/unit[${k}]/WOW`);
       flight.stateNames.forEach((name, i) => flight.#at.set(name, i));
+      flight.#lat = flight.#at.get('position/lat-geod-rad');
+      flight.#lon = flight.#at.get('position/long-gc-rad');
       fdm.bindOutputs(flight.stateNames);
       flight.inputNames = commands.map(([name]) => name);
       flight.inputs = fdm.bindInputs(flight.inputNames);
@@ -179,20 +202,60 @@ export class Flight {
     return this.state[i];
   }
 
-  /** Runs n steps; returns JSBSim's result code (0 is ok; see codes.js). */
+  /**
+   * Runs up to n steps; returns JSBSim's result code (0 is ok; see codes.js). Before every step the patch of
+   * ground is looked at: if the airplane has come near its edge a new one is cut round it, and if the ground
+   * there has not loaded and the airplane is at the edge, the flight waits: no step is run (stepsRun says how
+   * many were), and `waiting` is true until a later call finds the ground.
+   */
   step(n = 1) {
-    if (!this.recorded) return this.fdm.step(n);
+    this.stepsRun = 0;
     for (let k = 0; k < n; k++) {
-      const inputs = Float64Array.from(this.inputs);
+      if (!this.#groundReady()) return 0;
+      const inputs = this.recorded ? Float64Array.from(this.inputs) : null;
       const result = this.fdm.step(1);
       if (this.fdm.stepsInLastCall === 1) {
-        this.recorded.inputs.push(inputs);
-        this.recorded.states.push(Float64Array.from(this.state));
+        this.stepsRun++;
+        if (this.#inside() < 0) this.stepsOutside++;   // measured after the step, against the patch it was run on
+        if (this.recorded) {
+          this.recorded.inputs.push(inputs);
+          this.recorded.states.push(Float64Array.from(this.state));
+        }
       }
       if (result !== 0) return result;
     }
     return 0;
   }
+  /** Steps run by the last step() call. */
+  stepsRun = 0;
+
+  /** Keeps the patch round the airplane. False if the flight must wait for ground that has not loaded. */
+  #groundReady() {
+    const { north, east } = toWorld(this.state[this.#lat], this.state[this.#lon]);
+    const inside = postsInside(this.patch, north, east);
+    if (inside < this.patchMargin) {
+      const next = cutPatch(this.terrain, north, east, this.patchPosts);
+      if (next) {
+        this.fdm.setGround(next.grid);
+        this.patch = next;
+        this.swaps++;
+        this.waiting = false;
+        return true;
+      }
+      // The ground ahead is not there yet. Carry on while the airplane is well inside what JSBSim has; stop
+      // at the last post but one, so that no step is ever run outside the patch.
+      if (inside < 1) { this.waiting = true; return false; }
+    }
+    this.waiting = false;
+    return true;
+  }
+  /** How many posts the airplane is inside the patch JSBSim has (negative: outside it). */
+  #inside() {
+    const { north, east } = toWorld(this.state[this.#lat], this.state[this.#lon]);
+    return postsInside(this.patch, north, east);
+  }
+  #lat = 0;
+  #lon = 0;
 
   /**
    * The recorded flight: its start (aircraft, step, ground, the values set before the first step) and its tape

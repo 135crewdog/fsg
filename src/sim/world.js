@@ -68,8 +68,3 @@ export const FIELD = {
   runway: { headingDeg: 90, lengthFt: 10000, widthFt: 150, startBackFt: 200 },
   start: { north: 0, east: 0, headingDeg: 90 },
 };
-
-/** The field's ground: level, at the field's height. (Level ground is the same ground whatever the grid's size.) */
-export function fieldGround(field = FIELD) {
-  return groundGrid(field.start.north - 1000, field.start.east - 1000, 2000, 2, 2, new Float64Array(4).fill(field.heightFt));
-}
