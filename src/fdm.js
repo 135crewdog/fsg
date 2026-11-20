@@ -19,64 +19,45 @@ export const BUILDS = {
 };
 export const DATA = '../jsbsim/jsbsim-data/';
 export const DT = 1 / 120;
-/** How long each clock is measured for, seconds. */
-export const CLOCK_SECONDS = 10;
-
-/** The gaps between the moments in `times` (milliseconds): the middle one, the one 99 in 100 are no longer than, the longest. */
-export function gapsOf(times) {
-  const gaps = times.slice(1).map((t, i) => t - times[i]).sort((a, b) => a - b);
-  if (!gaps.length) return { typical: NaN, most: NaN, worst: NaN };
-  return { typical: gaps[Math.floor(gaps.length / 2)], most: gaps[Math.max(0, Math.ceil(0.99 * gaps.length) - 1)], worst: gaps.at(-1) };
-}
-
-const AIRBORNE = { type: 'create', model: 'c172x', ic: 'reset01', dt: DT, outputs: ['position/h-sl-ft', 'velocities/vtrue-kts'] };
-const clockLines = (name, c) => [
-  `${name}: ${c.stepsPerSecond.toFixed(1)} steps/s, ${c.droppedSeconds.toFixed(2)} s dropped`,
-  `  gaps between states: ${Math.round(c.gaps.typical)} ms typical, ${Math.round(c.gaps.most)} ms for 99 in 100, ${Math.round(c.gaps.worst)} ms worst`,
-];
+/** How long the parked airplane is run for, seconds. */
+export const FLY_SECONDS = 10;
 
 /**
- * The physics clock, measured both ways with the Cessna in the air, CLOCK_SECONDS each (docs/milestones/1.md,
- * pull request 3). The numbers decide which one the game is built on.
- *  - The Worker's own clock: the Worker's timer drives the steps and posts a state after each batch.
- *  - Page ticks (FDM's way): the page asks for the steps once a frame and gets the state back.
- * A gap is the time from one state reaching the page to the next, by the page's clock.
+ * The game in the Worker (src/sim/flight-run.js): a Cessna parked on the runway of the test field, run on the
+ * Worker's own clock for FLY_SECONDS, with the time one game step takes (controls, assists, JSBSim, rules).
+ * Steps a second are by the Worker's clock. Every state the Worker posts is counted: one missing or out of
+ * order would show.
  */
-async function measureClocks(request, states, say) {
-  // 1. The Worker's own clock.
-  await request(AIRBORNE);
-  let arrivals = [];
-  states.on = () => arrivals.push(performance.now());
-  const ran = await request({ type: 'clock-run', seconds: CLOCK_SECONDS });
+async function flyOnRunway(request, states, say) {
+  const bench = await request({ type: 'game-bench', aircraft: 'c172x' });
+  const seen = { states: 0, missing: 0, outOfOrder: 0, last: 0, steps: 0, seconds: 0, state: null, ended: null };
+  let over;
+  const enough = new Promise((done) => { over = done; });
+  states.on = (message) => {
+    if (message.n === seen.last + 1) seen.states++;
+    else if (message.n > seen.last) { seen.states++; seen.missing += message.n - seen.last - 1; } else seen.outOfOrder++;
+    seen.last = Math.max(seen.last, message.n);
+    if (message.ended) seen.ended = message.ended;
+    if (message.seconds > FLY_SECONDS || message.ended) { over(); return; }
+    seen.steps = message.totalSteps;   // the steps run when the Worker's clock last read FLY_SECONDS or less
+    seen.seconds = message.seconds;
+    seen.state = message.state;
+  };
+  const started = await request({ type: 'fly', aircraft: 'c172x' });
+  // A Worker keeps its clock when the page is not on screen; the timeout is for a Worker that has stopped.
+  await Promise.race([enough, new Promise((done) => setTimeout(done, FLY_SECONDS * 1000 + 5000))]);
   states.on = null;
-  await request({ type: 'dispose' });
-  const worker = { steps: ran.steps, seconds: ran.seconds, stepsPerSecond: ran.steps / ran.seconds, droppedSeconds: ran.droppedSeconds, states: arrivals.length, gaps: gapsOf(arrivals) };
-  for (const line of clockLines("Worker's clock", worker)) say(line);
-
-  // 2. Page ticks: one request a frame, each with the page's time.
-  await request(AIRBORNE);
-  arrivals = [];
-  let first = null, ended = false;
-  await new Promise((done) => {
-    const end = () => { if (!ended) { ended = true; done(); } };
-    const frame = () => {
-      if (ended) return;
-      const now = performance.now();
-      if (first === null) first = now;
-      if (now - first >= CLOCK_SECONDS * 1000) { end(); return; }
-      request({ type: 'tick', now: now / 1000 }).then((reply) => { if (reply.steps > 0) arrivals.push(performance.now()); }, () => {});
-      requestAnimationFrame(frame);
-    };
-    requestAnimationFrame(frame);
-    setTimeout(end, CLOCK_SECONDS * 1000 + 3000);   // a page that is not on screen gets no frames
-  });
-  const last = performance.now();
-  const final = await request({ type: 'tick', now: last / 1000 });
-  await request({ type: 'dispose' });
-  const seconds = first === null ? 0 : (last - first) / 1000;
-  const page = { steps: final.totalSteps, seconds, stepsPerSecond: seconds > 0 ? final.totalSteps / seconds : 0, droppedSeconds: final.droppedSeconds, states: arrivals.length, gaps: gapsOf(arrivals) };
-  for (const line of clockLines('page ticks', page)) say(line);
-  return { worker, page };
+  const ended = await request({ type: 'end' });
+  const at = (name) => (seen.state ?? started.state)[started.stateNames.indexOf(name)];
+  const wheels = started.stateNames.filter((name) => /^gear\/unit\[\d+\]\/WOW$/.test(name));
+  const flight = {
+    aircraft: started.aircraft, steps: seen.steps, seconds: seen.seconds, stepsPerSecond: seen.seconds > 0 ? seen.steps / seen.seconds : 0,
+    states: seen.states, missing: seen.missing, outOfOrder: seen.outOfOrder, droppedSeconds: ended.droppedSeconds, ended: seen.ended, usPerGameStep: bench.usPerStep,
+    // Read back that it is what it says: on its wheels, standing still, at the runway's height.
+    wheelsOnGround: wheels.filter((name) => at(name) === 1).length, groundKt: at('velocities/vg-fps') / 1.6878, aboveGroundFt: at('position/h-agl-ft'),
+  };
+  say(`${flight.aircraft} on the runway   ${flight.stepsPerSecond.toFixed(1)} steps/s   ${flight.usPerGameStep.toFixed(1)} µs per game step`);
+  return flight;
 }
 
 // Set while the fast build is starting. If the app dies there (Safari 26.0
@@ -94,11 +75,11 @@ async function fetchBytes(path) {
   return new Uint8Array(await response.arrayBuffer());
 }
 
-/** One build, in a fresh Worker: start JSBSim, load c172x, time the step, measure the two clocks. The Worker is ended afterwards. */
+/** One build, in a fresh Worker: start JSBSim, load c172x, time the step, run the game with a parked airplane. The Worker is ended afterwards. */
 async function run(build, say) {
   const worker = new Worker(new URL('./sim/worker.js', import.meta.url), { type: 'module' });
   const client = new WorkerClient((message, transfer) => worker.postMessage(message, transfer ?? []));
-  // A state the Worker posts unasked (the Worker's own clock) is not an answer to a request.
+  // A state the Worker posts unasked (the game, on the Worker's own clock) is not an answer to a request.
   const states = { on: null };
   worker.onmessage = (event) => { if (event.data?.type === 'state') states.on?.(event.data); else client.receive(event.data); };
   // A Worker that fails (its own file or one of its imports did not load, say) answers nothing from then on.
@@ -127,8 +108,8 @@ async function run(build, say) {
     // (On iPhone the clock ticks in whole milliseconds, so only whole batches are timed.)
     const { result } = await request({ type: 'bench', options: { dt: DT, forces: 0, fixtureAircraftPath: '' } });
     say(`${result.usPerStep.toFixed(1)} µs per step   (${result.batchSteps} steps at 1/120 s)`);
-    const clocks = await measureClocks(request, states, say);
-    return { build, version: init.version, loadMs, usPerStep: result.usPerStep, startAltitudeFt: created.curr[0], endAltitudeFt: result.endAltitudeFt, endAirspeedKt: result.endAirspeedKt, clocks };
+    const flight = await flyOnRunway(request, states, say);
+    return { build, version: init.version, loadMs, usPerStep: result.usPerStep, startAltitudeFt: created.curr[0], endAltitudeFt: result.endAltitudeFt, endAirspeedKt: result.endAirspeedKt, flight };
   } finally {
     worker.terminate();
   }

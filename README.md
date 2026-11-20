@@ -41,7 +41,8 @@ Then open <http://localhost:8000/>.
 - `src/fdm.js`, on the page, starts a module Worker, `src/sim/worker.js`, and posts it the seven JSBSim files the Cessna 172 test aircraft needs (`src/sim/c172x-files.js`), fetched as they are from `jsbsim/jsbsim-data/`.
 - The Worker imports the Emscripten file `jsbsim/dist-wasm/fdm-weh.mjs`, which fetches `fdm-weh.wasm` from beside itself. If that build doesn't start, a fresh Worker tries the fallback build, `fdm-jseh`.
 - Every one of those files is in `sw.js`, so it all works offline.
-- For now only the developer overlay uses it (Settings, Developer on): it shows JSBSim starting, `c172x` loading, and the time one step of physics takes. Then it measures the physics clock two ways, ten seconds each: on the Worker's own timer (`src/sim/clock.js`), and on ticks from the page. Milestone 1 builds on whichever the owner's phone shows keeps time (`docs/milestones/1.md`).
+- For now only the developer overlay uses it (Settings, Developer on): it shows JSBSim starting, `c172x` loading, and the time one step of physics takes. Then it runs the game itself in the Worker for ten seconds (`src/sim/flight-run.js`): a Cessna parked on the runway of the test field, stepped 120 times a second by the Worker's own clock (`src/sim/clock.js`), with the state posted to the page after every batch of steps.
+- The Worker's own clock was chosen over ticks from the page on the owner's phone (`docs/milestones/1.md`): it kept 120.0 steps a second, in Low Power Mode too.
 
 ## The one build
 

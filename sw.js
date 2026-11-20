@@ -7,7 +7,7 @@
 // skips waiting on its own; the app offers the update and posts
 // "skip-waiting" when the pilot accepts.
 
-const VERSION = '0.0.4';   // the same value as APP_VERSION in src/version.js
+const VERSION = '0.0.5';   // the same value as APP_VERSION in src/version.js
 const CACHE = `fsg-${VERSION}`;
 const FILES = [
   './',
@@ -21,14 +21,20 @@ const FILES = [
   './src/main.js',
   './src/version.js',
   './src/fdm.js',
+  './src/sim/aircraft/c172x.js',
+  './src/sim/assists.js',
   './src/sim/bench.js',
   './src/sim/c172x-files.js',
-  './src/sim/clock-run.js',
   './src/sim/clock.js',
   './src/sim/codes.js',
   './src/sim/core.js',
   './src/sim/files.js',
+  './src/sim/flight-run.js',
+  './src/sim/game.js',
+  './src/sim/ground.js',
   './src/sim/loop.js',
+  './src/sim/rules.js',
+  './src/sim/world.js',
   './src/sim/worker-handler.js',
   './src/sim/worker.js',
   // JSBSim: two builds of it, each an Emscripten file and the .wasm it loads from beside itself.

@@ -109,10 +109,10 @@ export const FILES = [
     ],
   }),
   typesRemoved('ts/worker.ts', 'src/sim/worker.js', {
-    why: 'Milestone 1: the Worker hands the handler FSG\'s own messages (src/sim/clock-run.js).',
+    why: 'Milestone 1: the Worker hands the handler FSG\'s own messages, the game\'s (src/sim/flight-run.js).',
     replace: [
-      ['import { createHandler } from "./worker-handler.js";\n', 'import { createHandler } from "./worker-handler.js";\nimport { clockRun } from "./clock-run.js";   // FSG\n'],
-      ['const handle = createHandler((message, transfer) => scope.postMessage(message, transfer ?? []));\n', 'const handle = createHandler((message, transfer) => scope.postMessage(message, transfer ?? []), clockRun());\n'],
+      ['import { createHandler } from "./worker-handler.js";\n', 'import { createHandler } from "./worker-handler.js";\nimport { flightRun } from "./flight-run.js";   // FSG\n'],
+      ['const handle = createHandler((message, transfer) => scope.postMessage(message, transfer ?? []));\n', 'const handle = createHandler((message, transfer) => scope.postMessage(message, transfer ?? []), flightRun());\n'],
     ],
   }),
 

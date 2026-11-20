@@ -2,6 +2,10 @@
 
 What changed in each version a player can see, newest first.
 
+## 0.0.5
+
+- The game now runs inside the Worker, on the Worker's own clock. With Developer on, the overlay starts a Cessna parked on the runway of the test field for ten seconds and shows one line: the steps a second, and the time one step of the whole game takes. The two-clock comparison of 0.0.4 is gone: the Worker's clock was chosen. Nothing flies on screen yet.
+
 ## 0.0.4
 
 - With Developer on, the overlay now also measures the physics clock two ways, ten seconds each: on the Worker's own timer, and on ticks from the page. It shows steps a second, time dropped, and the gaps between states for both. Nothing flies yet.
