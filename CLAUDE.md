@@ -102,7 +102,10 @@ Wings stays live at its own address. It is frozen, and FSG never changes it.
   - the UIUC F-4 model (Scott and Selig)
 
   The precedent to study is Richard Harrison's FlightGear F-14, a JSBSim fighter built from NASA wind-tunnel reports (zaretto.com). Its stability augmentation system goes in JSBSim's flight-control format, as on the real jet. The owner's figures from Wings still stand: rotation at 150 knots, and the centre of gravity 3.5 feet ahead of the main wheels, where his model puts it.
-- **Test aircraft:** JSBSim's bundled Cessna 172 (`c172x`) and F-16 (`f16`), well-known files used to prove the wiring before the F-4C. They are not in the game. The owner has a C172 3D model with moving controls and propeller, if a test needs one on screen.
+- **Test aircraft:** JSBSim's bundled Cessnas and F-16, well-known files used to prove the wiring before the F-4C. They are not in the finished game.
+  - `c172x` and `f16` are flown headless against native JSBSim (milestone 1).
+  - `c172p` is the Cessna on screen in milestone 2, flown as JSBSim ships it: no slack in its elevator, and a nosewheel the stick can steer. Its picture is FlightGear's own c172p model (GPL 2), which fits it within an inch (the owner's choice, 20 November 2026).
+  - The owner's own C172 model stays in his Drive.
 - **The physics clock:**
   - JSBSim runs in a Web Worker at a fixed 120 steps a second, decoupled from the screen. It uses an accumulator with a catch-up cap ("Fix Your Timestep").
   - The renderer reads the latest state and interpolates. iOS drops the screen to 30 fps in Low Power Mode, and the physics must not slow with it.
@@ -127,7 +130,7 @@ Game rules (kept from Wings):
   - With the phone at neutral, the airplane holds a trimmed speed. Faster than that the nose rises, as with fixed trim in a real airplane.
   - How that's done on top of a real JSBSim airplane is Claude Code's to research and propose. The owner judges it by flying.
 - **Throttle:** a slider on the left edge.
-- **Four toggles:** gear, flaps, speedbrakes and wheel brakes.
+- **Four toggles:** gear, flaps, speedbrakes and wheel brakes. A button shows only if the airplane has the thing: the Cessna shows Flaps and Brakes.
 - **No rudder control.** Automatic coordination holds the ball centred. On the ground, tilt steers the nosewheel.
 - **Assists act only through the controls,** as a pilot, autopilot or the real jet's own systems would. They never add forces or change the aircraft file.
   - The F-4C's real stability augmentation lives in its aircraft file.
@@ -144,7 +147,7 @@ Game rules (kept from Wings):
 
 **The world** is `docs/hawaii.md`: the real Hawaiian Islands with the channels shortened, USGS heights and Sentinel-2 photographs. Every paved runway of 3,000 feet or more is level and landable. Every flight starts on the numbers of runway 8R at Honolulu and Hickam, with gear and flaps down and the brakes on. The tiles download once into their own store on the phone, which app updates never touch.
 
-**Airplanes must look right to a pilot.** 3D models are built in Blender in separate Claude chats on the owner's laptop, never by Claude Code. `docs/models.md` is the handoff: what the app needs from a model. A test checks every model against it.
+**Airplanes must look right to a pilot.** 3D models are built in Blender in separate Claude chats on the owner's laptop, never by Claude Code. `docs/models.md` is the handoff: what the app needs from a model. A test checks every model against it. One exception, the owner's: milestone 2's stand-in Cessna is FlightGear's model, converted to the handoff by a script kept in the repo.
 
 ## Building it
 
@@ -156,7 +159,7 @@ Game rules (kept from Wings):
 - **Target:** 60 fps on an iPhone 16, with the physics at 120 Hz.
 - **The checkride:** maneuvers flown headless, with results in knots, feet, degrees and g next to the reference numbers (flight manual, NASA data, native JSBSim). Each milestone plan writes the tolerances before the run.
 
-### Known facts about JSBSim in WebAssembly (Verified or Supported in FDM and in milestone 0; details in FDM's `REPORT.md` and `docs/milestones/0.md`)
+### Known facts about JSBSim in WebAssembly (Verified or Supported in FDM and in milestones 0 and 1; details in FDM's `REPORT.md` and `docs/milestones/`)
 - Build all of JSBSim with exception support, or 22 aircraft fail to load. Ship two builds:
   - `-fwasm-exceptions`: about 8 µs per step on the owner's iPhone
   - `-fexceptions`: about 18 µs per step, the fallback for Safari 26.0's WebKit bug 299629
@@ -171,6 +174,17 @@ Game rules (kept from Wings):
 - Each Emscripten file fetches its own `.wasm` from beside itself and ignores bytes handed to it. Each `.wasm` must sit beside its `.mjs` and be in `sw.js`.
 - JSBSim's own build stamps its version text on GitHub's machines. A build that must match the committed one runs without `GITHUB_RUN_NUMBER`.
 - The installed home-screen app runs JSBSim as fast as a Safari tab: 7.7 µs per step on the owner's iPhone.
+- On the owner's iPhone the Worker's own 4 ms timer keeps 120.0 steps a second with a state every 10 ms, in Low Power Mode too. Page ticks deliver a state only every 33 ms there.
+- Low Power Mode runs the phone's processor at a little under half speed: 18 µs a step against 8. Step-time lines are for normal mode.
+- On the owner's iPhone one whole game step costs 10.3 µs on the fast build (JSBSim alone 8.3) and 21.7 µs on the fallback build.
+- The fallback marker covers only the start of the fast build. Held longer, a launch after an update or a mid-flight close lands on the slow build.
+- A tape (the start and every step's inputs) replays in native JSBSim to within 0.00001 ft over a seven-minute flight with a landing.
+- FDM's C++ scenario runner holds about two minutes of flight in the fixed 16 MiB. Longer flights replay step by step through the wrapper.
+- JSBSim starts a "running" piston engine at full power: settle a new flight for 10 seconds of its own time.
+- In JSBSim's initial conditions the speed goes in last. `propulsion/fuel_freeze` works but reads back 0. A trim that fails kills that JSBSim.
+- Upstream's `c172x` cannot be steered on the ground by a pilot, has 3° of free play in its elevator, and pulls 7.5 g at 120 knots. Upstream's `c172p` has neither flaw.
+- JSBSim's position is the centre of gravity as loaded, not the one written in the aircraft file: 4.5 in further back on `c172x`. Measure wheels from the loaded one, read back from a run.
+- FDM's host layer refuses an input that is not a number. JSBSim's own state can still break with the step returning "ok", so the flight checks every number it gives out.
 
 ### iPhone platform rules (proven in Rage and Wings)
 - Motion permission is requested synchronously inside the Fly tap, over HTTPS.
@@ -195,8 +209,8 @@ Claude Code plans each milestone in Plan Mode when the one before is done. The l
 |---|---|---|
 | 0, done | **Setup.** Repo, Actions, Pages, Codex review; the Wings app shell; the JSBSim build copied in from FDM with its tests | A test pull request goes through Codex review, merges and deploys. The shell installs on the owner's iPhone and takes an update. Inside the app, on the phone, the Worker loads `c172x` and reports its step time on the developer overlay |
 | 1, done | **JSBSim as the game's core, headless.** Worker clock, controls in, state out, height-patch ground callback, contact points, game rules, assists; the checkride harness | `c172x` and `f16` take off, fly a circuit and land headless, with checkride results matching native JSBSim within the written tolerances |
-| 2 | **First flight.** Tilt, throttle, toggles, chase camera, HUD over a flat test field with a runway, on the phone, flying `c172x` | The owner takes off, flies a circuit and lands on his iPhone, and says the controls and the ground feel right |
+| 2, under way | **First flight.** Tilt, throttle, toggles, chase camera, HUD over a flat test field with a runway, on the phone, flying `c172p` | The owner takes off, flies a circuit and lands on his iPhone, and says the controls and the ground feel right |
 | 3 | **The F-4C.** Its JSBSim file built from real data, with its stability augmentation; `models/f4c.glb` with moving surfaces, gear and flaps; plumes | The F-4C passes its checkride against the flight manual and NASA data, and the owner flies it on the test field and approves the feel |
 | 4 | **Hawaii.** The real islands under the F-4C, ground callback fed from the tiles, the islands map, crash rules on real terrain | The owner flies from Hickam to every island on his iPhone, lands on another island, and the game is the minimum viable FSG |
 
-Milestones 0 and 1 are done: their plans and results are in `docs/milestones/0.md` and `docs/milestones/1.md`. Milestone 2 starts in a new chat, in Plan Mode.
+Milestones 0 and 1 are done: their plans and results are in `docs/milestones/0.md` and `docs/milestones/1.md`. Milestone 2 is under way: its approved plan is `docs/milestones/2.md`.
