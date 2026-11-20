@@ -1,3 +1,5 @@
+// From 135crewdog/FDM, host/fdm_host.cpp, commit e478825. Changed for FSG (milestone 1): SetGroundGrid is also
+// allowed after load and between steps. Nothing else is changed; tools/from-fdm.mjs lists the change.
 #include "fdm_host.h"
 
 #include <climits>
@@ -139,7 +141,11 @@ void FdmHost::InstallGround() {
 }
 
 bool FdmHost::SetGroundGrid(std::shared_ptr<const HeightGrid> grid) {
-  if (state_ != FDM_NEW) return Fail("SetGroundGrid: only before load");
+  // FSG: also after load and between steps, so the game can replace the patch of ground under the
+  // airplane as it flies (FlightGear keeps a ground cache behind its callback the same way). A refused
+  // grid leaves the one in place.
+  if (state_ != FDM_NEW && state_ != FDM_LOADED && state_ != FDM_RUNNING)
+    return Fail("SetGroundGrid: this instance has ended or is dead");
   if (!grid || !grid->Valid()) return Fail("SetGroundGrid: invalid grid");
   grid_ = std::move(grid);
   // Installed before load: the initial-condition maths and FGPropagate::InitModel already ask the ground.

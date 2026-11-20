@@ -29,8 +29,12 @@ export const SOURCES = {
 //                       listed replacements if any, and nothing else
 //      'adapted'        rewritten on purpose for FSG; only the original's hash is recorded,
 //                       and the file says at its top where it came from
+//      'rebuilt'        a build product FDM committed and FSG has since rebuilt from changed sources; only
+//                       the original's hash is recorded here. What guards the bytes now is
+//                       jsbsim/dist-wasm/build-info.json, jsbsim/tests/build.test.js and the rebuild workflow
 const copy = (source, from, to = from) => ({ source, from, to, how: 'byte for byte' });
 const adapted = (source, from, to = from) => ({ source, from, to, how: 'adapted' });
+const rebuilt = (source, from, to = from) => ({ source, from, to, how: 'rebuilt' });
 const typesRemoved = (from, to, extra = {}) => ({ source: 'FDM', from, to, how: 'types removed', ...extra });
 
 export const FILES = [
@@ -59,12 +63,40 @@ export const FILES = [
 
   // The build: the C++ host layer, the build description and scripts, and the binaries they made.
   copy('FDM', 'CMakeLists.txt', 'jsbsim/CMakeLists.txt'),
-  ...['c_api.cpp', 'fdm_codes.h', 'fdm_host.cpp', 'fdm_host.h', 'grid_ground.cpp', 'grid_ground.h', 'host_logger.cpp', 'host_logger.h',
+  ...['c_api.cpp', 'fdm_codes.h', 'grid_ground.cpp', 'grid_ground.h', 'host_logger.cpp', 'host_logger.h',
     'native_main.cpp', 'scenario_runner.cpp', 'scenario_runner.h'].map((f) => copy('FDM', `host/${f}`, `jsbsim/host/${f}`)),
-  ...['ground_oracle.cpp', 'host_selftest.cpp'].map((f) => copy('FDM', `tests/native/${f}`, `jsbsim/tests/native/${f}`)),
+  // Milestone 1, pull request 2: the one change to the C++ host layer. The ground grid may be replaced after
+  // load and between steps, so the game can move the patch of ground with the airplane.
+  {
+    source: 'FDM', from: 'host/fdm_host.cpp', to: 'jsbsim/host/fdm_host.cpp', how: 'changed',
+    why: 'Milestone 1: SetGroundGrid is also allowed after load and between steps (it was "only before load"), so the height patch can follow the airplane.',
+    replace: [
+      ['#include "fdm_host.h"\n', '// From 135crewdog/FDM, host/fdm_host.cpp, commit e478825. Changed for FSG (milestone 1): SetGroundGrid is also\n// allowed after load and between steps. Nothing else is changed; tools/from-fdm.mjs lists the change.\n#include "fdm_host.h"\n'],
+      ['  if (state_ != FDM_NEW) return Fail("SetGroundGrid: only before load");\n', '  // FSG: also after load and between steps, so the game can replace the patch of ground under the\n  // airplane as it flies (FlightGear keeps a ground cache behind its callback the same way). A refused\n  // grid leaves the one in place.\n  if (state_ != FDM_NEW && state_ != FDM_LOADED && state_ != FDM_RUNNING)\n    return Fail("SetGroundGrid: this instance has ended or is dead");\n'],
+    ],
+  },
+  {
+    source: 'FDM', from: 'host/fdm_host.h', to: 'jsbsim/host/fdm_host.h', how: 'changed',
+    why: 'Milestone 1: one comment line saying SetGroundGrid may be called again after load and between steps.',
+    replace: [
+      ['// Host layer (not physics): a thin wrapper around one JSBSim::FGFDMExec.\n', '// From 135crewdog/FDM, host/fdm_host.h, commit e478825. Changed for FSG (milestone 1): one comment line on\n// SetGroundGrid. Nothing else is changed; tools/from-fdm.mjs lists the change.\n// Host layer (not physics): a thin wrapper around one JSBSim::FGFDMExec.\n'],
+      ['  bool SetGroundGrid(std::shared_ptr<const HeightGrid> grid);\n', '  // FSG: may be called again after load and between steps; the new grid replaces the old one.\n  bool SetGroundGrid(std::shared_ptr<const HeightGrid> grid);\n'],
+    ],
+  },
+  copy('FDM', 'tests/native/ground_oracle.cpp', 'jsbsim/tests/native/ground_oracle.cpp'),
+  {
+    source: 'FDM', from: 'tests/native/host_selftest.cpp', to: 'jsbsim/tests/native/host_selftest.cpp', how: 'changed',
+    why: 'Milestone 1: the native self-test also runs FSG\'s checks of replacing the ground grid (jsbsim/tests/native/ground_swap_selftest.h, new in FSG).',
+    replace: [
+      ['// Native self-test of the host wrapper (criterion 3, "natively where it applies").\n', '// From 135crewdog/FDM, tests/native/host_selftest.cpp, commit e478825. Changed for FSG (milestone 1): it also runs\n// the checks in ground_swap_selftest.h. Nothing else is changed; tools/from-fdm.mjs lists the change.\n// Native self-test of the host wrapper (criterion 3, "natively where it applies").\n'],
+      ['#include "input_output/FGPropertyManager.h"\n', '#include "input_output/FGPropertyManager.h"\n\n#include "ground_swap_selftest.h"  // FSG\n'],
+      ['  std::printf("%s: %d failed\\n", g_failed ? "FAILED" : "all ok", g_failed);\n', '  // FSG: replacing the ground grid after load and between steps (ground_swap_selftest.h).\n  GroundSwapSelfTest(data, out, [](bool ok, const std::string& name, const std::string& detail) { Check(ok, name, detail); });\n  std::printf("%s: %d failed\\n", g_failed ? "FAILED" : "all ok", g_failed);\n'],
+    ],
+  },
   ...['build.sh', 'setup-toolchain.sh', 'check-flags.mjs', 'write-build-info.mjs', 'check-binaries.mjs', 'selftest-build.sh']
     .map((f) => copy('FDM', `scripts/${f}`, `jsbsim/scripts/${f}`)),
-  ...['fdm-weh.mjs', 'fdm-weh.wasm', 'fdm-jseh.mjs', 'fdm-jseh.wasm', 'build-info.json'].map((f) => copy('FDM', `dist-wasm/${f}`, `jsbsim/dist-wasm/${f}`)),
+  // The binaries were FDM's until milestone 1, pull request 2, which changed the host sources above and rebuilt them.
+  ...['fdm-weh.mjs', 'fdm-weh.wasm', 'fdm-jseh.mjs', 'fdm-jseh.wasm', 'build-info.json'].map((f) => rebuilt('FDM', `dist-wasm/${f}`, `jsbsim/dist-wasm/${f}`)),
 
   // The JavaScript side: FDM's wrapper, fixed-step loop and Worker (TypeScript there), now the app's simulation code.
   ...['core', 'codes', 'files', 'loop', 'bench', 'worker-handler', 'worker'].map((f) => typesRemoved(`ts/${f}.ts`, `src/sim/${f}.js`)),
@@ -231,8 +263,8 @@ function main() {
     const item = { from, how: entry.how, original: sha256(bytes) };
     if (entry.why) item.why = entry.why;
     const path = join(ROOT, entry.to);
-    if (entry.how === 'adapted') {
-      say(existsSync(path), `${entry.to}  (adapted from ${from})`);
+    if (entry.how === 'adapted' || entry.how === 'rebuilt') {
+      say(existsSync(path), `${entry.to}  (${entry.how === 'adapted' ? 'adapted from' : 'rebuilt; was'} ${from})`);
     } else {
       const want = derive(entry, bytes);
       item.copy = sha256(want);
@@ -269,8 +301,8 @@ function main() {
   if (check) say(existsSync(recordPath) && readFileSync(recordPath, 'utf8') === text, 'provenance.json says the same');
   else writeFileSync(recordPath, text);
 
-  const copied = FILES.filter((f) => f.how !== 'adapted').length;
-  console.log(`${check ? 'checked' : 'copied'}: ${copied} files and ${TREES.length} folder${TREES.length === 1 ? '' : 's'} derived from the originals, ${FILES.length - copied} adapted files on record; ${bad ? `${bad} FAILED` : 'all match'}`);
+  const copied = FILES.filter((f) => f.how !== 'adapted' && f.how !== 'rebuilt').length;
+  console.log(`${check ? 'checked' : 'copied'}: ${copied} files and ${TREES.length} folder${TREES.length === 1 ? '' : 's'} derived from the originals, ${FILES.length - copied} adapted or rebuilt files on record; ${bad ? `${bad} FAILED` : 'all match'}`);
   process.exit(bad ? 1 : 0);
 }
 
