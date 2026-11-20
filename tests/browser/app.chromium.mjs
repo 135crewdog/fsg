@@ -124,6 +124,22 @@ check((await text('#screen-start .version')) === next, 'the tap takes the update
 const after = await page.evaluate(() => caches.keys());
 check(after.length === 1 && after[0] === `fsg-${next}`, 'the old cache is gone, the new one is in', after.join(', '));
 check(!(await visible('#screen-start .update')), 'and the offer is gone');
+// The launch after an update starts the fast build, as any launch does. (On the owner's phone the launch
+// after each of two updates said "fallback build"; docs/milestones/1.md has what is known.)
+ran = await jsbsimRan();
+check(!ran.error && ran.build === 'weh', 'after the update, JSBSim starts on the fast build', ran.error ?? ran.build);
+// And an update taken while the game is running: the fast build had started, so the next launch uses it.
+await page.reload();
+await page.waitForFunction(() => document.getElementById('dev').textContent.includes('µs per step'), null, { timeout: 60000 });
+next = `${version}-next2`;
+await page.click('#settings');
+await page.waitForFunction(() => !document.querySelector('#screen-pause .update').hidden, null, { timeout: 15000 });
+const midRun = (await page.evaluate(() => window.fsg.jsbsim)) === null;
+await Promise.all([page.waitForEvent('load'), page.click('#screen-pause .update')]);
+await page.waitForFunction(() => window.fsg !== undefined);
+check(midRun && (await text('#screen-start .version')) === next, 'a second update is taken while the game is running in the Worker', next);
+ran = await jsbsimRan();
+check(!ran.error && ran.build === 'weh', 'and the launch after it starts the fast build too', ran.error ?? ran.build);
 
 // 7. The fallback. Two fresh visits with no service worker, so the fast build can be made to fail.
 {
