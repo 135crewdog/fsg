@@ -73,20 +73,20 @@ await page.click('#dev-switch');
 check(await visible('#dev'), 'Developer on shows the overlay');
 // With Developer on, a Worker starts JSBSim, loads c172x and times its step.
 const jsbsimRan = () => page.waitForFunction(() => window.fsg.jsbsim !== null, null, { timeout: 60000 }).then(() => page.evaluate(() => window.fsg.jsbsim));
-// ... and then measures the physics clock two ways, ten seconds each: two lines for each.
-const CLOCK = (name) => `${name}: [\\d.]+ steps\\/s, [\\d.]+ s dropped\\n {2}gaps between states: \\d+ ms typical, \\d+ ms for 99 in 100, \\d+ ms worst`;
-const jsbsimLines = (box) => new RegExp(`JSBSim 1\\.3\\.3 {3}(wasm exceptions|fallback build)\\nc172x loaded in \\d+ ms\\n[\\d.]+ µs per step {3}\\(3000 steps at 1\\/120 s\\)\\n${CLOCK("Worker's clock")}\\n${CLOCK('page ticks')}$`).test(box);
-const clockSays = (c) => `${c.steps} steps in ${c.seconds.toFixed(2)} s (${c.stepsPerSecond.toFixed(1)} a second), ${c.droppedSeconds.toFixed(2)} s dropped, ${c.states} states, gaps ${Math.round(c.gaps.typical)} ms typical, ${Math.round(c.gaps.most)} for 99 in 100, ${Math.round(c.gaps.worst)} worst`;
+// ... and then runs the game in the Worker for ten seconds, a Cessna parked on the runway: one more line.
+const jsbsimLines = (box) => /JSBSim 1\.3\.3 {3}(wasm exceptions|fallback build)\nc172x loaded in \d+ ms\n[\d.]+ µs per step {3}\(3000 steps at 1\/120 s\)\nc172x on the runway {3}[\d.]+ steps\/s {3}[\d.]+ µs per game step$/.test(box);
+const flightSays = (f) => `${f.steps} steps in ${f.seconds.toFixed(3)} s (${f.stepsPerSecond.toFixed(1)} a second), ${f.states} states, ${f.missing} missing, ${f.outOfOrder} out of order, ${f.droppedSeconds.toFixed(2)} s dropped; ` +
+  `${f.wheelsOnGround} wheels on the ground, ${f.groundKt.toFixed(2)} kt, ${f.aboveGroundFt.toFixed(2)} ft up; ${f.usPerGameStep.toFixed(1)} µs per game step`;
+// The game in the real Worker, on a real clock (docs/milestones/1.md, pull request 11).
+const flightOk = (f) => f.steps >= 1188 && f.steps <= 1212 && f.seconds <= 10 && f.seconds > 9.9 && f.states > 500 && f.missing === 0 && f.outOfOrder === 0 && f.ended === null &&
+  f.wheelsOnGround === 3 && f.groundKt < 0.1 && Math.abs(f.aboveGroundFt - 4.3) < 0.3;
 let ran = await jsbsimRan();
 let box = await text('#dev');
 check(box.includes(`FSG ${version}`) && box.includes('browser tab') && box.includes('offline ready: yes'), 'the overlay says what it should', box.replace(/\n/g, ' | '));
 check(!ran.error && ran.build === 'weh' && jsbsimLines(box) && box.includes('wasm exceptions'), 'JSBSim runs in its Worker: the fast build, c172x loaded, a step time',
   ran.error ?? `${ran.usPerStep.toFixed(1)} µs per step; c172x loaded in ${Math.round(ran.loadMs)} ms; after the benchmark ${Math.round(ran.endAltitudeFt)} ft, ${Math.round(ran.endAirspeedKt)} kt`);
 check(Math.abs(ran.startAltitudeFt - 4000) < 0.1, 'c172x starts where its file says: 4,000 ft', `${ran.startAltitudeFt.toFixed(3)} ft`);
-// The Worker's own clock, on a real clock: within 1% of 120 steps a second over ten seconds (docs/milestones/1.md, pull request 3).
-check(!ran.error && ran.clocks.worker.steps >= 1188 && ran.clocks.worker.steps <= 1212 && Math.abs(ran.clocks.worker.seconds - 10) < 0.05,
-  "the Worker's own clock: 1,188 to 1,212 steps in 10 s", ran.error ?? clockSays(ran.clocks.worker));
-check(!ran.error && ran.clocks.page.steps > 0, 'page ticks are measured beside it', ran.error ?? clockSays(ran.clocks.page));
+check(!ran.error && flightOk(ran.flight), 'the game runs in the Worker: a parked Cessna, 1,188 to 1,212 steps in 10 s, every state in order and none missing', ran.error ?? flightSays(ran.flight));
 check((await page.evaluate(() => localStorage.getItem('fsg.fdmStarting'))) === null, 'the starting marker is cleared once JSBSim has started');
 check((await page.evaluate(() => localStorage.getItem('fsg.dev'))) === 'on', 'the choice is kept as fsg.dev');
 const keys = await page.evaluate(() => Object.keys(localStorage));
@@ -102,7 +102,7 @@ check(await visible('#dev'), 'the Developer switch is still on after a reload');
 ran = await jsbsimRan();
 box = await text('#dev');
 check(!ran.error && ran.build === 'weh' && jsbsimLines(box), 'offline: JSBSim starts in its Worker all the same', ran.error ?? box.split('\n').slice(3).join(' | '));
-check(!ran.error && ran.clocks.worker.steps >= 1188 && ran.clocks.worker.steps <= 1212, "offline: the Worker's own clock keeps time all the same", ran.error ?? clockSays(ran.clocks.worker));
+check(!ran.error && flightOk(ran.flight), 'offline: the game runs in the Worker all the same', ran.error ?? flightSays(ran.flight));
 await context.setOffline(false);
 
 // 5. Portrait shows the rotate screen.
@@ -183,6 +183,34 @@ check(!(await visible('#screen-start .update')), 'and the offer is gone');
     check((await w.evaluate(() => window.fsg.jsbsim?.build)) === 'weh', 'switching Developer off and on tries again, and now it starts');
   }
   await noWorker.close();
+}
+
+// 8. A Worker made to fail while the game is running in it: the app starts again in a fresh Worker, and the
+//    airplane is parked on the runway again. Its own page, so that the error it makes is not counted above.
+{
+  const failing = await browser.newContext({ viewport: { width: 852, height: 393 }, serviceWorkers: 'block' });
+  const f = await failing.newPage();
+  const made = [];
+  f.on('pageerror', (e) => made.push(String(e)));
+  await f.addInitScript(() => { try { localStorage.setItem('fsg.dev', 'on'); } catch { /* not yet on the page's origin */ } });
+  await f.goto(base);
+  await f.waitForFunction(() => document.getElementById('dev').textContent.includes('µs per step'), null, { timeout: 60000 });   // the game is about to run
+  await new Promise((done) => setTimeout(done, 2000));
+  const first = f.workers()[0];
+  check(f.workers().length === 1 && (await f.evaluate(() => window.fsg.jsbsim)) === null, 'a Worker is running the game');
+  await first.evaluate(() => { setTimeout(() => { throw new Error('made to fail'); }, 0); });
+  await f.waitForFunction(() => window.fsg.jsbsim !== null, null, { timeout: 60000 });
+  const r = await f.evaluate(() => window.fsg.jsbsim);
+  check(!r.error && flightOk(r.flight) && f.workers().every((w) => w !== first), 'after the Worker is made to fail: a fresh Worker, and a parked airplane again', r.error ?? `${r.build}: ${flightSays(r.flight)}`);
+  await f.click('#settings');
+  await f.click('#dev-switch');   // off
+  await f.click('#dev-switch');   // on: the restart
+  await f.waitForFunction(() => window.fsg.jsbsim === null, null, { timeout: 10000 });
+  await f.waitForFunction(() => window.fsg.jsbsim !== null, null, { timeout: 60000 });
+  const again = await f.evaluate(() => window.fsg.jsbsim);
+  check(!again.error && again.build === 'weh' && flightOk(again.flight), 'and a restart (Developer off and on) flies the fast build again', again.error ?? flightSays(again.flight));
+  check(made.length > 0, 'the failure was a real one', made.join(' | '));
+  await failing.close();
 }
 
 check(errors.length === 0, 'no console errors', errors.join(' | '));

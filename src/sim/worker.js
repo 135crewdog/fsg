@@ -5,10 +5,10 @@
 // and RESEARCH.md are FDM's, at that commit; and "TypeScript" means this file, which is now JavaScript.
 // Browser Web Worker entry point: the game path. All the logic is in worker-handler.js.
 import { createHandler } from "./worker-handler.js";
-import { clockRun } from "./clock-run.js";   // FSG
+import { flightRun } from "./flight-run.js";   // FSG
 
 const scope = self;
-const handle = createHandler((message, transfer) => scope.postMessage(message, transfer ?? []), clockRun());
+const handle = createHandler((message, transfer) => scope.postMessage(message, transfer ?? []), flightRun());
 scope.onmessage = (e) => {
   void handle(e.data);
 };

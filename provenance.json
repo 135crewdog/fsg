@@ -299,8 +299,8 @@
       "from": "FDM:ts/worker.ts",
       "how": "types removed",
       "original": "32bff1315abc2e0056f9653cfb476fd1a20024a522053f3f2b8b1f5edaef1b34",
-      "why": "Milestone 1: the Worker hands the handler FSG's own messages (src/sim/clock-run.js).",
-      "copy": "02719cd8d247d7050ca60b077a0c4ee2d0073c18d3babfb70b17a725d3c6febb"
+      "why": "Milestone 1: the Worker hands the handler FSG's own messages, the game's (src/sim/flight-run.js).",
+      "copy": "43e170ee0aedb5eb29e71ab8a4374b2c021ccb0ded770898b021fbdf8b0c684d"
     },
     "jsbsim/tests/lib/node.js": {
       "from": "FDM:ts/node.ts",
