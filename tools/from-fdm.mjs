@@ -99,7 +99,22 @@ export const FILES = [
   ...['fdm-weh.mjs', 'fdm-weh.wasm', 'fdm-jseh.mjs', 'fdm-jseh.wasm', 'build-info.json'].map((f) => rebuilt('FDM', `dist-wasm/${f}`, `jsbsim/dist-wasm/${f}`)),
 
   // The JavaScript side: FDM's wrapper, fixed-step loop and Worker (TypeScript there), now the app's simulation code.
-  ...['core', 'codes', 'files', 'loop', 'bench', 'worker-handler', 'worker'].map((f) => typesRemoved(`ts/${f}.ts`, `src/sim/${f}.js`)),
+  ...['core', 'codes', 'files', 'loop', 'bench'].map((f) => typesRemoved(`ts/${f}.ts`, `src/sim/${f}.js`)),
+  // Milestone 1, pull request 3: FSG's own Worker messages live in their own files; the handler hands them on.
+  typesRemoved('ts/worker-handler.ts', 'src/sim/worker-handler.js', {
+    why: 'Milestone 1: createHandler takes an optional second argument, which is handed every request whose type FDM\'s handler does not know. FSG\'s own messages (the Worker\'s clock, then the game) are added that way, in their own files.',
+    replace: [
+      ['export function createHandler(post) {\n', '// FSG: `extend`, if given, is handed every request whose type this handler does not know, with what the\n// handler holds: extend(req, { post, module, fdm, loop }). FSG\'s own messages live in their own files.\nexport function createHandler(post, extend) {\n'],
+      ['          f.dispose();\n        }\n      }\n    }\n  }\n', '          f.dispose();\n        }\n      }\n      default:\n        if (extend) return extend(req, { post, module: need, fdm: () => fdm, loop: () => loop });\n    }\n  }\n'],
+    ],
+  }),
+  typesRemoved('ts/worker.ts', 'src/sim/worker.js', {
+    why: 'Milestone 1: the Worker hands the handler FSG\'s own messages (src/sim/clock-run.js).',
+    replace: [
+      ['import { createHandler } from "./worker-handler.js";\n', 'import { createHandler } from "./worker-handler.js";\nimport { clockRun } from "./clock-run.js";   // FSG\n'],
+      ['const handle = createHandler((message, transfer) => scope.postMessage(message, transfer ?? []));\n', 'const handle = createHandler((message, transfer) => scope.postMessage(message, transfer ?? []), clockRun());\n'],
+    ],
+  }),
 
   // FDM's tests, with the data they need. They stay in FDM's layout, under jsbsim/.
   typesRemoved('ts/node.ts', 'jsbsim/tests/lib/node.js', {

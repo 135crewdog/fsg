@@ -1,6 +1,6 @@
 // From 135crewdog/FDM, ts/worker-handler.ts, commit e478825. Made by tools/from-fdm.mjs: the types are removed
 // (a line that was only types is kept as a comment), ".ts" in file names becomes ".js", and import paths
-// follow FSG's folders. Nothing else is changed.
+// follow FSG's folders. Also changed: 2 lines, listed in tools/from-fdm.mjs.
 // In the comments below, host/, dist-wasm/, jsbsim-data/, build/ and tests/ are folders of jsbsim/; REPORT.md
 // and RESEARCH.md are FDM's, at that commit; and "TypeScript" means this file, which is now JavaScript.
 // The message handler that runs JSBSim off the main thread. It knows nothing about where it runs:
@@ -39,7 +39,9 @@ import { FixedStepLoop } from "./loop.js";
 
 // export type Post = (message: Record<string, unknown>, transfer?: ArrayBuffer[]) => void;
 
-export function createHandler(post) {
+// FSG: `extend`, if given, is handed every request whose type this handler does not know, with what the
+// handler holds: extend(req, { post, module, fdm, loop }). FSG's own messages live in their own files.
+export function createHandler(post, extend) {
   let module;
   let fdm;
   let loop;
@@ -119,6 +121,8 @@ export function createHandler(post) {
           f.dispose();
         }
       }
+      default:
+        if (extend) return extend(req, { post, module: need, fdm: () => fdm, loop: () => loop });
     }
   }
 

@@ -73,13 +73,20 @@ await page.click('#dev-switch');
 check(await visible('#dev'), 'Developer on shows the overlay');
 // With Developer on, a Worker starts JSBSim, loads c172x and times its step.
 const jsbsimRan = () => page.waitForFunction(() => window.fsg.jsbsim !== null, null, { timeout: 60000 }).then(() => page.evaluate(() => window.fsg.jsbsim));
-const jsbsimLines = (box) => /JSBSim 1\.3\.3 {3}(wasm exceptions|fallback build)\nc172x loaded in \d+ ms\n[\d.]+ µs per step {3}\(3000 steps at 1\/120 s\)$/.test(box);
+// ... and then measures the physics clock two ways, ten seconds each: two lines for each.
+const CLOCK = (name) => `${name}: [\\d.]+ steps\\/s, [\\d.]+ s dropped\\n {2}gaps between states: \\d+ ms typical, \\d+ ms for 99 in 100, \\d+ ms worst`;
+const jsbsimLines = (box) => new RegExp(`JSBSim 1\\.3\\.3 {3}(wasm exceptions|fallback build)\\nc172x loaded in \\d+ ms\\n[\\d.]+ µs per step {3}\\(3000 steps at 1\\/120 s\\)\\n${CLOCK("Worker's clock")}\\n${CLOCK('page ticks')}$`).test(box);
+const clockSays = (c) => `${c.steps} steps in ${c.seconds.toFixed(2)} s (${c.stepsPerSecond.toFixed(1)} a second), ${c.droppedSeconds.toFixed(2)} s dropped, ${c.states} states, gaps ${Math.round(c.gaps.typical)} ms typical, ${Math.round(c.gaps.most)} for 99 in 100, ${Math.round(c.gaps.worst)} worst`;
 let ran = await jsbsimRan();
 let box = await text('#dev');
 check(box.includes(`FSG ${version}`) && box.includes('browser tab') && box.includes('offline ready: yes'), 'the overlay says what it should', box.replace(/\n/g, ' | '));
 check(!ran.error && ran.build === 'weh' && jsbsimLines(box) && box.includes('wasm exceptions'), 'JSBSim runs in its Worker: the fast build, c172x loaded, a step time',
   ran.error ?? `${ran.usPerStep.toFixed(1)} µs per step; c172x loaded in ${Math.round(ran.loadMs)} ms; after the benchmark ${Math.round(ran.endAltitudeFt)} ft, ${Math.round(ran.endAirspeedKt)} kt`);
 check(Math.abs(ran.startAltitudeFt - 4000) < 0.1, 'c172x starts where its file says: 4,000 ft', `${ran.startAltitudeFt.toFixed(3)} ft`);
+// The Worker's own clock, on a real clock: within 1% of 120 steps a second over ten seconds (docs/milestones/1.md, pull request 3).
+check(!ran.error && ran.clocks.worker.steps >= 1188 && ran.clocks.worker.steps <= 1212 && Math.abs(ran.clocks.worker.seconds - 10) < 0.05,
+  "the Worker's own clock: 1,188 to 1,212 steps in 10 s", ran.error ?? clockSays(ran.clocks.worker));
+check(!ran.error && ran.clocks.page.steps > 0, 'page ticks are measured beside it', ran.error ?? clockSays(ran.clocks.page));
 check((await page.evaluate(() => localStorage.getItem('fsg.fdmStarting'))) === null, 'the starting marker is cleared once JSBSim has started');
 check((await page.evaluate(() => localStorage.getItem('fsg.dev'))) === 'on', 'the choice is kept as fsg.dev');
 const keys = await page.evaluate(() => Object.keys(localStorage));
@@ -95,6 +102,7 @@ check(await visible('#dev'), 'the Developer switch is still on after a reload');
 ran = await jsbsimRan();
 box = await text('#dev');
 check(!ran.error && ran.build === 'weh' && jsbsimLines(box), 'offline: JSBSim starts in its Worker all the same', ran.error ?? box.split('\n').slice(3).join(' | '));
+check(!ran.error && ran.clocks.worker.steps >= 1188 && ran.clocks.worker.steps <= 1212, "offline: the Worker's own clock keeps time all the same", ran.error ?? clockSays(ran.clocks.worker));
 await context.setOffline(false);
 
 // 5. Portrait shows the rotate screen.
