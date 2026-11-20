@@ -1,5 +1,7 @@
 // The game's settings for JSBSim's bundled F-16 (`f16`): a test aircraft, flown as upstream ships it, and
 // never part of the app. New in FSG, milestone 1.
+import { WINGS_CRASH_FPM } from '../rules.js';
+
 export const F16 = {
   /** JSBSim's name for it: aircraft/f16/f16.xml. */
   model: 'f16',
@@ -40,4 +42,10 @@ export const F16 = {
     feet: null,
     steer: { wheel: { to: 'fcs/steer-cmd-norm', sign: 1, halfAtKt: 0 } },
   },
+  /** A name for each wheel and airframe contact point, in the aircraft file's order (tests/rules.test.js checks it against the file). */
+  contacts: ['nose wheel', 'left main wheel', 'right main wheel', 'left wingtip', 'right wingtip', 'top of the fin', 'left ventral fin', 'right ventral fin', 'intake', 'radome'],
+  /** The crash line: closing with the ground faster than this at a touch is a hard impact. Wings' 8 m/s. */
+  crash: { closingFpm: WINGS_CRASH_FPM },
+  /** Limits, reported and not enforced: 9 g and 800 knots, the F-16's usual published figures (from memory; not checked against a flight manual). */
+  limits: { g: 9, knots: 800 },
 };

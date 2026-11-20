@@ -93,6 +93,23 @@ export function heightAt(source, north, east) {
   return a + s * (b - a);
 }
 
+/**
+ * The slope of the ground in a patch at a place: feet of height for each foot north and each foot east,
+ * measured `step` metres either side (kept inside the patch). From the patch, which is always there, not
+ * from the source, which may not be.
+ */
+export function slopeIn(patch, north, east, step) {
+  const { post } = patch.source, last = patch.posts - 1;
+  const height = (n, e) => {
+    const r = Math.min(Math.max(n / post - patch.row0, 0), last), c = Math.min(Math.max(e / post - patch.column0, 0), last);
+    const r0 = Math.min(Math.floor(r), last - 1), c0 = Math.min(Math.floor(c), last - 1), u = r - r0, s = c - c0, h = patch.heights, w = patch.posts;
+    const a = h[r0 * w + c0] + u * (h[(r0 + 1) * w + c0] - h[r0 * w + c0]), b = h[r0 * w + c0 + 1] + u * (h[(r0 + 1) * w + c0 + 1] - h[r0 * w + c0 + 1]);
+    return a + s * (b - a);
+  };
+  const run = (2 * step) / FT;
+  return { north: (height(north + step, east) - height(north - step, east)) / run, east: (height(north, east + step) - height(north, east - step)) / run };
+}
+
 /** True if the post nearest a place is water. */
 export function waterAt(source, north, east) {
   return source.water(Math.round(north / source.post), Math.round(east / source.post));

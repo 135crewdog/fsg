@@ -1,5 +1,7 @@
 // The game's settings for JSBSim's bundled Cessna 172 (`c172x`): a test aircraft, flown as upstream ships it.
 // New in FSG, milestone 1. Everything here is about the game; the airplane itself is JSBSim's file.
+import { WINGS_CRASH_FPM } from '../rules.js';
+
 export const C172X = {
   /** JSBSim's name for it: aircraft/c172x/c172x.xml. */
   model: 'c172x',
@@ -48,4 +50,10 @@ export const C172X = {
       brakes: { left: 'fcs/left-brake-cmd-norm', right: 'fcs/right-brake-cmd-norm', strength: 0.5, untilKt: 30 },
     },
   },
+  /** A name for each wheel and airframe contact point, in the aircraft file's order (tests/rules.test.js checks it against the file). */
+  contacts: ['nose wheel', 'left main wheel', 'right main wheel', 'tail skid', 'left wingtip', 'right wingtip'],
+  /** The crash line: closing with the ground faster than this at a touch is a hard impact. Wings' 8 m/s. */
+  crash: { closingFpm: WINGS_CRASH_FPM },
+  /** Limits, reported and not enforced: 3.8 g and about 160 knots, a Cessna 172's handbook figures (from memory; not checked against a handbook). */
+  limits: { g: 3.8, knots: 160 },
 };
