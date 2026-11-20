@@ -156,7 +156,7 @@ Game rules (kept from Wings):
 - **Target:** 60 fps on an iPhone 16, with the physics at 120 Hz.
 - **The checkride:** maneuvers flown headless, with results in knots, feet, degrees and g next to the reference numbers (flight manual, NASA data, native JSBSim). Each milestone plan writes the tolerances before the run.
 
-### Known facts about JSBSim in WebAssembly (Verified or Supported in FDM; details in its `REPORT.md`)
+### Known facts about JSBSim in WebAssembly (Verified or Supported in FDM and in milestone 0; details in FDM's `REPORT.md` and `docs/milestones/0.md`)
 - Build all of JSBSim with exception support, or 22 aircraft fail to load. Ship two builds:
   - `-fwasm-exceptions`: about 8 µs per step on the owner's iPhone
   - `-fexceptions`: about 18 µs per step, the fallback for Safari 26.0's WebKit bug 299629
@@ -168,6 +168,9 @@ Game rules (kept from Wings):
 - Read back that a scenario is what its name says: on the ground, on the slope, engine running.
 - WebAssembly and native JSBSim differ in the last digit from the first step. Compare against native's own spread after a one-last-digit nudge, not against a fixed tiny number.
 - The cloud sessions' git proxy has refused tag pushes (HTTP 403). If a tag is needed, record its name and commit and ask the owner to create it on GitHub.
+- Each Emscripten file fetches its own `.wasm` from beside itself and ignores bytes handed to it. Each `.wasm` must sit beside its `.mjs` and be in `sw.js`.
+- JSBSim's own build stamps its version text on GitHub's machines. A build that must match the committed one runs without `GITHUB_RUN_NUMBER`.
+- The installed home-screen app runs JSBSim as fast as a Safari tab: 7.7 µs per step on the owner's iPhone.
 
 ### iPhone platform rules (proven in Rage and Wings)
 - Motion permission is requested synchronously inside the Fly tap, over HTTPS.
@@ -196,4 +199,4 @@ Claude Code plans each milestone in Plan Mode when the one before is done. The l
 | 3 | **The F-4C.** Its JSBSim file built from real data, with its stability augmentation; `models/f4c.glb` with moving surfaces, gear and flaps; plumes | The F-4C passes its checkride against the flight manual and NASA data, and the owner flies it on the test field and approves the feel |
 | 4 | **Hawaii.** The real islands under the F-4C, ground callback fed from the tiles, the islands map, crash rules on real terrain | The owner flies from Hickam to every island on his iPhone, lands on another island, and the game is the minimum viable FSG |
 
-Milestone 0 is done: its plan and results are in `docs/milestones/0.md`. Milestone 1 is next.
+Milestone 0 is done: its plan and results are in `docs/milestones/0.md`. Milestone 1 is under way: its approved plan is in `docs/milestones/1.md`.
