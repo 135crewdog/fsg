@@ -1,3 +1,5 @@
+// From 135crewdog/FDM, host/fdm_host.h, commit e478825. Changed for FSG (milestone 1): one comment line on
+// SetGroundGrid. Nothing else is changed; tools/from-fdm.mjs lists the change.
 // Host layer (not physics): a thin wrapper around one JSBSim::FGFDMExec.
 //
 // Rules it enforces (see RESEARCH.md for the sources):
@@ -38,6 +40,7 @@ class FdmHost {
   // A value of -1 means "keep whatever the load produced".
   bool SetIntegrators(int rateRot, int rateTrans, int posRot, int posTrans);
   // Installs the height grid as the ground. Without it JSBSim's default ground callback stays in place.
+  // FSG: may be called again after load and between steps; the new grid replaces the old one.
   bool SetGroundGrid(std::shared_ptr<const HeightGrid> grid);
 
   // --- load, once ----------------------------------------------------------------------------------------

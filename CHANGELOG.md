@@ -2,6 +2,10 @@
 
 What changed in each version a player can see, newest first.
 
+## 0.0.3
+
+- JSBSim is rebuilt so that the ground under the airplane can be replaced while it flies. Nothing new to see.
+
 ## 0.0.2
 
 - JSBSim is in the app. With Developer on, the overlay shows it starting in the background, loading the Cessna 172 test aircraft and timing one step of its physics. The settings screen credits JSBSim. Nothing flies yet.

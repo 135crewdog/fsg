@@ -1,3 +1,5 @@
+// From 135crewdog/FDM, tests/native/host_selftest.cpp, commit e478825. Changed for FSG (milestone 1): it also runs
+// the checks in ground_swap_selftest.h. Nothing else is changed; tools/from-fdm.mjs lists the change.
 // Native self-test of the host wrapper (criterion 3, "natively where it applies").
 // The same checks run against the WebAssembly builds from tests/wrapper.test.ts.
 //   fdm_native --selftest <jsbsim-data dir> <fixtures dir> <scratch dir>
@@ -11,6 +13,8 @@
 #include "FGFDMExec.h"
 #include "fdm_host.h"
 #include "input_output/FGPropertyManager.h"
+
+#include "ground_swap_selftest.h"  // FSG
 
 namespace fdmtest {
 
@@ -154,6 +158,8 @@ int HostSelfTest(const std::string& data, const std::string& fix, const std::str
           "result " + std::to_string(rc) + " after " + std::to_string(c.StepsInLastCall()) + " steps");
     Check(c.Step(1) == FDM_STEP_NOT_RUNNING, "a dead instance does not step");
   }
+  // FSG: replacing the ground grid after load and between steps (ground_swap_selftest.h).
+  GroundSwapSelfTest(data, out, [](bool ok, const std::string& name, const std::string& detail) { Check(ok, name, detail); });
   std::printf("%s: %d failed\n", g_failed ? "FAILED" : "all ok", g_failed);
   return g_failed ? 1 : 0;
 }

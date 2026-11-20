@@ -15,15 +15,18 @@ All of it is copied from **`135crewdog/FDM`, branch `baseline/jsbsim`, commit `e
 | `scripts/fetch-jsbsim-data.sh` | `scripts/fetch-jsbsim-data.sh` | byte for byte |
 | `scripts/check-data.sh` | `scripts/check-data.sh` | changed (below) |
 | `CMakeLists.txt` | `CMakeLists.txt` | byte for byte |
-| `host/` (11 files) | `host/` | byte for byte |
-| `tests/native/` (2 files) | `tests/native/` | byte for byte |
+| `host/` (11 files) | `host/` | 9 byte for byte; `fdm_host.cpp` and `fdm_host.h` changed (below) |
+| `tests/native/ground_oracle.cpp` | the same | byte for byte |
+| `tests/native/host_selftest.cpp` | the same | changed (below) |
+| `tests/native/ground_swap_selftest.h` | none | new in FSG: the native checks of replacing the ground grid |
 | `scripts/build.sh`, `setup-toolchain.sh`, `check-flags.mjs`, `write-build-info.mjs`, `check-binaries.mjs`, `selftest-build.sh` | the same names in `scripts/` | byte for byte |
-| `dist-wasm/` (5 files) | `dist-wasm/` | byte for byte |
+| `dist-wasm/` (5 files) | `dist-wasm/` | FDM's until milestone 1; now rebuilt here from the changed host sources (below) |
 | `../src/sim/` (7 files) | `ts/core.ts`, `codes.ts`, `files.ts`, `loop.ts`, `bench.ts`, `worker-handler.ts`, `worker.ts` | types removed (below) |
 | `tests/*.test.js` (7), `tests/lib/*.js` (6) | `tests/*.test.ts`, `tests/lib/*.ts`, `ts/node.ts` | types removed (below) |
 | `tests/fixtures/`, `tests/reference/nasa/`, `tests/rng-elements.md` | the same | byte for byte |
 | `scripts/build-native.sh` | none | new in FSG: the native answer keys alone, with the commands `setup-toolchain.sh` and `build.sh` use |
 | `tests/native-selftest.test.js` | none | new in FSG: runs the native self-test under `npm test` |
+| `tests/ground-swap.test.js` | none | new in FSG: replacing the ground grid, on both WebAssembly builds |
 | `scripts/compare-rebuild.mjs` | none | new in FSG: after a rebuild, are the files the committed ones? |
 | `tests/data.test.js` | none | new in FSG: runs `check-data.sh` under `npm test` |
 | `tests/build.test.js` | none | new in FSG: the binaries and the host sources are the ones `build-info.json` describes |
@@ -44,6 +47,8 @@ Each file's comments are FDM's, untouched: where one says `host/`, `dist-wasm/` 
 The proof that nothing else changed: every one of FDM's tests passes on the converted files, and `build/results/parity.txt` from a run here is, line for line, the `results/parity.txt` FDM committed.
 
 ## Local changes
+
+- **The ground grid can be replaced in flight** (milestone 1, pull request 2; the one change to the C++ host layer). FDM's `SetGroundGrid` worked only before the aircraft loaded. The game cuts a patch of ground round the airplane and replaces it as the airplane moves, as FlightGear's ground cache does, so `host/fdm_host.cpp` now also accepts a grid after load and between steps: one condition changed, with a comment line in `host/fdm_host.h`. `tests/native/host_selftest.cpp` gains two lines that run FSG's checks in `tests/native/ground_swap_selftest.h`. Because the host sources changed, both WebAssembly builds were rebuilt and `dist-wasm/` is no longer FDM's bytes: `build-info.json` records the new hashes, and every one of FDM's tests was run again on the new files (`docs/milestones/1.md`).
 
 - **`scripts/check-data.sh`.** In FDM the data sat at the repo's root; here it sits one folder down. The script now asks git where the repo's `.git` is and what the path from the root is: two lines added, four changed, and a header. Nothing else differs.
 - **`tests/lib/node.js`** (FDM's `ts/node.ts`). It moved two folders down, so the root of the build is two folders up: one line.
@@ -68,7 +73,7 @@ node jsbsim/scripts/compare-rebuild.mjs
 
 One thing in the environment changes the result: JSBSim's own build file stamps the build number into its version text when it finds `GITHUB_RUN_NUMBER` (or `TRAVIS`, or `APPVEYOR`) set, as on a GitHub Actions machine. The committed files were built without the stamp, so build without those variables: `env -u GITHUB_RUN_NUMBER jsbsim/scripts/build.sh`.
 
-A rebuild must give the committed files byte for byte. `.github/workflows/rebuild.yml` does exactly these steps in GitHub Actions whenever anything that feeds the build changes, and fails on any difference. The committed binaries are never replaced by a rebuild that differs: FDM's test evidence belongs to those exact files.
+A rebuild must give the committed files byte for byte. `.github/workflows/rebuild.yml` does exactly these steps in GitHub Actions whenever anything that feeds the build changes, and fails on any difference. The committed binaries are replaced only when the host sources or the pins change on purpose, in the same pull request, with every test run again on the new files; a rebuild that differs for any other reason is a fault to find, not a file to commit.
 
 ## JSBSim itself
 
@@ -87,7 +92,8 @@ npm test                               # about two minutes
 
 | Test | What it shows (the numbers are FDM's, from its `REPORT.md`) |
 |---|---|
-| `native-selftest` | the wrapper's 41 checks, natively |
+| `native-selftest` | the wrapper's 41 checks, natively, and FSG's 7 of replacing the ground grid |
+| `ground-swap` | replacing the ground grid after load and between steps, on both WebAssembly builds: nothing changes bit for bit, a patch with another corner gives the same heights, the heap does not grow |
 | `wrapper` | the same checks on both WebAssembly builds: 22 tests |
 | `compare-selftest` | the trace comparator itself, on made-up traces: 17 tests |
 | `loop` | the fixed-step loop, and the Worker's handler in Node and in a worker thread: 10 tests |

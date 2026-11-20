@@ -128,18 +128,6 @@
       "original": "7ac512ec1120193e910141c368158023271dbba8e2ce0db391e713f1ff82777d",
       "copy": "7ac512ec1120193e910141c368158023271dbba8e2ce0db391e713f1ff82777d"
     },
-    "jsbsim/host/fdm_host.cpp": {
-      "from": "FDM:host/fdm_host.cpp",
-      "how": "byte for byte",
-      "original": "01bdc6b1340a8c8235ab6b10fd4291a7243d52e21b90f3b18a45ac1948118693",
-      "copy": "01bdc6b1340a8c8235ab6b10fd4291a7243d52e21b90f3b18a45ac1948118693"
-    },
-    "jsbsim/host/fdm_host.h": {
-      "from": "FDM:host/fdm_host.h",
-      "how": "byte for byte",
-      "original": "cf6cc1155d12c2fae70db095da3144b926218f374ad3f3ae2c68c85d3e602bf5",
-      "copy": "cf6cc1155d12c2fae70db095da3144b926218f374ad3f3ae2c68c85d3e602bf5"
-    },
     "jsbsim/host/grid_ground.cpp": {
       "from": "FDM:host/grid_ground.cpp",
       "how": "byte for byte",
@@ -182,6 +170,20 @@
       "original": "238e63337ef7b83dde57057a6fffabdb5539142ef81d8e41a44adce1629690cd",
       "copy": "238e63337ef7b83dde57057a6fffabdb5539142ef81d8e41a44adce1629690cd"
     },
+    "jsbsim/host/fdm_host.cpp": {
+      "from": "FDM:host/fdm_host.cpp",
+      "how": "changed",
+      "original": "01bdc6b1340a8c8235ab6b10fd4291a7243d52e21b90f3b18a45ac1948118693",
+      "why": "Milestone 1: SetGroundGrid is also allowed after load and between steps (it was \"only before load\"), so the height patch can follow the airplane.",
+      "copy": "451c7cf8cad69e22179704c0fa7ecdc95e9b4a1886eeca9f5cd6da0829106df2"
+    },
+    "jsbsim/host/fdm_host.h": {
+      "from": "FDM:host/fdm_host.h",
+      "how": "changed",
+      "original": "cf6cc1155d12c2fae70db095da3144b926218f374ad3f3ae2c68c85d3e602bf5",
+      "why": "Milestone 1: one comment line saying SetGroundGrid may be called again after load and between steps.",
+      "copy": "547499976ba7fc590c7241de8344f38739aa9ef23564d34242e02a6cefac892b"
+    },
     "jsbsim/tests/native/ground_oracle.cpp": {
       "from": "FDM:tests/native/ground_oracle.cpp",
       "how": "byte for byte",
@@ -190,9 +192,10 @@
     },
     "jsbsim/tests/native/host_selftest.cpp": {
       "from": "FDM:tests/native/host_selftest.cpp",
-      "how": "byte for byte",
+      "how": "changed",
       "original": "1adcad36c8c47f947ee25ee011e694e6a7fe889bd2f96ef8b54eed5419205cb1",
-      "copy": "1adcad36c8c47f947ee25ee011e694e6a7fe889bd2f96ef8b54eed5419205cb1"
+      "why": "Milestone 1: the native self-test also runs FSG's checks of replacing the ground grid (jsbsim/tests/native/ground_swap_selftest.h, new in FSG).",
+      "copy": "b72e1cef5516e8d452b5ce3f0b054acfde5f8b88d80cdbdda091fedfd0c75e30"
     },
     "jsbsim/scripts/build.sh": {
       "from": "FDM:scripts/build.sh",
@@ -232,33 +235,28 @@
     },
     "jsbsim/dist-wasm/fdm-weh.mjs": {
       "from": "FDM:dist-wasm/fdm-weh.mjs",
-      "how": "byte for byte",
-      "original": "ef1fc74eb7bdac8d086567234dbc12bb01539a7d7c0e533cec90e6d1a6d99acc",
-      "copy": "ef1fc74eb7bdac8d086567234dbc12bb01539a7d7c0e533cec90e6d1a6d99acc"
+      "how": "rebuilt",
+      "original": "ef1fc74eb7bdac8d086567234dbc12bb01539a7d7c0e533cec90e6d1a6d99acc"
     },
     "jsbsim/dist-wasm/fdm-weh.wasm": {
       "from": "FDM:dist-wasm/fdm-weh.wasm",
-      "how": "byte for byte",
-      "original": "ab2357c849ba72d8e9e26a42b071ff9009e12a1756307a3aa53acd32e26353eb",
-      "copy": "ab2357c849ba72d8e9e26a42b071ff9009e12a1756307a3aa53acd32e26353eb"
+      "how": "rebuilt",
+      "original": "ab2357c849ba72d8e9e26a42b071ff9009e12a1756307a3aa53acd32e26353eb"
     },
     "jsbsim/dist-wasm/fdm-jseh.mjs": {
       "from": "FDM:dist-wasm/fdm-jseh.mjs",
-      "how": "byte for byte",
-      "original": "130ccb9f9e6c04afa8fb2eede03de67e6185574c9b266137555155ed7f40e874",
-      "copy": "130ccb9f9e6c04afa8fb2eede03de67e6185574c9b266137555155ed7f40e874"
+      "how": "rebuilt",
+      "original": "130ccb9f9e6c04afa8fb2eede03de67e6185574c9b266137555155ed7f40e874"
     },
     "jsbsim/dist-wasm/fdm-jseh.wasm": {
       "from": "FDM:dist-wasm/fdm-jseh.wasm",
-      "how": "byte for byte",
-      "original": "5631da24f912a5104e394f2356a1dba4fa6854aa2011c881fa017957e4c4185d",
-      "copy": "5631da24f912a5104e394f2356a1dba4fa6854aa2011c881fa017957e4c4185d"
+      "how": "rebuilt",
+      "original": "5631da24f912a5104e394f2356a1dba4fa6854aa2011c881fa017957e4c4185d"
     },
     "jsbsim/dist-wasm/build-info.json": {
       "from": "FDM:dist-wasm/build-info.json",
-      "how": "byte for byte",
-      "original": "0e44fb3fa494963bcaa5a89d215ae0200d2c559775087a5e39f1ad49c05e9576",
-      "copy": "0e44fb3fa494963bcaa5a89d215ae0200d2c559775087a5e39f1ad49c05e9576"
+      "how": "rebuilt",
+      "original": "0e44fb3fa494963bcaa5a89d215ae0200d2c559775087a5e39f1ad49c05e9576"
     },
     "src/sim/core.js": {
       "from": "FDM:ts/core.ts",

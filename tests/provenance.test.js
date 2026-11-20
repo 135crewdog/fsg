@@ -24,11 +24,12 @@ test('every copied file is still the copy on record', () => {
     assert.ok(existsSync(join(ROOT, file)), `${file} exists`);
     assert.match(item.original, /^[0-9a-f]{64}$/, `${file}: the original's hash is on record`);
     if (item.how === 'adapted') continue;   // rewritten for FSG on purpose; it says at its top where it came from
+    if (item.how === 'rebuilt') continue;   // a binary rebuilt here from changed sources; jsbsim/tests/build.test.js and the rebuild workflow guard it
     assert.equal(sha256(readFileSync(join(ROOT, file))), item.copy, `${file} (${item.how}, from ${item.from}) has changed`);
     if (item.how === 'byte for byte') assert.equal(item.copy, item.original, `${file} is byte for byte`);
     locked++;
   }
-  console.log(`  ${locked} copied files match; ${Object.keys(record.files).length - locked} adapted files on record`);
+  console.log(`  ${locked} copied files match; ${Object.keys(record.files).length - locked} adapted or rebuilt files on record`);
 });
 
 test('every copied folder is still byte for byte the original', () => {

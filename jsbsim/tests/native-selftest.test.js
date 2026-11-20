@@ -21,5 +21,5 @@ test("native self-test: every check passes", () => {
   const passed = lines.filter((line) => line.startsWith("ok ")).length;
   console.log(`  ${passed} checks passed; ${lines.at(-1)}`);
   assert.equal(run.status, 0, lines.slice(-30).join("\n"));
-  assert.equal(passed, 41, "the 41 checks FDM's REPORT.md records");
+  assert.equal(passed, 48, "the 41 checks FDM's REPORT.md records, and FSG's 7 of replacing the ground grid (tests/native/ground_swap_selftest.h)");
 });
