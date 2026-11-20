@@ -2,10 +2,10 @@
 // the same scenario runs in native JSBSim (the answer key), in the C++ runner inside each WebAssembly build,
 // and nudged by one last digit eight times in native, which is how far native differs from itself.
 // New in FSG, milestone 1 (docs/milestones/1.md, "The checkride, and matching native").
-import { STATE_COLUMNS, ensembleScenarios, runNative, runWasmCpp } from '../../jsbsim/tests/lib/scenario.js';
+import { STATE_COLUMNS, ensembleScenarios, runNative, runWasmCpp, runWasmTs } from '../../jsbsim/tests/lib/scenario.js';
 
 /** The columns FDM judges, with the airspeed a pilot reads. Wheel and contact flags are added by the runner. */
-export const JUDGED = [...STATE_COLUMNS, 'velocities/vc-kts'];
+export const JUDGED = [...STATE_COLUMNS, 'velocities/vc-kts', 'velocities/v-down-fps'];
 
 /** The tape as a scenario. `outs` are the columns to record; left out, the flight's own state. */
 export function scenarioOf(tape, name, outs) {
@@ -24,11 +24,22 @@ export function flyNative(tape, name) {
   return { native: native.trace, ensemble: ensemble.map((run) => run.trace) };
 }
 
-/** The tape flown by the C++ runner inside a WebAssembly module (which must hold JSBSim's data at /data). */
-export function flyWasm(module, tape, name, outs) {
-  const run = runWasmCpp(module, scenarioOf(tape, name, outs));
+/**
+ * The tape flown again inside a WebAssembly module (which must hold JSBSim's data at /data): by FDM's C++
+ * runner, or with `stepByStep` through the wrapper one step at a time, the way the game runs (FDM's
+ * runWasmTs). The C++ runner keeps the whole flight's table inside the module's fixed 16 MiB of memory, so
+ * it has room for about two minutes of flight; step by step, the table is kept outside and any length fits.
+ */
+export function flyWasm(module, tape, name, outs, { stepByStep = false } = {}) {
+  const run = (stepByStep ? runWasmTs : runWasmCpp)(module, scenarioOf(tape, name, outs));
   if (run.meta.stage !== 'done') throw new Error(`wasm ${name}: ${run.meta.stage}: ${run.meta.message}`);
   return run.trace;
+}
+
+/** The first `steps` steps of a tape, as a tape. */
+export function headOf(tape, steps) {
+  const width = tape.states.columns.length;
+  return { ...tape, steps, inputs: tape.inputs.subarray(0, steps * tape.ins.length), states: { columns: tape.states.columns, rows: steps + 1, data: tape.states.data.subarray(0, (steps + 1) * width) } };
 }
 
 // ---- numbers a pilot would read off a flight, from any trace with the JUDGED columns ----
@@ -51,4 +62,31 @@ export function liftoff(trace, dt) {
     }
   }
   return null;
+}
+
+/**
+ * The landing: the first row, at least 10 s after liftoff, where a wheel touches. Returns its speed (kt),
+ * the sink in the row before (ft/min), and how far from the start it is (ft). Null if it never comes down.
+ */
+export function touchdown(trace, dt) {
+  const off = liftoff(trace, dt);
+  if (!off) return null;
+  const idx = wheels(trace);
+  for (let row = off.row + Math.round(10 / dt); row < trace.rows; row++) {
+    if (onWheels(trace, row, idx)) return { row, knots: at(trace, row - 1, 'velocities/vc-kts'), sinkFpm: at(trace, row - 1, 'velocities/v-down-fps') * 60, fromStartFt: feetBetween(trace, 0, row) };
+  }
+  return null;
+}
+
+/** Where the flight ends: how far from the start (ft), and how fast it is still moving there (kt, true airspeed in still air). */
+export function stopped(trace) {
+  const last = trace.rows - 1;
+  return { fromStartFt: feetBetween(trace, 0, last), knots: at(trace, last, 'velocities/vtrue-kts') };
+}
+
+/** The highest the flight went, feet above sea level. */
+export function highest(trace) {
+  let most = -Infinity;
+  for (let row = 0; row < trace.rows; row++) most = Math.max(most, at(trace, row, 'position/h-sl-ft'));
+  return most;
 }
