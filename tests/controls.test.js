@@ -26,6 +26,10 @@ const inTheAir = async (aircraft, variant) => {
   // Read back that the start is what it says: in the air, at the speed asked for, steady.
   assert.ok(Math.abs(flight.value('velocities/vc-kts') - AIRBORNE.get(aircraft).knots) < 0.5, `${flight.value('velocities/vc-kts')} kt`);
   assert.ok(Math.abs(flight.value('position/h-sl-ft') - AIRBORNE.get(aircraft).heightFt) < 1);
+  // The state handed over is the trimmed one, not the one from before JSBSim's trim (Codex's finding on pull
+  // request 12): every number of it is what JSBSim has now, and the airplane is flying, not falling.
+  flight.stateNames.forEach((name, i) => assert.ok(Object.is(flight.state[i], flight.get(name)), `${name}: the state has ${flight.state[i]}, JSBSim ${flight.get(name)}`));
+  assert.ok(Math.abs(flight.value('accelerations/Nz') - 1) < 0.02 && flight.value('propulsion/engine[0]/thrust-lbs') > 50, `trimmed: ${flight.value('accelerations/Nz')} g, ${flight.value('propulsion/engine[0]/thrust-lbs')} lb of thrust`);
   return flight;
 };
 

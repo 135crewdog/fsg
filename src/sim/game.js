@@ -140,6 +140,9 @@ export class Flight {
         const read = (control) => { const { to, sign = 1 } = aircraft.controls[control]; return sign * fdm.getByName(to[0]); };
         flight.trimmed = { throttle: read('throttle'), pitch: read('pitch'), roll: read('roll') };
         Object.assign(flight.controls, flight.trimmed);
+        // The state was read at the start, before the trim changed it: read it again, without a step.
+        fdm.bindOutputs(flight.stateNames);
+        flight.state = fdm.curr;
       }
       // From here on the flight is a tape: nothing is set in JSBSim but through the input array.
       fdm.set = () => { throw new FdmError('a flight is a start and a tape: after the start, JSBSim is given values only through the input array'); };
