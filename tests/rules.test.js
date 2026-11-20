@@ -217,6 +217,14 @@ for (const variant of VARIANTS) {
       assert.equal(down.ended?.reason, 'broken state');
       assert.equal(down.result, StepResult.NONFINITE);
       assert.equal(down.events.filter((e) => e.type === 'ended').length, 1);
+      // The touchdown is still reported, though JSBSim broke inside its half second (Codex's finding on pull
+      // request 16): once, before the ending, with the sink of the first touch.
+      const types = down.events.map((e) => e.type), reported = down.events.filter((e) => e.type === 'touchdown');
+      if (down.firstTouches.some((e) => e.wheel)) {
+        assert.equal(reported.length, 1, 'one touchdown is reported');
+        assert.ok(Math.abs(reported[0].sinkFpm - down.sink) < 1 && Number.isFinite(reported[0].g), JSON.stringify(reported[0]));
+        assert.ok(types.indexOf('touchdown') < types.indexOf('ended'), 'before the ending');
+      }
       console.log(`  ${name}: straight down at ${down.sink.toFixed(0)} ft/min, override on: reported "${down.verdict}" at the touch, and JSBSim's numbers broke ${(down.ended.time - down.firstTouches[0].time).toFixed(2)} s later: the flight ended on its last good state`);
       over(down.flight);
       // Every way of reading the ended flight gives the state it kept, not JSBSim's broken numbers (Codex's finding on pull request 16).

@@ -102,7 +102,7 @@ export class Rules {
     if (wheelTouched && !anyBefore && !this.#touchdown) this.#touchdown = { type: 'touchdown', time, sinkFpm: before[s.vd] * 60, knots: before[s.vg] / KT, g: after[s.g], until: time + TOUCHDOWN_SECONDS };
     if (this.#touchdown) {
       this.#touchdown.g = Math.max(this.#touchdown.g, after[s.g]);
-      if (time >= this.#touchdown.until - this.#dt / 2 || (verdict && !this.crashOverride)) {
+      if (time >= this.#touchdown.until - this.#dt / 2) {
         const { until, ...event } = this.#touchdown;
         this.#report(event);
         this.#touchdown = null;
@@ -118,8 +118,17 @@ export class Rules {
     return verdict;
   }
 
-  /** Reports the end of the flight. */
+  /**
+   * Reports the end of the flight. A touchdown still being measured is reported first, with the most g seen
+   * so far: an ended flight judges no more steps, so it would otherwise never be reported (a broken state
+   * can end a flight inside the half second).
+   */
   end(ended) {
+    if (this.#touchdown) {
+      const { until, ...event } = this.#touchdown;
+      this.#report(event);
+      this.#touchdown = null;
+    }
     this.#report({ type: 'ended', ...ended });
   }
 }
