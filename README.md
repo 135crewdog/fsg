@@ -5,6 +5,7 @@ A flight sim game for the iPhone: a home-screen web app at <https://135crewdog.g
 ## Where things are
 
 - `CLAUDE.md`: the project's rules. Read it first.
+- `docs/models.md`: what the app needs from a 3D model. `models/`: the models, whose they are (`CREDITS.md`), and the script that made the stand-in Cessna from FlightGear's (`convert-c172p.py`; it needs Python with Pillow, and is run by hand).
 - `docs/milestones/`: each milestone's approved plan, its "done" lines and its results. Milestone 0 (setup) is done: `docs/milestones/0.md`. Milestone 1 (JSBSim as the game's core, headless) is done: `docs/milestones/1.md`. Milestone 2 (first flight) is under way: its approved plan is `docs/milestones/2.md`.
 - `docs/ideas.md`: ideas, not built until the owner picks one.
 - `index.html`, `style.css`, `sw.js`, `manifest.webmanifest`, `icons/`, `src/`: the app. Plain HTML, CSS and JavaScript; nothing is built.

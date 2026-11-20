@@ -81,6 +81,16 @@
       "how": "adapted",
       "original": "efc87c8d0ff880755cc8e24ed5a9b91f7f2859777ea7a4a77dea46b1d63f81db"
     },
+    "docs/models.md": {
+      "from": "wings:docs/models.md",
+      "how": "adapted",
+      "original": "75f426861419bc54e68a157f1db46ffeab4ab5258eb2d0c808a00840487182b3"
+    },
+    "models/glb.mjs": {
+      "from": "wings:models/glb.mjs",
+      "how": "adapted",
+      "original": "c35f0420d0e254cbccce619a8ca66ef682e8cc73f9e7a1f7aef667524766c205"
+    },
     "tests/browser/app.chromium.mjs": {
       "from": "FDM:tests/page.chromium.mjs",
       "how": "adapted",
