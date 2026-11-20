@@ -2,6 +2,10 @@
 
 What changed in each version a player can see, newest first.
 
+## 0.0.4
+
+- With Developer on, the overlay now also measures the physics clock two ways, ten seconds each: on the Worker's own timer, and on ticks from the page. It shows steps a second, time dropped, and the gaps between states for both. Nothing flies yet.
+
 ## 0.0.3
 
 - JSBSim is rebuilt so that the ground under the airplane can be replaced while it flies. Nothing new to see.

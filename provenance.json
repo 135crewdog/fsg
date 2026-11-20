@@ -292,13 +292,15 @@
       "from": "FDM:ts/worker-handler.ts",
       "how": "types removed",
       "original": "a27a522dfa8a824815071c0e52cf26e4c33dfb98e7faa8811756d76225a2c097",
-      "copy": "0a3910d59eff4163166af4873876295ed283cf3986d9e8a5509c185f3606735a"
+      "why": "Milestone 1: createHandler takes an optional second argument, which is handed every request whose type FDM's handler does not know. FSG's own messages (the Worker's clock, then the game) are added that way, in their own files.",
+      "copy": "15a70a3a5bd328302fecd26da78020e1fb1a4eb6649d92de1bbcc5bc6d71e724"
     },
     "src/sim/worker.js": {
       "from": "FDM:ts/worker.ts",
       "how": "types removed",
       "original": "32bff1315abc2e0056f9653cfb476fd1a20024a522053f3f2b8b1f5edaef1b34",
-      "copy": "e698832c5e04cb776adc1862397fedf6b5abab6ee7f1b2170c6497cfb85c2e11"
+      "why": "Milestone 1: the Worker hands the handler FSG's own messages (src/sim/clock-run.js).",
+      "copy": "02719cd8d247d7050ca60b077a0c4ee2d0073c18d3babfb70b17a725d3c6febb"
     },
     "jsbsim/tests/lib/node.js": {
       "from": "FDM:ts/node.ts",

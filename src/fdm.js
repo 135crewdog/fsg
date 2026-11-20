@@ -19,6 +19,65 @@ export const BUILDS = {
 };
 export const DATA = '../jsbsim/jsbsim-data/';
 export const DT = 1 / 120;
+/** How long each clock is measured for, seconds. */
+export const CLOCK_SECONDS = 10;
+
+/** The gaps between the moments in `times` (milliseconds): the middle one, the one 99 in 100 are no longer than, the longest. */
+export function gapsOf(times) {
+  const gaps = times.slice(1).map((t, i) => t - times[i]).sort((a, b) => a - b);
+  if (!gaps.length) return { typical: NaN, most: NaN, worst: NaN };
+  return { typical: gaps[Math.floor(gaps.length / 2)], most: gaps[Math.max(0, Math.ceil(0.99 * gaps.length) - 1)], worst: gaps.at(-1) };
+}
+
+const AIRBORNE = { type: 'create', model: 'c172x', ic: 'reset01', dt: DT, outputs: ['position/h-sl-ft', 'velocities/vtrue-kts'] };
+const clockLines = (name, c) => [
+  `${name}: ${c.stepsPerSecond.toFixed(1)} steps/s, ${c.droppedSeconds.toFixed(2)} s dropped`,
+  `  gaps between states: ${Math.round(c.gaps.typical)} ms typical, ${Math.round(c.gaps.most)} ms for 99 in 100, ${Math.round(c.gaps.worst)} ms worst`,
+];
+
+/**
+ * The physics clock, measured both ways with the Cessna in the air, CLOCK_SECONDS each (docs/milestones/1.md,
+ * pull request 3). The numbers decide which one the game is built on.
+ *  - The Worker's own clock: the Worker's timer drives the steps and posts a state after each batch.
+ *  - Page ticks (FDM's way): the page asks for the steps once a frame and gets the state back.
+ * A gap is the time from one state reaching the page to the next, by the page's clock.
+ */
+async function measureClocks(request, states, say) {
+  // 1. The Worker's own clock.
+  await request(AIRBORNE);
+  let arrivals = [];
+  states.on = () => arrivals.push(performance.now());
+  const ran = await request({ type: 'clock-run', seconds: CLOCK_SECONDS });
+  states.on = null;
+  await request({ type: 'dispose' });
+  const worker = { steps: ran.steps, seconds: ran.seconds, stepsPerSecond: ran.steps / ran.seconds, droppedSeconds: ran.droppedSeconds, states: arrivals.length, gaps: gapsOf(arrivals) };
+  for (const line of clockLines("Worker's clock", worker)) say(line);
+
+  // 2. Page ticks: one request a frame, each with the page's time.
+  await request(AIRBORNE);
+  arrivals = [];
+  let first = null, ended = false;
+  await new Promise((done) => {
+    const end = () => { if (!ended) { ended = true; done(); } };
+    const frame = () => {
+      if (ended) return;
+      const now = performance.now();
+      if (first === null) first = now;
+      if (now - first >= CLOCK_SECONDS * 1000) { end(); return; }
+      request({ type: 'tick', now: now / 1000 }).then((reply) => { if (reply.steps > 0) arrivals.push(performance.now()); }, () => {});
+      requestAnimationFrame(frame);
+    };
+    requestAnimationFrame(frame);
+    setTimeout(end, CLOCK_SECONDS * 1000 + 3000);   // a page that is not on screen gets no frames
+  });
+  const last = performance.now();
+  const final = await request({ type: 'tick', now: last / 1000 });
+  await request({ type: 'dispose' });
+  const seconds = first === null ? 0 : (last - first) / 1000;
+  const page = { steps: final.totalSteps, seconds, stepsPerSecond: seconds > 0 ? final.totalSteps / seconds : 0, droppedSeconds: final.droppedSeconds, states: arrivals.length, gaps: gapsOf(arrivals) };
+  for (const line of clockLines('page ticks', page)) say(line);
+  return { worker, page };
+}
 
 // Set while the fast build is starting. If the app dies there (Safari 26.0
 // and 26.1 did, WebKit bug 299629), the marker is still set at the next
@@ -35,11 +94,13 @@ async function fetchBytes(path) {
   return new Uint8Array(await response.arrayBuffer());
 }
 
-/** One build, in a fresh Worker: start JSBSim, load c172x, time the step. The Worker is ended afterwards. */
+/** One build, in a fresh Worker: start JSBSim, load c172x, time the step, measure the two clocks. The Worker is ended afterwards. */
 async function run(build, say) {
   const worker = new Worker(new URL('./sim/worker.js', import.meta.url), { type: 'module' });
   const client = new WorkerClient((message, transfer) => worker.postMessage(message, transfer ?? []));
-  worker.onmessage = (event) => client.receive(event.data);
+  // A state the Worker posts unasked (the Worker's own clock) is not an answer to a request.
+  const states = { on: null };
+  worker.onmessage = (event) => { if (event.data?.type === 'state') states.on?.(event.data); else client.receive(event.data); };
   // A Worker that fails (its own file or one of its imports did not load, say) answers nothing from then on.
   // So the failure is kept: it ends the requests already waiting, and every request made after it.
   let dead = null;
@@ -66,7 +127,8 @@ async function run(build, say) {
     // (On iPhone the clock ticks in whole milliseconds, so only whole batches are timed.)
     const { result } = await request({ type: 'bench', options: { dt: DT, forces: 0, fixtureAircraftPath: '' } });
     say(`${result.usPerStep.toFixed(1)} µs per step   (${result.batchSteps} steps at 1/120 s)`);
-    return { build, version: init.version, loadMs, usPerStep: result.usPerStep, startAltitudeFt: created.curr[0], endAltitudeFt: result.endAltitudeFt, endAirspeedKt: result.endAirspeedKt };
+    const clocks = await measureClocks(request, states, say);
+    return { build, version: init.version, loadMs, usPerStep: result.usPerStep, startAltitudeFt: created.curr[0], endAltitudeFt: result.endAltitudeFt, endAirspeedKt: result.endAirspeedKt, clocks };
   } finally {
     worker.terminate();
   }
