@@ -1,14 +1,16 @@
 // One flight: a fresh JSBSim, one aircraft, standing where the game put it. New in FSG, milestone 1.
-// This file grows through the milestone (rules); so far it starts a flight parked on the runway, takes the
-// seven controls in, flies them with the game's assists, gives the state out, and keeps a patch of ground
-// under the airplane. Each step: controls, then assists, then JSBSim.
+// It starts a flight parked on the runway, takes the seven controls in, flies them with the game's assists,
+// gives the state out, keeps a patch of ground under the airplane and judges what happens by the game's
+// rules. Each step: controls, then assists, then JSBSim, then rules.
 //
 // A flight is a start and a tape (docs/milestones/1.md): the start is a list of values set before JSBSim's
 // first step; after that, everything the game does to JSBSim goes through one array of inputs, every step.
 // That is what lets native JSBSim replay a flight, and it is the fast path (one array, no names).
 import { Assists, assistWrites } from './assists.js';
+import { StepResult } from './codes.js';
 import { Fdm, FdmError } from './core.js';
 import { PATCH_MARGIN, PATCH_POSTS, cutPatch, flatSource, postsInside } from './ground.js';
+import { Rules } from './rules.js';
 import { FIELD, toLatLon, toWorld } from './world.js';
 
 /** The physics step, seconds: 120 steps a second. */
@@ -99,6 +101,13 @@ export class Flight {
   trimmed = null;
   /** The game's assists (src/sim/assists.js), or null for a flight started without them (tests only). */
   assists = null;
+  /** The game's rules (src/sim/rules.js): the crash override switch, the events, the limits being exceeded. */
+  rules;
+  /**
+   * Null while the flight goes on. Once it has ended: { reason, time, ... } with reason 'hard impact', 'water'
+   * or 'broken state'. An ended flight runs no more steps, and its state stays the last good one.
+   */
+  ended = null;
   /** The terrain the flight is over (src/sim/ground.js), and the patch of it JSBSim has now. */
   terrain;
   patch;
@@ -129,12 +138,17 @@ export class Flight {
    * `assists` replaces the aircraft's own assist settings, and `assists: null` flies with none: for tests that
    * compare. The game always flies with the aircraft's own.
    *
+   * `crashOverride` is the pause screen's switch, on unless told otherwise: with it on no touch ends the
+   * flight. For tests, `controls` changes the controls it starts with and `sets` adds values set before
+   * JSBSim's first step (an arrival just above the ground, say); they are part of the start, so of the tape.
+   *
    * `record: true` keeps the tape: every step's inputs and the state after it (tape()). The start and the tape
    * are the whole flight, so native JSBSim can fly it again. A flight trimmed into the air is not one: JSBSim's
    * trim is not something the tape holds.
    */
   static start(module, aircraft, { at = FIELD.start, terrain = flatSource(FIELD.heightFt), patchPosts = PATCH_POSTS, patchMargin = PATCH_MARGIN,
-    settleSeconds = SETTLE_SECONDS, airborne = null, assists = aircraft.assists, record = false, nudge = 0, onEvent } = {}) {
+    settleSeconds = SETTLE_SECONDS, airborne = null, assists = aircraft.assists, crashOverride = true, controls = null, sets = [],
+    record = false, nudge = 0, onEvent } = {}) {
     if (record && airborne) throw new Error('an airborne start cannot be recorded: its trim is not part of the tape');
     const patch = cutPatch(terrain, at.north, at.east, patchPosts);
     if (!patch) return null;
@@ -146,7 +160,7 @@ export class Flight {
     try {
       fdm.loadModel(aircraft.model);
       const { lat, lon } = toLatLon(at.north, at.east);
-      flight.controls = airborne ? { ...PARKED, gear: false, flaps: false, brake: false } : { ...PARKED };
+      flight.controls = { ...PARKED, ...(airborne ? { gear: false, flaps: false, brake: false } : null), ...controls };
       const commands = commandsFor(aircraft, flight.controls);
       // The inputs: the commands the seven controls drive, then any the assists alone write.
       flight.inputNames = [...new Set([...commands.map(([name]) => name), ...(assists ? assistWrites(assists) : [])])];
@@ -164,6 +178,8 @@ export class Flight {
       flight.#lat = flight.#at.get('position/lat-geod-rad');
       flight.#lon = flight.#at.get('position/long-gc-rad');
       if (assists) flight.assists = new Assists(assists, (name) => flight.#at.get(name), inputAt, wheels);
+      flight.rules = new Rules(aircraft, (name) => flight.#at.get(name), flight.stateNames, DT);
+      flight.rules.crashOverride = crashOverride;
       flight.startSets = [
         // Geodetic latitude: JSBSim's plain "latitude" is geocentric, 10 nm away at this latitude.
         ['ic/lat-geod-deg', lat * DEG], ['ic/long-gc-deg', lon * DEG], ['ic/psi-true-deg', at.headingDeg],
@@ -173,7 +189,8 @@ export class Flight {
         ['propulsion/fuel_freeze', 1],    // constant weight: fuel never burns
         ...commands,
         ...(flight.assists ? flight.assists.startSets : []),   // the trim is there from before the first step
-        ...(airborne ? aircraft.controls.gear.to.map(() => ['gear/gear-pos-norm', 0]) : []),   // in the air the gear is already up
+        ...(flight.controls.gear ? [] : aircraft.controls.gear.to.map(() => ['gear/gear-pos-norm', 0])),   // gear up means already up
+        ...sets,
       ];
       for (const [name, value] of flight.startSets) fdm.setByName(name, value);
       // For tests that measure how far a flight differs from itself: the start height moved by `nudge` last
@@ -211,8 +228,10 @@ export class Flight {
       }
       // From here on the flight is a tape: nothing is set in JSBSim but through the input array.
       fdm.set = () => { throw new FdmError('a flight is a start and a tape: after the start, JSBSim is given values only through the input array'); };
+      flight.#good = Float64Array.from(flight.state);
       flight.fly(flight.controls);
       if (!airborne) flight.step(Math.round(settleSeconds / DT));
+      flight.rules.reset();   // standing on its wheels at the start is not a touchdown
     } catch (e) {
       flight.dispose();
       throw e;
@@ -253,21 +272,39 @@ export class Flight {
   step(n = 1) {
     this.stepsRun = 0;
     for (let k = 0; k < n; k++) {
-      if (!this.#groundReady()) return 0;
+      if (this.ended || !this.#groundReady()) return 0;
       this.#write();
       const inputs = this.recorded ? Float64Array.from(this.inputs) : null;
       const result = this.fdm.step(1);
-      if (this.fdm.stepsInLastCall === 1) {
-        this.stepsRun++;
-        if (this.#inside() < 0) this.stepsOutside++;   // measured after the step, against the patch it was run on
-        if (this.recorded) {
-          this.recorded.inputs.push(inputs);
-          this.recorded.states.push(Float64Array.from(this.state));
-        }
+      // A broken state ends the flight, crash override or not, on the last good state: no number that is not
+      // a number is ever given out. (The host layer checks JSBSim's own state; this checks what we give out.)
+      if (result !== StepResult.OK || !this.state.every(Number.isFinite)) {
+        this.state = this.#good;
+        this.#end({ reason: 'broken state', time: this.state[0], detail: result === StepResult.OK ? 'a number in the state is not finite' : this.fdm.lastError() });
+        return result === StepResult.OK ? StepResult.NONFINITE : result;
       }
-      if (result !== 0) return result;
+      this.stepsRun++;
+      const place = toWorld(this.state[this.#lat], this.state[this.#lon]);
+      if (postsInside(this.patch, place.north, place.east) < 0) this.stepsOutside++;   // measured after the step, against the patch it was run on
+      if (this.recorded) {
+        this.recorded.inputs.push(inputs);
+        this.recorded.states.push(Float64Array.from(this.state));
+      }
+      const verdict = this.rules.judge(this.#good, this.state, place, this.patch, this.terrain);
+      this.#good.set(this.state);
+      if (verdict && !this.rules.crashOverride) {
+        this.state = this.#good;
+        this.#end(verdict);
+        return 0;
+      }
     }
     return 0;
+  }
+  #good = null;   // the state after the last good step: what an ended flight keeps
+
+  #end(ended) {
+    this.ended = ended;
+    this.rules.end(ended);
   }
   /** Steps run by the last step() call. */
   stepsRun = 0;
@@ -291,11 +328,6 @@ export class Flight {
     }
     this.waiting = false;
     return true;
-  }
-  /** How many posts the airplane is inside the patch JSBSim has (negative: outside it). */
-  #inside() {
-    const { north, east } = toWorld(this.state[this.#lat], this.state[this.#lon]);
-    return postsInside(this.patch, north, east);
   }
   #lat = 0;
   #lon = 0;
