@@ -96,8 +96,10 @@ export class Rules {
       }
       if (water && !verdict) verdict = { reason: 'water', point: point.name, closingFpm: closing ?? 0, knots: before[s.vg] / KT, time };
     }
-    // A touchdown: a wheel touches when nothing was touching. Reported half a second later, with the most g of that time.
-    if (wheelTouched && !anyBefore) this.#touchdown = { type: 'touchdown', time, sinkFpm: before[s.vd] * 60, knots: before[s.vg] / KT, g: after[s.g], until: time + TOUCHDOWN_SECONDS };
+    // A touchdown: a wheel touches when nothing was touching. Reported half a second later, with the most g of
+    // that time. A bounce that comes down again inside the half second is part of the same touchdown: the
+    // first touch's sink and speed are the ones reported.
+    if (wheelTouched && !anyBefore && !this.#touchdown) this.#touchdown = { type: 'touchdown', time, sinkFpm: before[s.vd] * 60, knots: before[s.vg] / KT, g: after[s.g], until: time + TOUCHDOWN_SECONDS };
     if (this.#touchdown) {
       this.#touchdown.g = Math.max(this.#touchdown.g, after[s.g]);
       if (time >= this.#touchdown.until - this.#dt / 2 || (verdict && !this.crashOverride)) {

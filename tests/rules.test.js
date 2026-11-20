@@ -219,6 +219,12 @@ for (const variant of VARIANTS) {
       assert.equal(down.events.filter((e) => e.type === 'ended').length, 1);
       console.log(`  ${name}: straight down at ${down.sink.toFixed(0)} ft/min, override on: reported "${down.verdict}" at the touch, and JSBSim's numbers broke ${(down.ended.time - down.firstTouches[0].time).toFixed(2)} s later: the flight ended on its last good state`);
       over(down.flight);
+      // Every way of reading the ended flight gives the state it kept, not JSBSim's broken numbers (Codex's finding on pull request 16).
+      const where = down.flight.where();
+      assert.ok(Object.values(where).every(Number.isFinite), JSON.stringify(where));
+      assert.equal(where.aboveGroundFt, down.flight.value('position/h-agl-ft'));
+      assert.equal(where.heightFt, down.flight.value('position/h-sl-ft'));
+      for (const stateName of down.flight.stateNames) assert.ok(Object.is(down.flight.get(stateName), down.flight.value(stateName)), stateName);
       down.flight.dispose();
       parkedAgain();
       // With the override off the same arrival ends at the touch, as a hard impact, before JSBSim can break.
@@ -277,6 +283,15 @@ for (const variant of VARIANTS) {
       assert.ok(touchdown && Math.abs(touchdown.sinkFpm - landing.sink) < 1 && Math.abs(touchdown.knots - landing.speed) < 1 && touchdown.g > 1 && touchdown.g < 10, JSON.stringify(touchdown));
       console.log(`  ${name}: a touchdown is reported: sinking ${touchdown.sinkFpm.toFixed(0)} ft/min at ${touchdown.knots.toFixed(0)} kt, ${touchdown.g.toFixed(1)} g`);
       landing.flight.dispose();
+      // A bounce that comes down again inside the half second does not replace the touchdown being reported
+      // (Codex's finding on pull request 16: at 550 ft/min the report was of the rebound, 16 ft/min and 1.2 g).
+      const bounce = arrive(module, aircraft, { ...wheels, sinkFpm: 550, crashOverride: true, seconds: 3 });
+      const reported = bounce.events.filter((e) => e.type === 'touchdown');
+      const wheelsDown = bounce.touches.filter((e) => e.wheel).map((e) => e.time);
+      assert.ok(Math.abs(reported[0].sinkFpm - bounce.sink) < 1 && reported[0].time === bounce.firstTouches[0].time, `the first touchdown reported is the first touch: ${JSON.stringify(reported[0])}`);
+      reported.slice(1).forEach((e, i) => assert.ok(e.time >= reported[i].time + 0.5 - DT, 'a later touchdown is at least half a second after the one before'));
+      console.log(`  ${name}: arriving at ${bounce.sink.toFixed(0)} ft/min: wheels touch at ${[...new Set(wheelsDown.map((t) => (t - wheelsDown[0]).toFixed(2)))].join(', ')} s; touchdowns reported: ${reported.map((e) => `${e.sinkFpm.toFixed(0)} ft/min, ${e.g.toFixed(1)} g`).join('; ')}`);
+      bounce.flight.dispose();
     });
   }
 }

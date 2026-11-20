@@ -346,15 +346,19 @@ export class Flight {
     };
   }
 
-  /** One of JSBSim's numbers, by name. For tests and the start; too slow for every step. */
+  /**
+   * One of JSBSim's numbers, by name. For tests and the start; too slow for every step. Once the flight has
+   * ended, a number that is in the state comes from the state the flight kept, not from a JSBSim that may be broken.
+   */
   get(name) {
+    if (this.ended && this.#at.has(name)) return this.state[this.#at.get(name)];
     return this.fdm.getByName(name);
   }
 
-  /** Where the airplane is in the world: metres north and east, feet above sea level and above the ground, heading in degrees true. */
+  /** Where the airplane is in the world, from the state: metres north and east, feet above sea level and above the ground, heading in degrees true. */
   where() {
-    const { north, east } = toWorld(this.get('position/lat-geod-rad'), this.get('position/long-gc-rad'));
-    return { north, east, heightFt: this.get('position/h-sl-ft'), aboveGroundFt: this.get('position/h-agl-ft'), headingDeg: this.get('attitude/psi-deg') };
+    const { north, east } = toWorld(this.state[this.#lat], this.state[this.#lon]);
+    return { north, east, heightFt: this.value('position/h-sl-ft'), aboveGroundFt: this.value('position/h-agl-ft'), headingDeg: this.value('attitude/psi-rad') * DEG };
   }
 
   dispose() {
