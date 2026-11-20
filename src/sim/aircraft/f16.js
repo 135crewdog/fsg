@@ -26,4 +26,18 @@ export const F16 = {
     speedbrake: { to: ['fcs/speedbrake-cmd-norm'] },
     brake: { to: ['fcs/left-brake-cmd-norm', 'fcs/right-brake-cmd-norm', 'fcs/center-brake-cmd-norm'] },
   },
+  /**
+   * The game's assists (src/sim/assists.js).
+   *   trim   Neutral speed 350 knots: JSBSim's own pitch trim for level flight at 350 knots and 2,000 ft, set
+   *          once. tests/assists.test.js re-derives it. This file's flight computer has no roll trim to set,
+   *          and JSBSim's trim asks for none.
+   *   feet   Its own: the file's flight computer has a yaw damper and a sideways-g loop, so the game writes
+   *          no rudder at all.
+   *   steer  The nosewheel, which this file already makes gentler with speed, so the game adds no fade.
+   */
+  assists: {
+    trim: { knots: 350, heightFt: 2000, sets: [['fcs/pitch-trim-cmd-norm', -0.0598]] },
+    feet: null,
+    steer: { wheel: { to: 'fcs/steer-cmd-norm', sign: 1, halfAtKt: 0 } },
+  },
 };

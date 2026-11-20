@@ -1,10 +1,12 @@
 // One flight: a fresh JSBSim, one aircraft, standing where the game put it. New in FSG, milestone 1.
-// This file grows through the milestone (assists, rules); so far it starts a flight parked on the runway,
-// takes the seven controls in, gives the state out, and keeps a patch of ground under the airplane.
+// This file grows through the milestone (rules); so far it starts a flight parked on the runway, takes the
+// seven controls in, flies them with the game's assists, gives the state out, and keeps a patch of ground
+// under the airplane. Each step: controls, then assists, then JSBSim.
 //
 // A flight is a start and a tape (docs/milestones/1.md): the start is a list of values set before JSBSim's
 // first step; after that, everything the game does to JSBSim goes through one array of inputs, every step.
 // That is what lets native JSBSim replay a flight, and it is the fast path (one array, no names).
+import { Assists, assistWrites } from './assists.js';
 import { Fdm, FdmError } from './core.js';
 import { PATCH_MARGIN, PATCH_POSTS, cutPatch, flatSource, postsInside } from './ground.js';
 import { FIELD, toLatLon, toWorld } from './world.js';
@@ -90,8 +92,13 @@ export class Flight {
   state;
   /** The seven controls as last given to fly(). */
   controls;
-  /** Set by an airborne start: the throttle and stick that hold the trimmed flight (the checkride starts from these). */
+  /**
+   * Set by an airborne start: the throttle and stick that hold the trimmed flight (the checkride starts from
+   * these), and what JSBSim's own trim found: its pitch trim, and the roll stick with no roll trim at all.
+   */
   trimmed = null;
+  /** The game's assists (src/sim/assists.js), or null for a flight started without them (tests only). */
+  assists = null;
   /** The terrain the flight is over (src/sim/ground.js), and the patch of it JSBSim has now. */
   terrain;
   patch;
@@ -119,12 +126,15 @@ export class Flight {
    * For the checkride only, `airborne: { heightFt, knots }` starts it in the air instead: clean, level and
    * steady at that height and speed by JSBSim's own trim. The game never does: every flight starts parked.
    *
+   * `assists` replaces the aircraft's own assist settings, and `assists: null` flies with none: for tests that
+   * compare. The game always flies with the aircraft's own.
+   *
    * `record: true` keeps the tape: every step's inputs and the state after it (tape()). The start and the tape
    * are the whole flight, so native JSBSim can fly it again. A flight trimmed into the air is not one: JSBSim's
    * trim is not something the tape holds.
    */
   static start(module, aircraft, { at = FIELD.start, terrain = flatSource(FIELD.heightFt), patchPosts = PATCH_POSTS, patchMargin = PATCH_MARGIN,
-    settleSeconds = SETTLE_SECONDS, airborne = null, record = false, nudge = 0, onEvent } = {}) {
+    settleSeconds = SETTLE_SECONDS, airborne = null, assists = aircraft.assists, record = false, nudge = 0, onEvent } = {}) {
     if (record && airborne) throw new Error('an airborne start cannot be recorded: its trim is not part of the tape');
     const patch = cutPatch(terrain, at.north, at.east, patchPosts);
     if (!patch) return null;
@@ -138,6 +148,22 @@ export class Flight {
       const { lat, lon } = toLatLon(at.north, at.east);
       flight.controls = airborne ? { ...PARKED, gear: false, flaps: false, brake: false } : { ...PARKED };
       const commands = commandsFor(aircraft, flight.controls);
+      // The inputs: the commands the seven controls drive, then any the assists alone write.
+      flight.inputNames = [...new Set([...commands.map(([name]) => name), ...(assists ? assistWrites(assists) : [])])];
+      const inputAt = (name) => flight.inputNames.indexOf(name);
+      for (const [control, { to, sign = 1 }] of Object.entries(aircraft.controls)) for (const name of to) flight.#drives.push([inputAt(name), control, sign]);
+      flight.stateNames = STATE.map(([name]) => name);
+      // Every wheel and airframe contact point the aircraft file has: wheels are gear/unit[k], the rest contact/unit[k].
+      const units = fdm.getByName('gear/num-units'), wheels = [];
+      for (let k = 0; k < units; k++) {
+        const wheel = fdm.has(`gear/unit[${k}]/WOW`);
+        if (wheel) wheels.push(flight.stateNames.length);
+        flight.stateNames.push(wheel ? `gear/unit[${k}]/WOW` : `contact/unit[${k}]/WOW`);
+      }
+      flight.stateNames.forEach((name, i) => flight.#at.set(name, i));
+      flight.#lat = flight.#at.get('position/lat-geod-rad');
+      flight.#lon = flight.#at.get('position/long-gc-rad');
+      if (assists) flight.assists = new Assists(assists, (name) => flight.#at.get(name), inputAt, wheels);
       flight.startSets = [
         // Geodetic latitude: JSBSim's plain "latitude" is geocentric, 10 nm away at this latitude.
         ['ic/lat-geod-deg', lat * DEG], ['ic/long-gc-deg', lon * DEG], ['ic/psi-true-deg', at.headingDeg],
@@ -146,6 +172,7 @@ export class Flight {
         ['propulsion/set-running', -1],   // every engine running
         ['propulsion/fuel_freeze', 1],    // constant weight: fuel never burns
         ...commands,
+        ...(flight.assists ? flight.assists.startSets : []),   // the trim is there from before the first step
         ...(airborne ? aircraft.controls.gear.to.map(() => ['gear/gear-pos-norm', 0]) : []),   // in the air the gear is already up
       ];
       for (const [name, value] of flight.startSets) fdm.setByName(name, value);
@@ -153,27 +180,31 @@ export class Flight {
       // digits (2^-28 ft, one unit in the last place of an Earth-sized number, as FDM's tests do).
       if (nudge) fdm.setByName('ic/h-sl-ft', fdm.getByName('ic/h-sl-ft') + nudge * 2 ** -28);
 
-      flight.stateNames = STATE.map(([name]) => name);
-      // Every wheel and airframe contact point the aircraft file has: wheels are gear/unit[k], the rest contact/unit[k].
-      const units = fdm.getByName('gear/num-units');
-      for (let k = 0; k < units; k++) flight.stateNames.push(fdm.has(`gear/unit[${k}]/WOW`) ? `gear/unit[${k}]/WOW` : `contact/unit[${k}]/WOW`);
-      flight.stateNames.forEach((name, i) => flight.#at.set(name, i));
-      flight.#lat = flight.#at.get('position/lat-geod-rad');
-      flight.#lon = flight.#at.get('position/long-gc-rad');
       fdm.bindOutputs(flight.stateNames);
-      flight.inputNames = commands.map(([name]) => name);
       flight.inputs = fdm.bindInputs(flight.inputNames);
       fdm.runIC();
       flight.state = fdm.curr;
       if (record) flight.recorded = { inputs: [], states: [Float64Array.from(flight.state)] };
 
       if (airborne) {
-        // JSBSim's own trim: level and steady at this speed. It sets the throttle and the stick it needs, and
-        // the pitch trim (which no control of ours drives, so it stays where the trim put it).
+        // JSBSim's own trim: level and steady at this speed. It sets the throttle, the roll stick and the
+        // pitch trim it needs. The game's roll trim was there before it, so the roll stick it finds is the
+        // one that goes with that. Its pitch trim is replaced by the game's at the first step, and the stick
+        // that then holds the same flight is the difference: in both aircraft files the trim adds to the
+        // stick, one for one (tests/assists.test.js flies it to show it).
+        const held = new Map(flight.assists ? flight.assists.startSets : []);
+        const [pitchTo, rollTo] = [aircraft.controls.pitch, aircraft.controls.roll];
+        const [pitchTrimName, rollTrimName] = ['fcs/pitch-trim-cmd-norm', 'fcs/roll-trim-cmd-norm'];
+        for (const name of held.keys()) if (name !== pitchTrimName && name !== rollTrimName) throw new Error(`an airborne start does not know the trim ${name}`);
         fdm.setByName('simulation/do_simple_trim', 1);
-        const read = (control) => { const { to, sign = 1 } = aircraft.controls[control]; return sign * fdm.getByName(to[0]); };
-        flight.trimmed = { throttle: read('throttle'), pitch: read('pitch'), roll: read('roll') };
-        Object.assign(flight.controls, flight.trimmed);
+        const pitchTrim = fdm.getByName(pitchTrimName), rollStick = fdm.getByName(rollTo.to[0]);
+        flight.trimmed = {
+          throttle: fdm.getByName(aircraft.controls.throttle.to[0]),
+          pitch: (pitchTo.sign ?? 1) * (fdm.getByName(pitchTo.to[0]) + pitchTrim - (held.get(pitchTrimName) ?? pitchTrim)),
+          roll: (rollTo.sign ?? 1) * rollStick,
+          jsbsim: { pitchTrim, rollStick: rollStick + (held.get(rollTrimName) ?? 0) },
+        };
+        Object.assign(flight.controls, { throttle: flight.trimmed.throttle, pitch: flight.trimmed.pitch, roll: flight.trimmed.roll });
         // The state was read at the start, before the trim changed it: read it again, without a step.
         fdm.bindOutputs(flight.stateNames);
         flight.state = fdm.curr;
@@ -192,8 +223,19 @@ export class Flight {
   /** Gives the seven controls: they hold until the next call. Any left out stay as they were. */
   fly(controls) {
     Object.assign(this.controls, controls);
-    this.inputs.set(commandsFor(this.aircraft, this.controls).map(([, value]) => value));
+    this.#write();
   }
+
+  /** Writes the inputs for the next step: what the controls drive, then what the assists make of the state. */
+  #write() {
+    const { controls, inputs } = this;
+    for (const [i, control, sign] of this.#drives) {
+      const value = controls[control];
+      inputs[i] = typeof value === 'boolean' ? (value ? 1 : 0) : sign * value;
+    }
+    if (this.assists) this.assists.apply(this.state, controls, inputs);
+  }
+  #drives = [];   // [where in the inputs, which control, sign] for every command a control drives
 
   /** One number of the state by JSBSim's name, as of the last step. */
   value(name) {
@@ -212,6 +254,7 @@ export class Flight {
     this.stepsRun = 0;
     for (let k = 0; k < n; k++) {
       if (!this.#groundReady()) return 0;
+      this.#write();
       const inputs = this.recorded ? Float64Array.from(this.inputs) : null;
       const result = this.fdm.step(1);
       if (this.fdm.stepsInLastCall === 1) {
