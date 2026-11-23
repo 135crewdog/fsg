@@ -38,8 +38,7 @@ const rebuilt = (source, from, to = from) => ({ source, from, to, how: 'rebuilt'
 const typesRemoved = (from, to, extra = {}) => ({ source: 'FDM', from, to, how: 'types removed', ...extra });
 
 export const FILES = [
-  // The app shell, from Wings.
-  ...['icons/icon-32.png', 'icons/icon-180.png', 'icons/icon-192.png', 'icons/icon-512.png'].map((f) => copy('wings', f)),
+  // The app shell, from Wings. (Wings' four icons were copied here too until the owner's own icon replaced them, 23 November 2026.)
   ...['index.html', 'style.css', 'sw.js', 'manifest.webmanifest', 'src/main.js', 'src/version.js', 'tests/app.test.js',
     '.github/workflows/test.yml', '.github/workflows/pages.yml'].map((f) => adapted('wings', f)),
   // The model handoff and the reader its test uses, from Wings (milestone 2). Both files are the same at Wings' later commits.
