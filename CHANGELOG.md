@@ -2,6 +2,10 @@
 
 What changed in each version a player can see, newest first.
 
+## 0.0.8
+
+- The app icon again, redrawn: the F-4C is now seen from behind and above, looking into its exhaust nozzles, so it fills more of the icon. As before, to see it on the home screen, remove FSG and add it again from Safari.
+
 ## 0.0.7
 
 - A new app icon: the F-4C in its camouflage over orange and red stripes. An iPhone keeps the icon it had when the app was added to the home screen, so to see the new one, remove FSG from the home screen and add it again from Safari.

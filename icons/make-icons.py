@@ -1,8 +1,10 @@
 #!/usr/bin/env python3
 """Makes the app's icons from the owner's artwork, icons/icon-1024.png.
 
-New in FSG (23 November 2026): the owner's own icon, an F-4C in Southeast Asia camouflage over orange and
-red stripes, replaces the Wings icon the app started with. The 1,024-pixel square is the master, kept as the
+New in FSG (23 November 2026): the owner's own icon, an F-4C in Southeast Asia camouflage over yellow,
+orange and red stripes, replaces the Wings icon the app started with. Its second drawing (the same day, version
+0.0.8) sees the jet from behind and above, looking into the nozzles, as the Wings icon did, so that the
+shortened airplane can be drawn bigger. The 1,024-pixel square is the master, kept as the
 owner gave it; every size the app uses is made from it by this script and nothing else.
 
   icon-32.png    the browser tab's icon             (index.html, rel="icon")
