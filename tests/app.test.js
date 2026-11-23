@@ -164,3 +164,27 @@ test('full screen: standalone, viewport-fit=cover, no zooming, a rotate screen i
   assert.match(css, /@media \(orientation: portrait\) \{[^}]*\{[^}]*\} #rotate \{ display: flex; \} \}/, 'portrait shows the rotate screen');
   for (const rule of ['overflow: hidden', 'user-select: none', 'touch-action: none', 'overscroll-behavior: none']) assert.ok(css.includes(rule), rule);
 });
+
+// ---- added for FSG: the owner's icon (icons/make-icons.py) ----
+
+test('every icon is a square, opaque PNG of the size its page names', () => {
+  // A PNG's header holds its width, height and colour type: 2 is RGB, with no transparency for iOS to fill with black.
+  const png = (file) => {
+    const bytes = readFileSync(join(root, file));
+    assert.equal(bytes.toString('latin1', 1, 4), 'PNG', `${file} is a PNG`);
+    return { width: bytes.readUInt32BE(16), height: bytes.readUInt32BE(20), colour: bytes[25] };
+  };
+  const named = [
+    [html.match(/<link rel="icon" href="([^"]+)">/)[1], '32x32'],
+    [html.match(/<link rel="apple-touch-icon" href="([^"]+)">/)[1], '180x180'],   // the home screen: 60 points at 3x
+    ...manifest.icons.map((icon) => [icon.src, icon.sizes]),
+  ];
+  assert.deepEqual(named.map(([, sizes]) => sizes), ['32x32', '180x180', '192x192', '512x512']);
+  for (const [file, sizes] of [...named, ['./icons/icon-1024.png', '1024x1024']]) {
+    const { width, height, colour } = png(file);
+    assert.equal(`${width}x${height}`, sizes, `${file} is ${sizes}`);
+    assert.equal(colour, 2, `${file} is opaque RGB`);
+    if (file !== './icons/icon-1024.png') assert.equal(file, `./icons/icon-${width}.png`, `${file} is named for its size`);
+  }
+  for (const icon of manifest.icons) assert.equal(icon.type, 'image/png');
+});

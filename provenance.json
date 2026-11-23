@@ -12,30 +12,6 @@
     }
   },
   "files": {
-    "icons/icon-32.png": {
-      "from": "wings:icons/icon-32.png",
-      "how": "byte for byte",
-      "original": "49afba779fd270084ec08f95a36fbdf9604125f91fa7e34438795cf12a25ae80",
-      "copy": "49afba779fd270084ec08f95a36fbdf9604125f91fa7e34438795cf12a25ae80"
-    },
-    "icons/icon-180.png": {
-      "from": "wings:icons/icon-180.png",
-      "how": "byte for byte",
-      "original": "527bd4497e2d19300be8c29881bcbd2b2d6646c9bf55c82dcb91ca1cfc261088",
-      "copy": "527bd4497e2d19300be8c29881bcbd2b2d6646c9bf55c82dcb91ca1cfc261088"
-    },
-    "icons/icon-192.png": {
-      "from": "wings:icons/icon-192.png",
-      "how": "byte for byte",
-      "original": "38cfc3a34baf5568dd4a8c8bd4bdcc9532af1a899f308c6352f19660ab4338db",
-      "copy": "38cfc3a34baf5568dd4a8c8bd4bdcc9532af1a899f308c6352f19660ab4338db"
-    },
-    "icons/icon-512.png": {
-      "from": "wings:icons/icon-512.png",
-      "how": "byte for byte",
-      "original": "0df4ecb75eecc002365151797bf21893429ae1c5e4b5f06eeb6453cdc119bf82",
-      "copy": "0df4ecb75eecc002365151797bf21893429ae1c5e4b5f06eeb6453cdc119bf82"
-    },
     "index.html": {
       "from": "wings:index.html",
       "how": "adapted",
