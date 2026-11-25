@@ -69,6 +69,7 @@ for (const variant of VARIANTS) {
     assert.ok(fromTheNumbers < 1, `${fromTheNumbers} ft from the numbers`);
     assert.ok(Math.abs(at.headingDeg - FIELD.start.headingDeg) < 0.1, `heading ${at.headingDeg}`);
     assert.ok(Math.abs(at.aboveGroundFt - C172P.standingFt) < 0.01, `its centre of gravity stands ${at.aboveGroundFt} ft up; the settings say ${C172P.standingFt}`);
+    assert.ok(Math.abs(pitch0 - C172P.standingPitchDeg) < 0.05, `it stands ${pitch0} degrees nose up; the settings say ${C172P.standingPitchDeg}`);
     for (let k = 0; k < 3; k++) assert.equal(flight.get(`gear/unit[${k}]/WOW`), 1, `wheel ${k} on the ground`);
     assert.equal(flight.get('propulsion/engine[0]/set-running'), 1, 'engine running');
     assert.equal(flight.get('fcs/throttle-pos-norm'), 0, 'throttle at idle');

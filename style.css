@@ -1,7 +1,7 @@
-/* FSG. The screens (which carry the name, version and update offer), the
-   developer overlay and the rotate screen. After 135crewdog/wings, style.css,
-   commit 557a8d0, cut down: the flight, its controls, the HUD and the map are
-   left out until there is something to fly. The platform rules (no scrolling,
+/* FSG. The picture, the screens (which carry the name, version and update
+   offer), the developer overlay and the rotate screen. After 135crewdog/wings,
+   style.css, commit 557a8d0, cut down: the flight's controls, the HUD and the
+   map are left out until there is something to fly. The platform rules (no scrolling,
    zooming or selecting; everything inside the safe area) are Rage's, by way
    of Wings. */
 
@@ -21,6 +21,9 @@ body { position: fixed; top: 0; left: 0; width: 100%; height: 100%; }
 
 button { font: inherit; color: inherit; border: 0; -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
 button:active { opacity: 0.6; }
+
+/* the picture: the whole screen, behind everything */
+#view { position: absolute; inset: 0; width: 100%; height: 100%; display: block; touch-action: none; }
 
 /* the developer overlay (after Rage's ?debug=1): small, bottom left, clear of the screens' cards */
 #dev {

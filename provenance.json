@@ -531,6 +531,12 @@
       "how": "byte for byte",
       "files": 485,
       "tree": "a21932a0bb810451aebe61e0088812cc3f10f45b"
+    },
+    "vendor/three": {
+      "from": "wings:vendor/three",
+      "how": "byte for byte",
+      "files": 7,
+      "tree": "c19cae23583686f629826c1ee612e26a26818b59"
     }
   }
 }

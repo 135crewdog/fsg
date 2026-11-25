@@ -1,12 +1,16 @@
-// The app: the screens, the developer overlay, and the update offer.
+// The app: the picture, the screens, the developer overlay, and the update offer.
 // After 135crewdog/wings, src/main.js, commit 557a8d0, cut down to what
-// milestone 0 needs. The platform rules and the update logic are Rage's
+// has been built so far. The platform rules and the update logic are Rage's
 // (135crewdog/rage, src/main.js), by way of Wings.
 import { APP_VERSION } from './version.js';
 import { start as startJsbsim } from './fdm.js';
+import { startPicture } from './flight.js';
 
 const $ = (id) => document.getElementById(id);
 for (const el of document.querySelectorAll('.version')) el.textContent = APP_VERSION;
+
+// ---- the picture: the Cessna parked on the field, behind the screens ----
+const picture = startPicture($('view'));
 
 // ---- screens: one at a time ----
 const screens = [...document.querySelectorAll('.screen')];
@@ -76,6 +80,7 @@ window.fsg = Object.freeze({
   version: APP_VERSION,
   get offline() { return offline; },
   get jsbsim() { return jsbsim; },   // null until JSBSim has run; then its numbers, or { error }
+  get picture() { return picture.status(); },   // what has been drawn: frames, whether it rests, where the wheels are
 });
 
 $('settings').addEventListener('click', () => { show('pause'); checkForUpdate(); });

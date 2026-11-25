@@ -13,7 +13,8 @@ A flight sim game for the iPhone: a home-screen web app at <https://135crewdog.g
 - `tools/from-fdm.mjs` and `provenance.json`: the script that copied pieces in from FDM and Wings, and the record of what it copied.
 - `src/sim/`: the simulation code: the JSBSim wrapper, the fixed-step loop and the Worker. No DOM code, so it runs in Node too.
 - `src/sim/aircraft/`: the game's settings for each JSBSim aircraft. `c172p.js` is the Cessna the game flies in milestone 2; `c172x.js` and `f16.js` are flown by the tests against native JSBSim.
-- `src/render/`: the picture's sums, with no DOM and no Three.js so they are tested in Node: `between.js` is the picture's clock, which draws between the Worker's physics steps; `frames.js` puts JSBSim's position and attitude into the picture's axes. Nothing on screen uses them yet.
+- `src/flight.js` and `src/render/`: the picture. `world.js` is the test field and the sky, `aircraft.js` the airplane's model with its moving parts, `camera.js` the chase camera. Two files there are plain sums with no DOM and no Three.js, tested in Node: `between.js`, the picture's clock, which will draw between the Worker's physics steps, and `frames.js`, which puts JSBSim's position and attitude into the picture's axes.
+- `vendor/three/`: Three.js 0.187.0, the one runtime library, byte for byte as Wings vendored it from npm (`vendor/three/VERSION`).
 - `tests/`, `jsbsim/tests/`: the tests.
 
 ## Running the tests

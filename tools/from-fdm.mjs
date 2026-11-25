@@ -143,6 +143,8 @@ export const FILES = [
 // Whole folders, byte for byte. Checked by git's own id for the folder (a hash of every name, mode and byte in it).
 export const TREES = [
   { source: 'FDM', from: 'jsbsim-data', to: 'jsbsim/jsbsim-data' },
+  // Three.js 0.187.0 as Wings vendored it (milestone 2): only the files the app needs. vendor/three/VERSION says which.
+  { source: 'wings', from: 'vendor/three', to: 'vendor/three' },
 ];
 
 // ---- helpers ----
