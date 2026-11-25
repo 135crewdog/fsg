@@ -18,6 +18,10 @@ export const C172P = {
   ],
   /** Height of its centre of gravity above the ground when it stands on its wheels, ft (read back from a parked flight). */
   standingFt: 4.356,
+  /** How far its nose is up as it stands there, degrees (read back the same way). The picture parks it by these two until a flight is running. */
+  standingPitchDeg: 2.28,
+  /** Its picture: a model built to docs/models.md, as the app's page finds it (models/CREDITS.md says whose it is). */
+  glb: './models/c172p.glb',
   /**
    * Which JSBSim command each of the game's seven controls drives (as in c172x.js). The gear is fixed and
    * there is no speedbrake: those two drive nothing, and the app shows no button for them.

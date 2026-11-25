@@ -19,7 +19,7 @@ const version = readFileSync(join(root, 'src/version.js'), 'utf8').match(/APP_VE
 const TYPES = {
   '.html': 'text/html; charset=utf-8', '.css': 'text/css; charset=utf-8', '.js': 'text/javascript; charset=utf-8',
   '.mjs': 'text/javascript; charset=utf-8', '.wasm': 'application/wasm', '.json': 'application/json',
-  '.webmanifest': 'application/manifest+json', '.png': 'image/png', '.xml': 'application/xml',
+  '.webmanifest': 'application/manifest+json', '.png': 'image/png', '.xml': 'application/xml', '.glb': 'model/gltf-binary',
 };
 
 let next = null;
@@ -58,6 +58,42 @@ check((await text('#screen-start h1')) === 'FSG', 'the name is FSG');
 check((await text('#screen-start .version')) === version, 'the version shows', version);
 check(!(await visible('#rotate')), 'no rotate screen in landscape');
 check(!(await visible('#screen-start .update')), 'no update offered on a first visit');
+
+// 1b. The picture (milestone 2, pull request 4): the Cessna stands on the runway's numbers behind the start
+// screen, and once it has been drawn the app rests. `node tests/browser/app.chromium.mjs <folder>` also saves
+// what it looks like there, for the pull request.
+const shots = process.argv[2];
+const pictureIs = async (when) => {
+  // Drawn: the model has arrived and a frame has been drawn with it. (Headless Chromium draws in software, a
+  // frame every 60 ms or more, so the 30 frames it draws before it rests take longer than they do on a phone.)
+  const drawn = await page.waitForFunction(() => window.fsg.picture.loaded && window.fsg.picture.withModel > 0, null, { timeout: 3000 }).then(() => true, () => false);
+  check(drawn, `${when}: the picture is drawn behind the start screen within 3 s`);
+  const rested = await page.waitForFunction(() => window.fsg.picture.resting, null, { timeout: 15000 }).then(() => true, () => false);
+  const p = await page.evaluate(() => window.fsg.picture);
+  check(rested, `${when}: and then the app rests`, `${p.frames} frames, ${p.triangles} triangles`);
+  check(p.loaded && p.wheelsIn.every((inches) => Math.abs(inches) <= 1), `${when}: the Cessna's wheels are within 1 in of the runway`, p.wheelsIn?.map((inches) => `${inches.toFixed(2)} in`).join(', '));
+  check(p.loaded && p.nose[0] > 0.99 && Math.abs(p.nose[2]) < 0.01, `${when}: its nose points down the runway, to the east`, p.nose?.map((x) => x.toFixed(3)).join(', '));
+  await page.waitForTimeout(1000);
+  const later = await page.evaluate(() => window.fsg.picture);
+  check(later.resting && later.frames === p.frames, `${when}: once it has settled no more frames are drawn`, `${later.frames} frames a second later`);
+  return p;
+};
+await pictureIs('first visit');
+if (shots) await page.screenshot({ path: join(shots, 'start.png') });
+if (shots) {
+  await page.evaluate(() => { document.getElementById('screen-start').hidden = true; });
+  await page.screenshot({ path: join(shots, 'picture.png') });
+  await page.evaluate(() => { document.getElementById('screen-start').hidden = false; });
+}
+// A new size is a change: it draws again for a moment, then rests again.
+{
+  const before = (await page.evaluate(() => window.fsg.picture)).frames;
+  await page.setViewportSize({ width: 800, height: 380 });
+  await page.waitForFunction((n) => window.fsg.picture.frames > n && window.fsg.picture.resting, before, { timeout: 5000 }).catch(() => {});
+  const after = await page.evaluate(() => window.fsg.picture);
+  check(after.frames > before && after.resting, 'a new size draws it again for a moment, then it rests', `${after.frames - before} frames`);
+  await page.setViewportSize({ width: 852, height: 393 });
+}
 
 // 2. The service worker installs and takes control.
 await page.waitForFunction(() => window.fsg.offline === 'yes', null, { timeout: 15000 });
@@ -98,6 +134,7 @@ check(await visible('#screen-start'), 'Back returns to the start screen');
 await context.setOffline(true);
 await page.reload();
 check((await text('#screen-start .version')) === version, 'offline: a reload still opens the app');
+await pictureIs('offline');
 check(await visible('#dev'), 'the Developer switch is still on after a reload');
 ran = await jsbsimRan();
 box = await text('#dev');

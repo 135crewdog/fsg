@@ -7,7 +7,7 @@
 // skips waiting on its own; the app offers the update and posts
 // "skip-waiting" when the pilot accepts.
 
-const VERSION = '0.0.10';   // the same value as APP_VERSION in src/version.js
+const VERSION = '0.0.11';   // the same value as APP_VERSION in src/version.js
 const CACHE = `fsg-${VERSION}`;
 const FILES = [
   './',
@@ -21,6 +21,11 @@ const FILES = [
   './src/main.js',
   './src/version.js',
   './src/fdm.js',
+  './src/flight.js',
+  './src/render/aircraft.js',
+  './src/render/camera.js',
+  './src/render/frames.js',
+  './src/render/world.js',
   './src/sim/aircraft/c172p.js',
   './src/sim/aircraft/c172x.js',
   './src/sim/assists.js',
@@ -38,6 +43,14 @@ const FILES = [
   './src/sim/world.js',
   './src/sim/worker-handler.js',
   './src/sim/worker.js',
+  // Three.js, and the loader for the airplane's model with the two files it imports.
+  './vendor/three/build/three.module.js',
+  './vendor/three/build/three.core.js',
+  './vendor/three/examples/jsm/loaders/GLTFLoader.js',
+  './vendor/three/examples/jsm/utils/BufferGeometryUtils.js',
+  './vendor/three/examples/jsm/utils/SkeletonUtils.js',
+  // The Cessna's model (models/CREDITS.md).
+  './models/c172p.glb',
   // JSBSim: two builds of it, each an Emscripten file and the .wasm it loads from beside itself.
   './jsbsim/dist-wasm/fdm-weh.mjs',
   './jsbsim/dist-wasm/fdm-weh.wasm',

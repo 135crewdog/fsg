@@ -12,6 +12,7 @@ import { join, posix } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { APP_VERSION } from '../src/version.js';
 import { BUILDS, DATA } from '../src/fdm.js';
+import { C172P } from '../src/sim/aircraft/c172p.js';
 import { C172X_FILES } from '../src/sim/c172x-files.js';
 
 const root = fileURLToPath(new URL('..', import.meta.url));
@@ -24,10 +25,14 @@ const manifest = JSON.parse(read('manifest.webmanifest'));
 const code = (source) => source.replace(/\/\*[^]*?\*\//g, '').replace(/^\s*\/\/.*$/gm, '').replace(/\s\/\/ .*$/gm, '');
 
 // Every file the app loads: src/main.js and whatever it imports, followed to
-// the end. There is no import map yet; Three.js brings one in milestone 2.
+// the end. A name that is not a path ("three") is looked up in index.html's
+// import map, as the browser does (after Wings' tests/app.test.js).
+const importMap = JSON.parse(html.match(/<script type="importmap">([^]*?)<\/script>/)[1]).imports;
 function resolve(specifier, from) {
   if (specifier.startsWith('.')) return './' + posix.normalize(posix.join(posix.dirname(from), specifier));
-  throw new Error(`${from} imports ${specifier}, which is not a relative path`);
+  const prefix = Object.keys(importMap).filter((key) => (key.endsWith('/') ? specifier.startsWith(key) : specifier === key)).sort((a, b) => b.length - a.length)[0];
+  if (prefix === undefined) throw new Error(`${from} imports ${specifier}, which is neither a relative path nor in the import map`);
+  return './' + posix.normalize(importMap[prefix] + specifier.slice(prefix.length));
 }
 function filesLoaded(entry) {
   const seen = new Set();
@@ -55,7 +60,8 @@ const listed = [...sw.matchAll(/['"](\.\/[^'"]*)['"]/g)].map((m) => m[1]);
 // What the app fetches that is not code it imports: JSBSim's two builds and the test aircraft's data.
 // src/fdm.js names them relative to src/.
 const fromSrc = (path) => './' + posix.normalize(posix.join('src', path));
-const assets = Object.values(BUILDS).flatMap((build) => [build.module, build.wasm]).map(fromSrc).concat(C172X_FILES.map((file) => fromSrc(DATA + file)));
+const assets = Object.values(BUILDS).flatMap((build) => [build.module, build.wasm]).map(fromSrc).concat(C172X_FILES.map((file) => fromSrc(DATA + file)))
+  .concat([C172P.glb]);   // and the airplane's model, which the page finds from its own address
 
 // ---- Wings' tests ----
 
