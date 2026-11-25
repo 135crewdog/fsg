@@ -51,9 +51,11 @@ export function startFlight(canvas, aircraft = C172P, field = FIELD) {
 
   // ---- the flight being shown ----
   let flight = 0, read = null, surfaces = null, at = null, newest = null, flying = false, loaded = false;
-  // How it is running, since the flight was last let go: for the developer overlay.
+  // How it is running, over the whole flight: for the developer overlay. The worst of each number is kept
+  // from Fly until a new flight begins, across any pause, so a slow stretch cannot be lost from a screenshot.
+  // `warm` counts the half seconds since time was last let go: the first second after that is not counted.
   const fresh = () => ({ states: 0, missing: 0, outOfOrder: 0, lastN: 0, steps: 0, seconds: 0, lastSeconds: null, dropped: 0,
-    fps: 0, leastFps: Infinity, frameCount: 0, frameSince: null, settled: 0, behind: new Uint32Array(MOST_MS + 1), behindCount: 0, behindNow: 0, behindMost: 0 });
+    fps: 0, leastFps: Infinity, frameCount: 0, frameSince: null, warm: 0, behind: new Uint32Array(MOST_MS + 1), behindCount: 0, behindNow: 0, behindMost: 0 });
   let run = fresh();
 
   const began = (start) => {
@@ -124,12 +126,12 @@ export function startFlight(canvas, aircraft = C172P, field = FIELD) {
         run.frameCount++;
         if (time - run.frameSince >= 500) {
           run.fps = (run.frameCount * 1000) / (time - run.frameSince);
-          if (run.settled++ >= 2) run.leastFps = Math.min(run.leastFps, run.fps);   // after the first second: the start is not the running
+          if (run.warm++ >= 2) run.leastFps = Math.min(run.leastFps, run.fps);   // after the first second: the start is not the running
           run.frameCount = 0; run.frameSince = time;
         }
         const behind = Math.max(0, (newest.state[at.time] - pictureTime) * 1000);
         run.behindNow = behind;
-        if (run.settled >= 2) { run.behind[Math.min(MOST_MS, Math.round(behind))]++; run.behindCount++; run.behindMost = Math.max(run.behindMost, behind); }
+        if (run.warm >= 2) { run.behind[Math.min(MOST_MS, Math.round(behind))]++; run.behindCount++; run.behindMost = Math.max(run.behindMost, behind); }
       }
     }
     fit();   // every frame: iOS can report the new size late after a rotation
@@ -172,9 +174,9 @@ export function startFlight(canvas, aircraft = C172P, field = FIELD) {
     fly() {
       flying = true;
       between.hold(false);
-      // The numbers start again each time it is let go; the gap in the Worker's clock across the hold is not counted.
-      const kept = { states: run.states, missing: run.missing, outOfOrder: run.outOfOrder, lastN: run.lastN };
-      run = Object.assign(fresh(), kept);
+      // The flight's numbers carry on. Only the clocks start afresh: the gap in the Worker's clock across the
+      // hold is not time it was running, and the first second after letting go is not counted.
+      Object.assign(run, { lastSeconds: null, frameSince: null, frameCount: 0, warm: 0 });
       look.reset();
       wake();
     },

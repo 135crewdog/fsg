@@ -197,6 +197,9 @@ if (shots) await page.screenshot({ path: join(shots, 'flying.png') });
   const resumed = await app.flight();
   const moved = resumed.time - held.time;
   check((await app.mode()) === 'flying' && moved > 0.3 && moved < 1.8, 'Resume carries on from where it stopped: the three seconds are not caught up', `${moved.toFixed(2)} s of the flight's own time in the second after Resume`);
+  // The overlay's numbers are the whole flight's: they carry on across the pause, the worst of each kept.
+  check(resumed.steps > held.steps && resumed.seconds > held.seconds && resumed.seconds - held.seconds < 1.8 && resumed.behindMostMs >= held.behindMostMs && resumed.leastFps <= held.leastFps && resumed.leastFps > 0,
+    'the flight\'s numbers carry on across the pause, and the pause itself is not counted', `${held.steps} steps in ${held.seconds.toFixed(2)} s before, ${resumed.steps} in ${resumed.seconds.toFixed(2)} s after; least ${held.leastFps.toFixed(1)} then ${resumed.leastFps.toFixed(1)} frames a second`);
 }
 // Restart: a new flight, parked on the numbers again, and straight into it.
 {

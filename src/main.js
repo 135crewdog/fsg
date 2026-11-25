@@ -54,7 +54,7 @@ const openGame = () => {
 // turns it on, and the choice is kept between visits. It is written when
 // something changes, and four times a second in flight: nothing here runs every frame.
 // In flight it shows how the flight is running, with the worst of each number since
-// it was last let go; on the pause screen those numbers stay, for a screenshot.
+// Fly (or Restart); on the pause screen those numbers stay, for a screenshot.
 const DEV_KEY = 'fsg.dev';
 const devSwitch = $('dev-switch');
 let devOn = false, devTimer = null;
