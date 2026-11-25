@@ -208,6 +208,24 @@ if (shots) await page.screenshot({ path: join(shots, 'flying.png') });
   check((await app.mode()) === 'flying' && again.flight === before.flight + 1 && parked(again) && again.time < before.time && again.pictureTime <= again.time && again.pictureTime >= 10,
     'Restart parks it on the numbers again, in a new flight, and no moment of the old one is shown', `flight ${again.flight}: ${where(again)}; its own time ${again.time.toFixed(2)} s`);
 }
+// The app is hidden while a restart is being made: the new flight waits on the pause screen, held.
+{
+  const before = await app.flight();
+  await page.click('#pause');
+  await page.evaluate(() => {
+    document.getElementById('restart').click();   // the tap; the new flight is asked for, and is not there yet
+    Object.defineProperty(document, 'hidden', { configurable: true, get: () => true });
+    document.dispatchEvent(new Event('visibilitychange'));
+  });
+  await page.waitForFunction((n) => window.fsg.picture.flight > n, before.flight, { timeout: 5000 }).catch(() => {});
+  await page.waitForTimeout(500);
+  const waiting = await app.flight();
+  check((await app.mode()) === 'paused' && waiting.flight === before.flight + 1 && !waiting.flying && waiting.states === 0 && (await visible('#screen-pause')),
+    'hidden while Restart makes the new flight: it waits on the pause screen, held', `flight ${waiting.flight}, ${waiting.states} states, mode ${await app.mode()}`);
+  await page.evaluate(() => { delete document.hidden; document.dispatchEvent(new Event('visibilitychange')); });
+  await page.click('#resume');
+  check((await app.mode()) === 'flying', 'and Resume flies it');
+}
 // A hidden page pauses the flight, and it stays paused when the page comes back.
 {
   await page.evaluate(() => { Object.defineProperty(document, 'hidden', { configurable: true, get: () => true }); document.dispatchEvent(new Event('visibilitychange')); });

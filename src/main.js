@@ -196,7 +196,17 @@ for (const id of ['restart', 'crash-restart']) {
     try {
       if (!game || game.failed) await openGame();
       else flight.began(await game.fly({ held: true }));
-      if (game) takeOff();
+      if (!game) return;   // it did not start: the crashed screen says so
+      // The new flight is there, held. While it was being made the app may have been hidden or the phone
+      // turned upright; pause() could do nothing then, with no flight running. So look again: if so, the
+      // new flight waits on the pause screen, held, for Resume.
+      if (document.hidden || isPortrait()) {
+        mode = 'paused';
+        menu(false);
+        letSleep();
+        show('pause');
+        showDev();
+      } else takeOff();
     } catch (error) {
       crashed({ reason: String(error?.message ?? error) });
     } finally {
