@@ -68,6 +68,11 @@ async function flyOnRunway(request, states, say) {
 // (Found on the owner's phone at 0.0.5: the marker was held for the whole
 // run, he took an update during one, and the next launch used the fallback.)
 const STARTING_KEY = 'fsg.fdmStarting';
+/** Why a launch is on the fallback build: the two causes there are. The developer overlay shows the one it was. */
+export const WHY = {
+  marker: 'the launch before this stopped while the fast build was starting',
+  failed: 'the fast build did not start',
+};
 const marker = {
   get() { try { return localStorage.getItem(STARTING_KEY); } catch { return null; } },
   set(on) { try { if (on) localStorage.setItem(STARTING_KEY, 'weh'); else localStorage.removeItem(STARTING_KEY); } catch { /* storage may be blocked: no marker */ } },
@@ -82,8 +87,11 @@ async function fetchBytes(path) {
 /**
  * One build, in a fresh Worker: start JSBSim, load c172x, time the step, run the game with a parked airplane.
  * `started` is called once the build has shown it starts. The Worker is ended afterwards.
+ * `why` is why this build and not the fast one, for the fallback: the overlay's line says it, so a launch on
+ * the slow build explains itself (docs/milestones/1.md: twice the phone opened on it after an update, and
+ * nothing on screen said which of the two causes it was).
  */
-async function run(build, say, started = () => {}) {
+async function run(build, say, started = () => {}, why = '') {
   const worker = new Worker(new URL('./sim/worker.js', import.meta.url), { type: 'module' });
   const client = new WorkerClient((message, transfer) => worker.postMessage(message, transfer ?? []));
   // A state the Worker posts unasked (the game, on the Worker's own clock) is not an answer to a request.
@@ -103,7 +111,7 @@ async function run(build, say, started = () => {}) {
     const pack = buildPack(files);
     const init = await request({ type: 'init', moduleUrl: new URL(BUILDS[build].module, import.meta.url).href, packs: [['/data', pack]] }, [pack.buffer]);
     const version = init.version.match(/^JSBSim [\d.]+/)?.[0] ?? init.version;
-    say(`${version}   ${BUILDS[build].name}`);
+    say(`${version}   ${BUILDS[build].name}${why ? `: ${why}` : ''}`);
 
     const before = performance.now();
     const created = await request({ type: 'create', model: 'c172x', ic: 'reset01', dt: DT, outputs: ['position/h-sl-ft', 'velocities/vtrue-kts'] });
@@ -117,7 +125,7 @@ async function run(build, say, started = () => {}) {
     say(`${result.usPerStep.toFixed(1)} µs per step   (${result.batchSteps} steps at 1/120 s)`);
     started();   // this build has loaded an aircraft and run 15,000 steps: it starts
     const flight = await flyOnRunway(request, states, say);
-    return { build, version: init.version, loadMs, usPerStep: result.usPerStep, startAltitudeFt: created.curr[0], endAltitudeFt: result.endAltitudeFt, endAirspeedKt: result.endAirspeedKt, flight };
+    return { build, why, version: init.version, loadMs, usPerStep: result.usPerStep, startAltitudeFt: created.curr[0], endAltitudeFt: result.endAltitudeFt, endAirspeedKt: result.endAirspeedKt, flight };
   } finally {
     worker.terminate();
   }
@@ -131,13 +139,13 @@ async function run(build, say, started = () => {}) {
 export async function start(say = () => {}) {
   if (marker.get()) {
     marker.set(false);   // one launch on the fallback; the next tries the fast build again
-    return run('jseh', say);
+    return run('jseh', say, undefined, WHY.marker);
   }
   marker.set(true);
   try {
     return await run('weh', say, () => marker.set(false));
-  } catch {
-    return await run('jseh', say);
+  } catch (error) {
+    return await run('jseh', say, undefined, `${WHY.failed} (${String(error?.message ?? error).slice(0, 80)})`);
   } finally {
     marker.set(false);
   }

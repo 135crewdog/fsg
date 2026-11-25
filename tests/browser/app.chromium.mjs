@@ -74,7 +74,7 @@ check(await visible('#dev'), 'Developer on shows the overlay');
 // With Developer on, a Worker starts JSBSim, loads c172x and times its step.
 const jsbsimRan = () => page.waitForFunction(() => window.fsg.jsbsim !== null, null, { timeout: 60000 }).then(() => page.evaluate(() => window.fsg.jsbsim));
 // ... and then runs the game in the Worker for ten seconds, a Cessna parked on the runway: one more line.
-const jsbsimLines = (box) => /JSBSim 1\.3\.3 {3}(wasm exceptions|fallback build)\nc172x loaded in \d+ ms\n[\d.]+ µs per step {3}\(3000 steps at 1\/120 s\)\nc172x on the runway {3}[\d.]+ steps\/s {3}[\d.]+ µs per game step$/.test(box);
+const jsbsimLines = (box) => /JSBSim 1\.3\.3 {3}(wasm exceptions|fallback build: [^\n]+)\nc172x loaded in \d+ ms\n[\d.]+ µs per step {3}\(3000 steps at 1\/120 s\)\nc172x on the runway {3}[\d.]+ steps\/s {3}[\d.]+ µs per game step$/.test(box);
 const flightSays = (f) => `${f.steps} steps in ${f.seconds.toFixed(3)} s (${f.stepsPerSecond.toFixed(1)} a second), ${f.states} states, ${f.missing} missing, ${f.outOfOrder} out of order, ${f.droppedSeconds.toFixed(2)} s dropped; ` +
   `${f.wheelsOnGround} wheels on the ground, ${f.groundKt.toFixed(2)} kt, ${f.aboveGroundFt.toFixed(2)} ft up; ${f.usPerGameStep.toFixed(1)} µs per game step`;
 // The game in the real Worker, on a real clock (docs/milestones/1.md, pull request 11).
@@ -153,6 +153,7 @@ check(!ran.error && ran.build === 'weh', 'and the launch after it starts the fas
   const r = await p.evaluate(() => window.fsg.jsbsim);
   const b = await p.locator('#dev').textContent();
   check(!r.error && r.build === 'jseh' && b.includes('fallback build') && jsbsimLines(b), 'the fast build fails to start: the fallback build runs', r.error ?? b.split('\n').slice(3).join(' | '));
+  check(/fallback build: the fast build did not start \(.+\)\n/.test(b), 'and its line says why: the fast build did not start', b.split('\n').find((line) => line.includes('fallback build')));
   check((await p.evaluate(() => localStorage.getItem('fsg.fdmStarting'))) === null, 'and the marker is cleared');
   await broken.close();
 
@@ -171,6 +172,8 @@ check(!ran.error && ran.build === 'weh', 'and the launch after it starts the fas
   await q.waitForFunction(() => window.fsg.jsbsim !== null, null, { timeout: 60000 });
   const r2 = await q.evaluate(() => window.fsg.jsbsim);
   check(!r2.error && r2.build === 'jseh' && !asked.some((name) => name.startsWith('fdm-weh')), 'a marker left by a launch that died: straight to the fallback build', `fetched ${asked.join(', ')}`);
+  const b2 = await q.locator('#dev').textContent();
+  check(b2.includes('fallback build: the launch before this stopped while the fast build was starting\n'), 'and its line says why: the launch before stopped while the fast build was starting', b2.split('\n').find((line) => line.includes('fallback build')));
   check((await q.evaluate(() => localStorage.getItem('fsg.fdmStarting'))) === null, 'and the next launch will try the fast build again');
   await q.reload();
   await q.waitForFunction(() => window.fsg.jsbsim !== null, null, { timeout: 60000 });
