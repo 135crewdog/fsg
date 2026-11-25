@@ -13,7 +13,6 @@ import { fileURLToPath } from 'node:url';
 import { APP_VERSION } from '../src/version.js';
 import { BUILDS, DATA } from '../src/fdm.js';
 import { C172P } from '../src/sim/aircraft/c172p.js';
-import { C172X_FILES } from '../src/sim/c172x-files.js';
 
 const root = fileURLToPath(new URL('..', import.meta.url));
 const read = (file) => readFileSync(join(root, file), 'utf8');
@@ -60,7 +59,7 @@ const listed = [...sw.matchAll(/['"](\.\/[^'"]*)['"]/g)].map((m) => m[1]);
 // What the app fetches that is not code it imports: JSBSim's two builds and the test aircraft's data.
 // src/fdm.js names them relative to src/.
 const fromSrc = (path) => './' + posix.normalize(posix.join('src', path));
-const assets = Object.values(BUILDS).flatMap((build) => [build.module, build.wasm]).map(fromSrc).concat(C172X_FILES.map((file) => fromSrc(DATA + file)))
+const assets = Object.values(BUILDS).flatMap((build) => [build.module, build.wasm]).map(fromSrc).concat(C172P.files.map((file) => fromSrc(DATA + file)))
   .concat([C172P.glb]);   // and the airplane's model, which the page finds from its own address
 
 // ---- Wings' tests ----

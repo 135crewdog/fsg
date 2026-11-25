@@ -9,6 +9,7 @@ import { C172P } from '../src/sim/aircraft/c172p.js';
 import { C172X } from '../src/sim/aircraft/c172x.js';
 import { assistWrites } from '../src/sim/assists.js';
 import { DT, Flight, SETTLE_SECONDS } from '../src/sim/game.js';
+import { surfaceReader } from '../src/render/surfaces.js';
 import { FIELD, FT, toWorld } from '../src/sim/world.js';
 import { bitEqual, classB, fmt } from '../jsbsim/tests/lib/compare.js';
 import { Report, loadWithData } from '../jsbsim/tests/lib/harness.js';
@@ -185,6 +186,24 @@ for (const variant of VARIANTS) {
       assert.ok(peak <= 3, `peak sideslip ${peak} degrees`);
       flight.dispose();
     }
+  });
+
+  test(`${variant}, c172p: the picture's moving parts follow the controls the right way: stick back, the elevator's motion goes toward 1; stick right, the aileron's; right rudder, the rudder's; flaps down, the flaps'`, async () => {
+    // docs/models.md: 0 is full forward or left, 0.5 neutral, 1 full back or right; flaps 0 up, 1 down.
+    const flight = Flight.start(await moduleWith(C172P.files, variant), C172P), motions = surfaceReader(C172P.surfaces, flight.stateNames);
+    const after = (controls) => { flight.fly({ pitch: 0, roll: 0, brake: true, ...controls }); run(flight, 4); return motions(flight.state); };
+    const parked = after({});
+    assert.equal(parked.flaps, 1, 'it starts with its flaps down');
+    assert.ok(Math.abs(parked.elevator - 0.5) < 0.12 && Math.abs(parked.aileron - 0.5) < 0.05 && Math.abs(parked.rudder - 0.5) < 0.01, `stick neutral: near neutral, but for the trim (${JSON.stringify(parked)})`);
+    const back = after({ pitch: 1 }), forward = after({ pitch: -1 }), right = after({ roll: 1 }), left = after({ roll: -1 }), clean = after({ flaps: false });
+    console.log(`  ${variant}: stick back ${back.elevator.toFixed(2)}, forward ${forward.elevator.toFixed(2)}; stick right, aileron ${right.aileron.toFixed(2)} and (on the ground) rudder ${right.rudder.toFixed(2)}; left ${left.aileron.toFixed(2)} and ${left.rudder.toFixed(2)}; flaps up ${clean.flaps.toFixed(2)}`);
+    // The trim is nose down and adds to the stick, so full back stick is not quite full up elevator: JSBSim's own figure.
+    const pitchTrim = new Map(trim.sets).get('fcs/pitch-trim-cmd-norm');
+    assert.ok(Math.abs(back.elevator - (1 - pitchTrim / 2)) < 0.01 && forward.elevator < 0.05, `the elevator (${back.elevator}, ${forward.elevator})`);
+    assert.ok(right.aileron > 0.95 && left.aileron < 0.05, 'the ailerons');
+    assert.ok(right.rudder > 0.95 && left.rudder < 0.05, 'the rudder: on the ground the stick is the pedals');
+    assert.ok(clean.flaps < 1e-6, `the flaps (${clean.flaps})`);
+    flight.dispose();
   });
 
   test(`${variant}, c172p: all seven wheels and airframe points of the aircraft file are named, and each is made to touch`, async () => {

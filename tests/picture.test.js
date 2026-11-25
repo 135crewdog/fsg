@@ -15,6 +15,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { JUMP, TRAIL, createBetween } from '../src/render/between.js';
 import { attitude, blend, poseReader, toPicture, turned } from '../src/render/frames.js';
+import { motionAt, surfaceReader } from '../src/render/surfaces.js';
 import { STATE } from '../src/sim/game.js';
 import { FT, toLatLon } from '../src/sim/world.js';
 
@@ -241,4 +242,16 @@ test('between two states: the position in a straight line, the attitude the shor
   assert.ok(near(half, [0, 0, -1], 1e-9), `half way from 350 to 010 is north (${half})`);
   const quarter = turned(blend(a, { ...b, quaternion: attitude(10 * DEG, 0, 0) }, 0.25).quaternion, NOSE);
   assert.ok(Math.abs(Math.atan2(quarter[0], -quarter[2]) / DEG - -5) < 1e-6, 'a quarter of the way is heading 355');
+});
+
+// ---- the model's moving parts (src/render/surfaces.js) ----
+test('a surface at a share of its travel in JSBSim is drawn at that share of the model\'s travel, each way from neutral', () => {
+  const elevator = [23, 0, -28];   // degrees at the motion's 0, 0.5 and 1: full forward, neutral, full back
+  assert.deepEqual([23, 11.5, 0, -14, -28].map((degrees) => motionAt(degrees, elevator)), [0, 0.25, 0.5, 0.75, 1]);
+  assert.equal(motionAt(40, elevator), 0, 'past its stop: at its stop');
+  assert.equal(motionAt(-40, elevator), 1);
+  assert.deepEqual([0, 0.3, 1].map((share) => motionAt(share, [0, 0.5, 1])), [0, 0.3, 1], 'flaps: a share already');
+  const read = surfaceReader({ flaps: { from: 'b', at: [0, 0.5, 1] }, rudder: { from: 'a', at: [16, 0, -16] } }, ['a', 'b']);
+  assert.deepEqual(read([8, 1]), { flaps: 1, rudder: 0.25 });
+  assert.throws(() => surfaceReader({ flaps: { from: 'c', at: [0, 0.5, 1] } }, ['a', 'b']), /c is not in the state/);
 });

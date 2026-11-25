@@ -25,6 +25,14 @@ button:active { opacity: 0.6; }
 /* the picture: the whole screen, behind everything */
 #view { position: absolute; inset: 0; width: 100%; height: 100%; display: block; touch-action: none; }
 
+/* what is on screen in flight, inside the safe area. Touches beside it fall through to the picture, where a drag looks around. */
+#controls { position: absolute; inset: 0; pointer-events: none; }
+#pause {
+  position: absolute; right: calc(env(safe-area-inset-right, 0px) + 14px); top: calc(env(safe-area-inset-top, 0px) + 10px);
+  width: 40px; height: 40px; border-radius: 20px; background: rgba(0, 0, 0, 0.3);
+  font-size: 13px; font-weight: 700; letter-spacing: -1px; pointer-events: auto;
+}
+
 /* the developer overlay (after Rage's ?debug=1): small, bottom left, clear of the screens' cards */
 #dev {
   position: absolute; left: calc(env(safe-area-inset-left, 0px) + 10px); bottom: calc(env(safe-area-inset-bottom, 0px) + 10px);
@@ -32,7 +40,7 @@ button:active { opacity: 0.6; }
   background: rgba(0, 0, 0, 0.45); border-radius: 6px; pointer-events: none; white-space: pre;
 }
 
-/* the screens: start and pause */
+/* the screens: start, pause and crashed. The flight shows behind them. */
 .screen {
   position: absolute; inset: 0; box-sizing: border-box; display: flex; background: rgba(0, 0, 0, 0.35);
   padding: calc(env(safe-area-inset-top, 0px) + 12px) calc(env(safe-area-inset-right, 0px) + 16px)
@@ -43,6 +51,8 @@ button:active { opacity: 0.6; }
   display: flex; flex-direction: column; gap: 8px; text-align: center; background: rgba(28, 28, 30, 0.88);
 }
 .card h1 { margin: 0; font-size: 28px; }
+.card h2 { margin: 0; font-size: 22px; }
+.btn:disabled { opacity: 0.4; }
 .card p { margin: 0; }
 .card .about { font-size: 13px; color: #aeaeb2; }
 .btn { width: 100%; padding: 11px 16px; border-radius: 12px; font-size: 17px; font-weight: 600; background: rgba(255, 255, 255, 0.16); }

@@ -7,6 +7,8 @@
 import { STEER_HALF_KT } from '../assists.js';
 import { WINGS_CRASH_FPM } from '../rules.js';
 
+const DEG = Math.PI / 180;
+
 export const C172P = {
   /** JSBSim's name for it: aircraft/c172p/c172p.xml. */
   model: 'c172p',
@@ -58,6 +60,19 @@ export const C172P = {
   crash: { closingFpm: WINGS_CRASH_FPM },
   /** Limits, reported and not enforced: 3.8 g and about 160 knots, as for c172x (from memory; not checked against a handbook). */
   limits: { g: 3.8, knots: 160 },
+  /**
+   * The model's moving parts (src/render/surfaces.js): for each motion of docs/models.md, the number of the
+   * state that drives it, and that number's values where the motion is at 0, at 0.5 and at 1. The angles are
+   * this aircraft file's own full travel, in radians: elevator 28 degrees up and 23 down, the left aileron
+   * 20 up and 15 down, the rudder 16 each way. JSBSim counts trailing edge down as positive, and the rudder's
+   * trailing edge left. tests/c172p.test.js moves each control and reads the motion.
+   */
+  surfaces: {
+    flaps: { from: 'fcs/flap-pos-norm', at: [0, 0.5, 1] },
+    elevator: { from: 'fcs/elevator-pos-rad', at: [23 * DEG, 0, -28 * DEG] },
+    aileron: { from: 'fcs/left-aileron-pos-rad', at: [-20 * DEG, 0, 15 * DEG] },
+    rudder: { from: 'fcs/rudder-pos-rad', at: [16 * DEG, 0, -16 * DEG] },
+  },
   /** The propeller's speed, for the picture: a JSBSim number sent beside every state (src/sim/flight-run.js). */
   propellerRpm: 'propulsion/engine[0]/propeller-rpm',
 };
