@@ -3,23 +3,31 @@
 // the state out. New in FSG, milestone 1 (pull request 11); it replaces the clock measurement of pull request 3.
 //
 // After "init" (FDM's, which loads JSBSim and the aircraft's files):
-//   request   { type: "fly", aircraft, crashOverride? }      a new flight, parked on the runway; a flight already
-//                                                            going is ended first, so this is also the restart
-//   reply     { aircraft, dt, stateNames, inputNames, state }
+//   request   { type: "fly", aircraft, crashOverride?, held? }   a new flight, parked on the runway; a flight already
+//                                                            going is ended first, so this is also the restart.
+//                                                            held: it starts held, and runs no step until let go
+//   reply     { aircraft, flight, dt, stateNames, inputNames, state, propellerRpm }
 //   request   { type: "controls", controls }                 any of the seven controls; they hold until changed
-//   request   { type: "hold", on }                           on: the flight stands still (the pause screen);
+//   request   { type: "hold", on }                           on: the flight stands still (the pause screen), and
+//                                                            the Worker rests: its timer is stopped, so a paused
+//                                                            game costs the battery nothing;
 //                                                            off: it carries on from now, and catches nothing up
 //   request   { type: "override", on }                       the crash override switch
 //   request   { type: "end" }                                ends the flight; replies with what the clock did
 //   reply     { steps, seconds, droppedSeconds, fires, states }
 //   request   { type: "game-bench", aircraft, steps?, batches? }   times whole batches of game steps of a parked airplane
 //   reply     { usPerStep, steps }
-//   unasked   { type: "state", n, steps, totalSteps, seconds, state, events, waiting, ended, droppedSeconds }
+//   unasked   { type: "state", flight, n, steps, totalSteps, seconds, state, propellerRpm, events, waiting, ended, droppedSeconds }
 //             after every firing of the clock that ran a step: n counts these messages from 1, `seconds` is
 //             the Worker's clock since its first firing, `state` is the flight's state (game.js, STATE),
 //             `events` what the rules reported in those steps, `ended` why the flight is over, or null.
+//             `flight` counts the flights this Worker has started, so the page can tell a state of the flight
+//             before a restart from one of the flight after it. `propellerRpm` is the propeller's speed, for the
+//             picture, or null for an aircraft without one: it goes beside the state, not in it, because the
+//             state's list is the same for every aircraft (milestone 2).
 //
 // ("pause" and "resume" are FDM's own messages, for its own loop; the game's is "hold".)
+import { C172P } from "./aircraft/c172p.js";
 import { C172X } from "./aircraft/c172x.js";
 import { CLOCK_PERIOD_MS, startClock } from "./clock.js";
 import { StepResult } from "./codes.js";
@@ -27,7 +35,7 @@ import { DT, Flight } from "./game.js";
 import { FixedStepLoop } from "./loop.js";
 
 /** The aircraft the app can fly. (The F-16 is for the tests only: its files are not in the app.) */
-export const AIRCRAFT = { c172x: C172X };
+export const AIRCRAFT = { c172x: C172X, c172p: C172P };
 
 /** The Worker's own time and timer. Tests hand in made-up ones. */
 const workerEnv = () => ({
@@ -39,6 +47,14 @@ const workerEnv = () => ({
 /** Returns the function createHandler() hands the requests it does not know. */
 export function flightRun(env = workerEnv(), aircraftByName = AIRCRAFT) {
   let flight = null, loop = null, clock = null, first = null, last = null, states = 0, steps = 0;
+  let flights = 0, fires = 0, start = null, propellerRpm = null;
+  /** The Worker rests: its timer is stopped. The firings it made are kept for the count. */
+  const rest = () => {
+    if (!clock) return;
+    fires += clock.fires;
+    clock.stop();
+    clock = null;
+  };
   const named = (name) => {
     const aircraft = aircraftByName[name];
     if (!aircraft) throw new Error(`unknown aircraft: ${name}`);
@@ -49,11 +65,11 @@ export function flightRun(env = workerEnv(), aircraftByName = AIRCRAFT) {
     return flight;
   };
   const end = () => {
-    const did = { steps, seconds: first === null ? 0 : last - first, droppedSeconds: loop ? loop.droppedSeconds : 0, fires: clock ? clock.fires : 0, states };
-    if (clock) clock.stop();
+    rest();
+    const did = { steps, seconds: first === null ? 0 : last - first, droppedSeconds: loop ? loop.droppedSeconds : 0, fires, states };
     if (flight) flight.dispose();
-    flight = loop = clock = first = last = null;
-    states = steps = 0;
+    flight = loop = first = last = start = propellerRpm = null;
+    states = steps = fires = 0;
     return did;
   };
 
@@ -65,28 +81,39 @@ export function flightRun(env = workerEnv(), aircraftByName = AIRCRAFT) {
         // The loop drives the flight as it would drive JSBSim itself. A flight that has ended, or that waits
         // for ground, runs fewer steps than asked: the steps counted are the ones it ran.
         loop = new FixedStepLoop({ dt: DT, step: (n) => { const result = now.step(n); steps += now.stepsRun; return now.ended ? StepResult.TERMINATE : result; } });
-        clock = startClock({
-          loop, now: env.now, every: env.every, cancel: env.cancel, periodMs: req.periodMs ?? CLOCK_PERIOD_MS,
-          onFire: (asked, t) => {
-            if (first === null) first = t;   // the loop's clock starts at the first firing
-            last = t;
-            if (asked === 0) return;
-            // A copy: the view points into WebAssembly memory, which never leaves the Worker.
-            const state = Float64Array.from(now.state);
-            held.post({ type: "state", n: ++states, steps: now.stepsRun, totalSteps: steps, seconds: t - first, state, events: now.rules.takeEvents(),
-              waiting: now.waiting, ended: now.ended, droppedSeconds: loop.droppedSeconds }, [state.buffer]);
-            if (now.ended) clock.stop();   // the flight is over: nothing more to run until the next "fly"
-          },
-        });
-        return { aircraft: req.aircraft, dt: DT, stateNames: flight.stateNames, inputNames: flight.inputNames, state: Float64Array.from(flight.state) };
+        const id = ++flights, rpm = now.aircraft.propellerRpm;
+        const readRpm = () => { if (rpm && !now.ended) propellerRpm = now.get(rpm); return propellerRpm; };   // an ended flight keeps its last
+        start = () => {
+          clock = startClock({
+            loop, now: env.now, every: env.every, cancel: env.cancel, periodMs: req.periodMs ?? CLOCK_PERIOD_MS,
+            onFire: (asked, t) => {
+              if (first === null) first = t;   // the loop's clock starts at the first firing
+              last = t;
+              if (asked === 0) return;
+              // A copy: the view points into WebAssembly memory, which never leaves the Worker.
+              const state = Float64Array.from(now.state);
+              held.post({ type: "state", flight: id, n: ++states, steps: now.stepsRun, totalSteps: steps, seconds: t - first, state, propellerRpm: readRpm(), events: now.rules.takeEvents(),
+                waiting: now.waiting, ended: now.ended, droppedSeconds: loop.droppedSeconds }, [state.buffer]);
+              if (now.ended) rest();   // the flight is over: nothing more to run until the next "fly"
+            },
+          });
+        };
+        if (req.held) loop.pause();
+        else start();
+        return { aircraft: req.aircraft, flight: id, dt: DT, stateNames: flight.stateNames, inputNames: flight.inputNames, state: Float64Array.from(flight.state), propellerRpm: readRpm() };
       }
       case "controls":
         flying().fly(req.controls);
         return {};
       case "hold":
         flying();
-        if (req.on) loop.pause();
-        else loop.resume();
+        if (req.on) {
+          loop.pause();
+          rest();
+        } else if (!clock && !flight.ended) {
+          loop.resume();
+          start();
+        }
         return {};
       case "override":
         flying().rules.crashOverride = Boolean(req.on);

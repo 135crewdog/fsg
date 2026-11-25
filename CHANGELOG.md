@@ -2,6 +2,10 @@
 
 What changed in each version a player can see, newest first.
 
+## 0.0.10
+
+- With Developer on, a launch on the slower fallback build of JSBSim now says why: the fast build did not start, or the launch before this one stopped while it was starting. Underneath, the game is ready for its picture: the Cessna it will fly, a Worker that rests while the game is paused, and the clock that will draw smoothly between physics steps. Nothing else new to see.
+
 ## 0.0.9
 
 - The app icon goes back to the first drawing of 0.0.7: the F-4C seen from above, over the stripes. As before, to see it on the home screen, remove FSG and add it again from Safari.

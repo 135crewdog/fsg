@@ -12,6 +12,8 @@ A flight sim game for the iPhone: a home-screen web app at <https://135crewdog.g
 - `jsbsim/`: everything about JSBSim, copied from `135crewdog/FDM`. Its `README.md` says where each piece came from.
 - `tools/from-fdm.mjs` and `provenance.json`: the script that copied pieces in from FDM and Wings, and the record of what it copied.
 - `src/sim/`: the simulation code: the JSBSim wrapper, the fixed-step loop and the Worker. No DOM code, so it runs in Node too.
+- `src/sim/aircraft/`: the game's settings for each JSBSim aircraft. `c172p.js` is the Cessna the game flies in milestone 2; `c172x.js` and `f16.js` are flown by the tests against native JSBSim.
+- `src/render/`: the picture's sums, with no DOM and no Three.js so they are tested in Node: `between.js` is the picture's clock, which draws between the Worker's physics steps; `frames.js` puts JSBSim's position and attitude into the picture's axes. Nothing on screen uses them yet.
 - `tests/`, `jsbsim/tests/`: the tests.
 
 ## Running the tests
