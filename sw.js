@@ -7,7 +7,7 @@
 // skips waiting on its own; the app offers the update and posts
 // "skip-waiting" when the pilot accepts.
 
-const VERSION = '0.0.11';   // the same value as APP_VERSION in src/version.js
+const VERSION = '0.0.12';   // the same value as APP_VERSION in src/version.js
 const CACHE = `fsg-${VERSION}`;
 const FILES = [
   './',
@@ -22,15 +22,17 @@ const FILES = [
   './src/version.js',
   './src/fdm.js',
   './src/flight.js',
+  './src/input/look.js',
   './src/render/aircraft.js',
+  './src/render/between.js',
   './src/render/camera.js',
   './src/render/frames.js',
+  './src/render/surfaces.js',
   './src/render/world.js',
   './src/sim/aircraft/c172p.js',
   './src/sim/aircraft/c172x.js',
   './src/sim/assists.js',
   './src/sim/bench.js',
-  './src/sim/c172x-files.js',
   './src/sim/clock.js',
   './src/sim/codes.js',
   './src/sim/core.js',
@@ -56,14 +58,10 @@ const FILES = [
   './jsbsim/dist-wasm/fdm-weh.wasm',
   './jsbsim/dist-wasm/fdm-jseh.mjs',
   './jsbsim/dist-wasm/fdm-jseh.wasm',
-  // The seven files JSBSim reads to load the Cessna 172 test aircraft (src/sim/c172x-files.js).
-  './jsbsim/jsbsim-data/aircraft/c172x/c172x.xml',
-  './jsbsim/jsbsim-data/aircraft/c172x/c172ap.xml',
-  './jsbsim/jsbsim-data/aircraft/c172x/reset01.xml',
+  // The three files JSBSim reads to load the Cessna the game flies (src/sim/aircraft/c172p.js).
+  './jsbsim/jsbsim-data/aircraft/c172p/c172p.xml',
   './jsbsim/jsbsim-data/engine/eng_io320.xml',
   './jsbsim/jsbsim-data/engine/prop_75in2f.xml',
-  './jsbsim/jsbsim-data/systems/GNCUtilities.xml',
-  './jsbsim/jsbsim-data/systems/Autopilot.xml',
 ];
 
 self.addEventListener('install', (event) => {

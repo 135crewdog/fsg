@@ -67,6 +67,11 @@
       "how": "adapted",
       "original": "c35f0420d0e254cbccce619a8ca66ef682e8cc73f9e7a1f7aef667524766c205"
     },
+    "src/input/look.js": {
+      "from": "wings:src/input/look.js",
+      "how": "adapted",
+      "original": "77b5843289379085d793124d1029f43ee479e37a5a37bc0bde63ba849663adf7"
+    },
     "tests/browser/app.chromium.mjs": {
       "from": "FDM:tests/page.chromium.mjs",
       "how": "adapted",

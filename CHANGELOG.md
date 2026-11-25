@@ -2,6 +2,11 @@
 
 What changed in each version a player can see, newest first.
 
+## 0.0.12
+
+- Fly. The start screen has a Fly button: tap it and the Cessna's engine is idling on the runway, propeller turning, brakes on. Drag a finger across the picture to look around the airplane; let go and the view comes back. A small pause button, top right, opens the pause screen, with Resume and Restart. The game pauses by itself when the app is hidden or the phone is turned upright. There are no flight controls yet, so it does not move.
+- With Developer on, the overlay now shows how the flight is running: frames a second, physics steps a second, how far the picture is behind, and where the airplane is. The timing runs of the earlier versions are gone from it.
+
 ## 0.0.11
 
 - The first picture. Behind the start screen a Cessna 172 stands on the numbers of the test field's runway, seen from behind, under a sky with a sun and clouds. Nothing moves yet: the next version starts the engine. The Cessna is FlightGear's own model, credited on the settings screen.

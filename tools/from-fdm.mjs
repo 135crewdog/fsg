@@ -43,6 +43,8 @@ export const FILES = [
     '.github/workflows/test.yml', '.github/workflows/pages.yml'].map((f) => adapted('wings', f)),
   // The model handoff and the reader its test uses, from Wings (milestone 2). Both files are the same at Wings' later commits.
   ...['docs/models.md', 'models/glb.mjs'].map((f) => adapted('wings', f)),
+  // The look-around, from Wings (itself from Rage, as it is), with a line at its top saying so.
+  adapted('wings', 'src/input/look.js'),
   adapted('FDM', 'tests/page.chromium.mjs', 'tests/browser/app.chromium.mjs'),
   adapted('FDM', 'web/page.ts', 'src/fdm.js'),   // how the page starts the Worker, and the fallback marker
 
