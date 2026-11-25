@@ -1,7 +1,16 @@
 // The picture's clock (src/render/between.js) and the picture's axes (src/render/frames.js).
 // New in FSG, milestone 2 (pull request 3). The "done" lines are in docs/milestones/2.md, written before
-// either was built. No real clock is read: the states and the frames arrive by a made-up feed, written here
-// and not changed after a result is seen.
+// either was built. No real clock is read: the states and the frames arrive by a made-up feed, written here.
+//
+// One of those lines was wrong in a word, and is kept here on record as failed. It said that after the Worker
+// stalls for half a second the clock "holds the newest state, jumps forward and never back, and is inside
+// those lines again within a second". It was written from a planning run whose feed made up the whole stall
+// over the next firings. The real loop does not (loop.js; found in review of this pull request): it runs
+// eight steps and drops the rest for good. So the states come back only 67 ms on, the clock is 33 ms off its
+// trail, which is under its 50 ms jump, and it eases there. Measured: no jump; never back; 31 ms behind a
+// second later, inside the line. The new line: after a stall it holds the newest state, never goes back, and
+// is inside its lines again within a second; and a clock more than 50 ms behind jumps (its own test, below).
+// The feed was corrected to drop time as the loop does. Nothing else about it was changed after a result.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { JUMP, TRAIL, createBetween } from '../src/render/between.js';
@@ -39,11 +48,13 @@ function feed({ fps, seconds = 120, workerStall = null, pageStall = null, hold =
     if (restart !== null && flight === 1 && t >= restart) { flight = 2; sim = 10; owed = 0; lastT = null; arrivals.push({ at: t, restart: true }); }
     const stopped = hold && t >= hold[0] + 0.005 && t < hold[1];
     if (stopped) { lastT = null; firings.push({ t, now: sim + owed, running: false }); continue; }   // held: no step, and letting go catches nothing up
+    // As loop.js has it: at most a quarter second of a late firing counts; of the steps then due, eight are
+    // run and the rest are dropped for good.
     if (lastT !== null) owed += Math.min(t - lastT, 0.25);
     lastT = t;
-    const steps = Math.min(8, Math.floor(owed / DT + 1e-9));
+    const due = Math.floor(owed / DT + 1e-9), steps = Math.min(8, due);
+    owed = Math.max(0, owed - due * DT);
     if (steps > 0) {
-      owed -= steps * DT;
       sim += steps * DT;
       arrivals.push({ at: t + 0.0003 + random() * 0.001, seconds: sim, flight });
     }
@@ -98,7 +109,7 @@ for (const [fps, line] of [[60, 1], [30, 1.5]]) {
   });
 
   for (const [what, stall] of [['the Worker', { workerStall: [30, 0.5] }], ['the page', { pageStall: [30, 0.5] }]]) {
-    test(`at ${fps} frames a second, after ${what} stalls for half a second: the clock holds the newest state, jumps forward and never back, and is inside its lines again within a second`, () => {
+    test(`at ${fps} frames a second, after ${what} stalls for half a second: the clock holds the newest state, never goes back, and is inside its lines again within a second`, () => {
       let before = null, heldNewest = 0, jumped = 0;
       const off = [], behind = [];
       feed({ fps, seconds: 60, ...stall }, (f) => {
@@ -114,9 +125,10 @@ for (const [fps, line] of [[60, 1], [30, 1.5]]) {
         before = f.time;
       });
       console.log(`  ${fps} frames a second, ${what} stalled: ${heldNewest} frames on the newest state, ${jumped} jump forward; outside the stall off by ${worst(off).toFixed(2)} ms and behind by ${worst(behind).toFixed(1)} ms at most`);
-      // The Worker stalled: no states came, so the clock ran up to the newest and held it; then they came in a
-      // rush and it jumped. The page stalled: its one late frame is as long as the stall, and takes it there.
-      if (what === 'the Worker') assert.ok(heldNewest > 0 && jumped >= 1, 'it held the newest state while none came, then jumped forward');
+      // The Worker stalled: no states came, so the clock ran up to the newest and held it. When they came
+      // again, eight steps on, it eased back to its trail: no jump was needed (the note at the top of this file).
+      // The page stalled: its one late frame is as long as the stall, and takes the clock there.
+      if (what === 'the Worker') assert.ok(heldNewest > 0, 'it held the newest state while none came');
       assert.ok(worst(off) <= line && worst(behind) <= 35, 'inside its lines before the stall, and again a second after it');
     });
   }
@@ -152,6 +164,26 @@ for (const [fps, line] of [[60, 1], [30, 1.5]]) {
     assert.ok(frames > 100);
   });
 }
+
+test('a clock more than 50 ms behind where it should be jumps there in one frame; nearer than that, it eases; and it never goes back', () => {
+  const between = createBetween(), frame = 1 / 60;
+  for (let k = 0; k <= 6; k++) between.push(k * DT, k);   // 50 ms of states
+  let time = between.advance(frame);
+  for (let n = 0; n < 300; n++) { for (let k = 0; k < 2; k++) between.push(between.newest.seconds + DT, 0); time = between.advance(frame); }   // five seconds of states, two a frame
+  assert.ok(Math.abs(between.newest.seconds - time - TRAIL) < 0.002, 'running: on its trail');
+  // The states leap 200 ms on: the clock is far behind, and jumps to its trail.
+  between.push(between.newest.seconds + 0.2, 0);
+  const jumped = between.advance(frame);
+  assert.ok(Math.abs(between.newest.seconds - TRAIL - jumped) < 1e-9, `it jumped to its trail (${(between.newest.seconds - jumped) * 1000} ms behind the newest)`);
+  // They leap 40 ms on: under the jump, so it eases, a little each frame.
+  between.push(between.newest.seconds + 0.04 + frame, 0);
+  const eased = between.advance(frame);
+  assert.ok(eased - jumped > frame && eased - jumped < frame + 0.005, `it eased (${(eased - jumped - frame) * 1000} ms more than the frame)`);
+  // No more states come: frame after frame it runs up to the newest and stays; it never goes back.
+  let before = eased;
+  for (let n = 0; n < 30; n++) { const now = between.advance(frame); assert.ok(now >= before && now <= between.newest.seconds); before = now; }
+  assert.equal(before, between.newest.seconds, 'it holds the newest state');
+});
 
 test('the clock\'s numbers: two steps behind, and a jump when it is more than 50 ms out', () => {
   assert.equal(TRAIL, 2 / 120);
