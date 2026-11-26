@@ -107,7 +107,9 @@ test('each JSBSim build is an Emscripten file with its .wasm beside it, and both
 
 test('the credit on the pause screen names the JSBSim that is pinned', () => {
   const tag = read('jsbsim/pins.env').match(/^JSBSIM_TAG=v(.+)$/m)[1];
-  assert.ok(html.includes(`<p class="about">Flight model: JSBSim ${tag}, LGPL 2.1</p>`), `JSBSim ${tag}`);
+  // The credits are the small print at the pause screen's foot (they left its menu so the menu fits a phone's screen).
+  const pause = html.slice(html.indexOf('id="screen-pause"'), html.indexOf('id="screen-crashed"'));
+  assert.ok(pause.includes(`<p class="about credits">Flight model: JSBSim ${tag}, LGPL 2.1<br>Cessna 172P model: FlightGear's c172p team, GPL 2</p>`), `JSBSim ${tag}, and the Cessna's model`);
   assert.match(read('jsbsim/jsbsim-data/COPYING'), /GNU LESSER GENERAL PUBLIC LICENSE\s+Version 2\.1/, 'and its licence is in the repo');
 });
 

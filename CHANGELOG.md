@@ -2,6 +2,14 @@
 
 What changed in each version a player can see, newest first.
 
+## 0.0.15
+
+- The controls: the first flight. Tilt the device to fly, held in landscape like a steering wheel: top edge toward you is back stick, turning it clockwise is right stick. Wherever you hold it when you tap Fly is neutral, and with it there the Cessna holds 100 knots. The first Fly tap asks for motion access.
+- A throttle on the left edge: a knob in a narrow groove, idle at the bottom, full at the top.
+- Two buttons on the right, Flaps and Brakes, as the Cessna has those two. Every flight starts with the flaps down and the brakes on. On the ground, tilt steers the nosewheel.
+- On the pause screen: Recenter makes the way you are holding the device the new neutral, and a Crash override switch, on to begin with. Off, a hard arrival ends the flight.
+- With the debug overlay on, it also shows the tilt, the stick and the last touchdown.
+
 ## 0.0.14
 
 - The HUD, in green, as in Wings: the heading on a tape across the top (magnetic, so the runway reads 080), a bank scale under it, the pitch ladder, the flight path marker and the waterline, airspeed on the left and altitude on the right, a VSI just above the altitude, and g, angle of attack, Mach and power in the lower left. Below 2,000 feet above the ground the altitude is the radar altitude, with an R. Drag a finger to look around and the heading tape slides with the view.

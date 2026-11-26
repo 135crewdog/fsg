@@ -37,7 +37,9 @@ await new Promise((done) => server.listen(0, '127.0.0.1', done));
 const base = `http://127.0.0.1:${server.address().port}/fsg/`;
 
 const browser = await chromium.launch();
-const context = await browser.newContext({ viewport: { width: 852, height: 393 } });   // an iPhone 16 in landscape
+// Motion access is allowed, as a pilot who taps Allow: this Chromium answers the app's question as an iPhone does.
+const MOTION = ['accelerometer', 'gyroscope', 'magnetometer'];
+const context = await browser.newContext({ viewport: { width: 852, height: 393 }, permissions: MOTION });   // an iPhone 16 in landscape
 const page = await context.newPage();
 const errors = [];
 page.on('pageerror', (e) => errors.push(String(e)));
@@ -124,7 +126,7 @@ const app = on(page);
 const parked = (f) => f.wheelsDown === 3 && f.groundKt < 0.1 && Math.hypot(f.northFt, f.eastFt) < 1 && Math.abs(f.headingDeg - 90) < 0.1 && f.wheelsIn.every((inches) => Math.abs(inches) <= 1) &&
   f.propellerRpm >= 700 && f.propellerRpm <= 900 && f.ended === null;
 const where = (f) => `${Math.hypot(f.northFt, f.eastFt).toFixed(2)} ft from the numbers, heading ${f.headingDeg.toFixed(2)}, ${f.wheelsDown} wheels down (${f.wheelsIn.map((x) => x.toFixed(2)).join(', ')} in), ${f.groundKt.toFixed(2)} kt, ${f.propellerRpm.toFixed(0)} RPM`;
-const overlaySays = (box, what) => new RegExp(`^FSG [^\n]+\n(browser tab|home-screen app)\noffline ready: [a-z ]+\nJSBSim 1\\.3\\.3 {3}(wasm exceptions|fallback build: [^\n]+)\nc172p {3}${what}\n\\d+ frames/s \\(least \\d+\\) {3}\\d+ draws\n[\\d.]+ steps/s {3}[\\d.]+ s dropped {3}[\\d,]+ states, \\d+ missing\npicture \\d+ ms behind \\(99 in 100 within \\d+, most \\d+\\)\n-?[\\d,]+ ft N, -?[\\d,]+ ft E, -?[\\d,]+ ft up, heading \\d{3}, \\d+ kt, [\\d,]+ RPM$`).test(box);
+const overlaySays = (box, what) => new RegExp(`^FSG [^\n]+\n(browser tab|home-screen app)\noffline ready: [a-z ]+\nJSBSim 1\\.3\\.3 {3}(wasm exceptions|fallback build: [^\n]+)\nc172p {3}${what}\n\\d+ frames/s \\(least \\d+\\) {3}\\d+ draws\n[\\d.]+ steps/s {3}[\\d.]+ s dropped {3}[\\d,]+ states, \\d+ missing\npicture \\d+ ms behind \\(99 in 100 within \\d+, most \\d+\\)\n-?[\\d,]+ ft N, -?[\\d,]+ ft E, -?[\\d,]+ ft up, heading \\d{3}, \\d+ kt, [\\d,]+ RPM\nsensor [^\n]+\nstick [^\n]+\nlast touchdown: [^\n]+$`).test(box);
 
 check(await app.ready(), 'Fly is ready: the model has loaded and JSBSim has started');
 let js = await app.jsbsim();
@@ -370,7 +372,7 @@ check(!js.error && js.build === 'weh' && (await text('#dev')).includes('wasm exc
 // 7. The fallback. Fresh visits with no service worker, so the fast build can be made to fail.
 {
   // (a) The fast build does not start: the app falls back to the second build by itself, and says why.
-  const broken = await browser.newContext({ viewport: { width: 852, height: 393 }, serviceWorkers: 'block' });
+  const broken = await browser.newContext({ viewport: { width: 852, height: 393 }, serviceWorkers: 'block', permissions: MOTION });
   await broken.route('**/fdm-weh.wasm', (route) => route.abort());
   const p = await broken.newPage();
   await p.addInitScript(() => { try { localStorage.setItem('fsg.dev', 'on'); } catch { /* not yet on the page's origin */ } });
@@ -385,7 +387,7 @@ check(!js.error && js.build === 'weh' && (await text('#dev')).includes('wasm exc
   await broken.close();
 
   // (b) The marker is still set from a launch that died while starting the fast build: straight to the fallback.
-  const died = await browser.newContext({ viewport: { width: 852, height: 393 }, serviceWorkers: 'block' });
+  const died = await browser.newContext({ viewport: { width: 852, height: 393 }, serviceWorkers: 'block', permissions: MOTION });
   const q = await died.newPage();
   const asked = [];
   q.on('request', (request) => { if (request.url().includes('/dist-wasm/')) asked.push(request.url().split('/').pop()); });
@@ -409,11 +411,13 @@ check(!js.error && js.build === 'weh' && (await text('#dev')).includes('wasm exc
 
   // (c) The Worker's own file fails to load, and fails while the aircraft files are still on their way.
   //     Neither build can start: the app must say so, not sit waiting, and Restart must try again.
-  const noWorker = await browser.newContext({ viewport: { width: 852, height: 393 }, serviceWorkers: 'block' });
+  const noWorker = await browser.newContext({ viewport: { width: 852, height: 393 }, serviceWorkers: 'block', permissions: MOTION });
   await noWorker.route('**/src/sim/worker.js', (route) => route.abort());
   await noWorker.route('**/jsbsim-data/**', async (route) => { await new Promise((done) => setTimeout(done, 400)); await route.continue(); });
   const w = await noWorker.newPage();
   await w.addInitScript(() => { try { localStorage.setItem('fsg.dev', 'on'); } catch { /* not yet on the page's origin */ } });
+  // Motion access has not been given on this visit: the page counts how often it is asked for, and allows it.
+  await w.addInitScript(() => { window.asked = 0; DeviceOrientationEvent.requestPermission = () => { window.asked++; return Promise.resolve('granted'); }; });
   await w.goto(base);
   const settled = await w.waitForFunction(() => window.fsg.jsbsim !== null, null, { timeout: 20000 }).then(() => true, () => false);
   const r3 = settled ? await on(w).jsbsim() : null;
@@ -428,6 +432,11 @@ check(!js.error && js.build === 'weh' && (await text('#dev')).includes('wasm exc
     await w.click('#crash-restart');
     await w.waitForFunction(() => window.fsg.mode === 'flying' && window.fsg.picture.states > 0, null, { timeout: 60000 }).catch(() => {});
     check((await on(w).jsbsim())?.build === 'weh' && parked(await on(w).flight()), 'Restart tries again, and now it starts and flies');
+    check((await w.evaluate(() => window.asked)) === 1, 'and that Restart, the first tap to fly, asked for motion access', `asked ${await w.evaluate(() => window.asked)} time(s)`);
+    await w.click('#pause');
+    await w.click('#restart');
+    await w.waitForFunction(() => window.fsg.mode === 'flying' && window.fsg.picture.states > 0, null, { timeout: 10000 }).catch(() => {});
+    check((await w.evaluate(() => window.asked)) === 1 && (await on(w).mode()) === 'flying', 'a later Restart does not ask again');
   }
   await noWorker.close();
 }
@@ -435,7 +444,7 @@ check(!js.error && js.build === 'weh' && (await text('#dev')).includes('wasm exc
 // 8. A Worker made to fail in mid-flight: the crashed screen, and Restart gives a parked airplane in a fresh
 //    Worker. Its own page, so that the error it makes is not counted above.
 {
-  const failing = await browser.newContext({ viewport: { width: 852, height: 393 }, serviceWorkers: 'block' });
+  const failing = await browser.newContext({ viewport: { width: 852, height: 393 }, serviceWorkers: 'block', permissions: MOTION });
   const g = await failing.newPage();
   await g.addInitScript(() => { try { localStorage.setItem('fsg.dev', 'on'); } catch { /* not yet on the page's origin */ } });
   await g.goto(base);
@@ -462,7 +471,7 @@ check(!js.error && js.build === 'weh' && (await text('#dev')).includes('wasm exc
 // 9. The app goes away in mid-flight, with time running (the pilot closes the app): the fast build had started
 //    long before, so the next launch must use it again, not the fallback. Found on the owner's phone at 0.0.5.
 {
-  const leaving = await browser.newContext({ viewport: { width: 852, height: 393 }, serviceWorkers: 'block' });
+  const leaving = await browser.newContext({ viewport: { width: 852, height: 393 }, serviceWorkers: 'block', permissions: MOTION });
   const g = await leaving.newPage();
   await g.addInitScript(() => { try { localStorage.setItem('fsg.dev', 'on'); } catch { /* not yet on the page's origin */ } });
   await g.goto(base);
@@ -476,6 +485,231 @@ check(!js.error && js.build === 'weh' && (await text('#dev')).includes('wasm exc
   const b = await g.locator('#dev').textContent();
   check(!r.error && r.build === 'weh' && b.includes('JSBSim 1.3.3   wasm exceptions\n'), 'the launch after a reload in mid-flight says "wasm exceptions"', r.error ?? r.says);
   await leaving.close();
+}
+
+// 10. The controls (pull request 7): flown on the screen's own controls with a made-up tilt. Chromium has no
+//     tilt sensor, so the page is sent the same orientation events a device sends, sixty a second.
+{
+  const flown = await browser.newContext({ viewport: { width: 852, height: 393 }, serviceWorkers: 'block', permissions: MOTION });
+  const c = await flown.newPage();
+  const errs = [];
+  c.on('pageerror', (error) => errs.push(String(error)));
+  await c.addInitScript(() => { try { localStorage.setItem('fsg.dev', 'on'); } catch { /* not yet on the page's origin */ } });
+  await c.goto(base);
+  // The made-up device: held in landscape, leaning back 15 degrees, then tipped `back` (top edge toward the
+  // pilot) and turned `clockwise`, in degrees. The sums are tests/tilt.test.js's, from the sensor's definition.
+  await c.evaluate(() => {
+    const D = Math.PI / 180;
+    window.held = { back: 0, clockwise: 0 };
+    const sensor = ([x, y, z]) => {
+      for (const beta of [Math.asin(y), Math.PI - Math.asin(y)]) {
+        const cb = Math.cos(beta);
+        if (Math.abs(cb) < 1e-9) return { beta: beta / D, gamma: 0 };
+        if (z / cb >= -1e-12) return { beta: beta / D, gamma: Math.atan2(-x / cb, z / cb) / D };
+      }
+      return { beta: 0, gamma: 0 };
+    };
+    // With `level` set, the made-up pilot holds the wings level with the tilt, as a pilot does in the climb:
+    // at full power and low speed this Cessna rolls left by itself.
+    let tick = 0, bias = 0;
+    setInterval(() => {
+      if (window.held.level && tick++ % 6 === 0) {
+        const roll = window.fsg.picture.reading?.roll ?? 0;
+        bias = Math.max(-15, Math.min(15, bias - roll * 0.04));
+        window.held.clockwise = Math.max(-25, Math.min(25, bias - roll * 0.5));
+      }
+      const { back, clockwise } = window.held, lean = (back - 15) * D, turn = clockwise * D;
+      const u = [-Math.sin(turn) * Math.cos(lean), Math.cos(turn) * Math.cos(lean), -Math.sin(lean)];
+      const angle = (((screen.orientation?.angle ?? 0) % 360) + 360) % 360, a = -angle * D, ca = Math.cos(a), sa = Math.sin(a);
+      const { beta, gamma } = sensor([ca * u[0] - sa * u[1], sa * u[0] + ca * u[1], u[2]]);
+      window.dispatchEvent(new DeviceOrientationEvent('deviceorientation', { alpha: 0, beta, gamma }));
+    }, 1000 / 60);
+  });
+  const hold = (back, clockwise) => c.evaluate(([b, cw]) => { window.held = cw === 'level' ? { back: b, clockwise: window.held.clockwise, level: true } : { back: b, clockwise: cw }; }, [back, clockwise]);
+  const now = () => c.evaluate(() => ({ ...window.fsg.picture, stick: window.fsg.stick, pilot: window.fsg.pilot, touchdown: window.fsg.touchdown, mode: window.fsg.mode }));
+  const until = (test, arg, timeout = 90000) => c.waitForFunction(test, arg, { timeout, polling: 50 }).then(() => true, () => false);
+  const shown = (selector) => c.locator(selector).isVisible();
+  await on(c).ready();
+
+  // What is on the screen: only the buttons the Cessna has, in title case; the throttle's groove and knob.
+  check(await on(c).fly(), 'Fly: motion is allowed (Chromium does not ask), and the flight is on screen');
+  const buttons = await c.evaluate(() => [...document.getElementById('toggles').children].filter((b) => !b.hidden).map((b) => b.textContent));
+  check(buttons.join(', ') === 'Flaps Down, Brakes On', 'the Cessna shows two buttons, in title case', buttons.join(', '));
+  const groove = async () => c.evaluate(() => {
+    const box = (q) => document.querySelector(q).getBoundingClientRect();
+    const track = box('#throttle .track'), thumb = box('#throttle .thumb'), stripes = document.querySelector('#throttle .ab');
+    return { width: track.width, top: track.top, bottom: track.bottom, knob: thumb.top + thumb.height / 2, knobHeight: thumb.height, stripes: !stripes.hidden && stripes.getBoundingClientRect().height > 0 };
+  });
+  const idle = await groove();
+  check(idle.width === 14 && Math.abs(idle.knob - idle.bottom) <= 1 && idle.knobHeight > idle.width && !idle.stripes,
+    'the throttle: a 14 px groove, the knob over its end at idle, no caution stripes on an airplane with no afterburner', `groove ${idle.width} px wide; the knob's middle ${Math.abs(idle.knob - idle.bottom).toFixed(1)} px from its foot`);
+
+  // A takeoff: Brakes off, the throttle slid full, and from 50 knots the device tipped back 10 degrees.
+  // Returns the liftoff speed. Tipped back the whole climb the Cessna rears up, as any airplane held at takeoff stick would: so it is eased.
+  const takeOff = async () => {
+    await c.click('#brake');
+    const knob = await c.locator('#throttle .thumb').boundingBox();
+    await c.mouse.move(knob.x + knob.width / 2, knob.y + knob.height / 2);
+    await c.mouse.down();
+    await c.mouse.move(knob.x + knob.width / 2, 2, { steps: 10 });
+    await c.mouse.up();
+    const rolling = await until(() => window.fsg.picture.groundKt > 5, null, 20000);
+    await until(() => window.fsg.picture.knots >= 50, null, 60000);
+    await hold(10, 0);
+    const off = await until(() => window.fsg.picture.wheelsDown === 0 && window.fsg.picture.aboveGroundFt - 4.356 > 1, null, 30000);
+    const pulling = await now();
+    await hold(4, 'level');
+    return { rolling, off, liftoff: pulling.knots, pulling };
+  };
+  const first = await takeOff();
+  const full = await groove(), rolled = await now();
+  check((await c.locator('#brake').textContent()) === 'Brakes Off' && rolled.pilot.throttle === 1 && Math.abs(full.knob - full.top) <= 1 && first.rolling, 'Brakes off and the throttle slid full: the knob covers the groove\'s top, and the Cessna rolls',
+    `throttle ${rolled.pilot.throttle}; the knob's middle ${Math.abs(full.knob - full.top).toFixed(1)} px from the groove's top`);
+  check(first.off && first.liftoff >= 45 && first.liftoff <= 70, 'flaps down, tipped back 10 degrees from 50 knots, it lifts off between 45 and 70 knots', `${first.liftoff.toFixed(1)} kt`);
+  if (shots) await c.screenshot({ path: join(shots, 'airborne.png') });
+  // Stick back shows the elevator up; the flaps are down; the HUD's flight path is above the horizon in the climb.
+  const pulling = first.pulling;
+  await until(() => window.fsg.picture.aboveGroundFt > 50, null, 60000);
+  const climbing = await now();
+  check(pulling.stick.pitch > 0.3 && pulling.surfaces.elevator > 0.52 && pulling.surfaces.flaps === 1 && climbing.reading.velocity[2] < 0 && climbing.reading.pitch > 0,
+    'stick back: the elevator\'s trailing edge is up, the flaps are down, and the HUD\'s flight path marker is above the horizon in the climb', `stick ${pulling.stick.pitch.toFixed(2)} back; elevator motion ${pulling.surfaces.elevator.toFixed(2)} (0.5 is neutral); climbing ${(-climbing.reading.velocity[2] * 100).toFixed(0)} in 100`);
+  await until(() => window.fsg.picture.aboveGroundFt > 200, null, 60000);
+  // Turned 15 degrees clockwise for one second: a right bank.
+  // The wings are being held level, with the device turned a little to do it; from there, 15 degrees more.
+  await hold(3, 'level');
+  await c.waitForTimeout(3000);
+  const level = await now(), holding = await c.evaluate(() => window.held.clockwise);
+  await hold(3, holding + 15);
+  await c.waitForTimeout(500);
+  const rolling = await now();
+  await c.waitForTimeout(500);
+  const banked = await now();
+  await hold(3, 'level');
+  check(Math.abs(level.reading.roll) < 5 && banked.reading.roll >= 10 && banked.reading.roll <= 50, 'turned 15 degrees right for one second, it is banked 10 to 50 degrees right',
+    `from ${level.reading.roll.toFixed(1)} to ${banked.reading.roll.toFixed(1)} deg, at ${banked.knots.toFixed(0)} kt (the wings were being held level with the device ${holding.toFixed(1)} deg right)`);
+  check(rolling.stick.roll > 0.3 && rolling.surfaces.aileron > 0.6, 'stick right: the ailerons are over for a right roll (left one down, right one up)', `stick ${rolling.stick.roll.toFixed(2)} right; aileron motion ${rolling.surfaces.aileron.toFixed(2)} (0.5 is neutral)`);
+  check(banked.behindWithinMs > 0 && banked.behindWithinMs <= 40 && banked.missing === 0, 'in the air the picture still trails the newest state as it did on the ground', `99 frames in 100 within ${banked.behindWithinMs} ms`);
+  if (shots) await c.screenshot({ path: join(shots, 'banked.png') });
+  // Flaps up: both flaps come up.
+  await c.click('#flaps');
+  await c.waitForTimeout(4000);
+  const clean = await now();
+  check((await c.locator('#flaps').textContent()) === 'Flaps Up' && clean.surfaces.flaps < 0.05, 'Flaps Up: the flaps come up', `flap motion ${clean.surfaces.flaps.toFixed(2)}`);
+  // Recenter: however the device is held then is neutral.
+  await c.evaluate(() => { window.held = { back: 8, clockwise: window.held.clockwise - 14 }; });
+  await c.waitForTimeout(400);
+  const offCentre = await now();
+  await c.click('#pause');
+  const heldAt = (await now()).time;
+  await c.waitForTimeout(800);
+  check((await now()).time === heldAt && await shown('#screen-pause'), 'Pause holds it');
+  await c.click('#recenter');
+  await c.waitForTimeout(300);
+  const centred = await c.evaluate(() => ({ stick: window.fsg.stick, says: document.getElementById('recenter').textContent }));
+  check(Math.hypot(offCentre.stick.pitch, offCentre.stick.roll) > 0.3 && Math.abs(centred.stick.pitch) <= 0.02 && Math.abs(centred.stick.roll) <= 0.02 && centred.says === 'Recentered ✓',
+    'Recenter makes the present tilt neutral: the stick within 0.02 of zero', `from ${offCentre.stick.pitch.toFixed(2)} back, ${offCentre.stick.roll.toFixed(2)} right to ${centred.stick.pitch.toFixed(3)}, ${centred.stick.roll.toFixed(3)}`);
+  await hold(0, 0);
+  await c.click('#resume');
+  const after = await now();
+  // Restart parks it, with the throttle closed and the brakes on.
+  await hold(0, 0);
+  await c.click('#pause');
+  await c.click('#restart');
+  await until((n) => window.fsg.picture.flight > n && window.fsg.picture.flying, after.flight, 10000);
+  await c.waitForTimeout(1500);
+  const again = await now(), knobAgain = await groove();
+  check(again.mode === 'flying' && parked(again) && again.pilot.throttle === 0 && again.pilot.brake === true && again.pilot.flaps === true && Math.abs(knobAgain.knob - knobAgain.bottom) <= 1 && (await c.locator('#brake').textContent()) === 'Brakes On' && Math.abs(again.stick.pitch) < 0.05,
+    'Restart parks it with the throttle closed, the flaps down and the brakes on', `${where(again)}; throttle ${again.pilot.throttle}`);
+  // With the crash override off, flown into the ground at more than 1,575 ft/min: the crashed screen.
+  await c.click('#pause');
+  await c.click('#override');
+  check((await c.getAttribute('#override', 'aria-checked')) === 'false' && (await c.evaluate(() => localStorage.getItem('fsg.crashOverride'))) === 'off', 'the crash override switch goes off, kept as fsg.crashOverride');
+  await c.click('#resume');
+  const second = await takeOff();
+  await until(() => window.fsg.picture.aboveGroundFt > 250, null, 60000);
+  await hold(-55, 'level');
+  const crashed = await until(() => window.fsg.mode === 'crashed', null, 60000);
+  const said = crashed ? { title: await c.locator('#crash-title').textContent(), line: await c.locator('#crash-why').textContent() } : {};
+  const fpm = Number((said.line ?? '').replace(/[^\d]/g, ''));
+  check(second.off && crashed && said.title === 'Crashed' && /^Hard impact: [\d,]+ ft\/min$/.test(said.line) && fpm > 1575 && await shown('#screen-crashed'), 'crash override off: flown into the ground hard, the crashed screen shows', `"${said.title}" "${said.line}"`);
+  if (shots) await c.screenshot({ path: join(shots, 'crashed.png') });
+  // The same again with the crash override on: the same dive into the ground, and the flight carries on.
+  await c.click('#crash-restart');
+  await until(() => window.fsg.mode === 'flying' && window.fsg.picture.states > 0, null, 10000);
+  await hold(0, 0);
+  await c.click('#pause');
+  await c.click('#override');
+  await c.click('#resume');
+  const third = await takeOff();
+  await until(() => window.fsg.picture.aboveGroundFt > 250, null, 60000);
+  await hold(-55, 'level');
+  // Its centre of gravity stands 4.4 ft up: under 8 ft it is at the ground. The fastest sink on the way down is kept, read every 50 ms.
+  await c.evaluate(() => { window.sink = 0; });
+  const down = await until(() => { const p = window.fsg.picture; window.sink = Math.min(window.sink, p.reading.climb); return p.aboveGroundFt < 8; }, null, 60000);
+  const sinking = await c.evaluate(() => window.sink);
+  await c.waitForTimeout(2000);
+  const survived = await now();
+  check(third.off && down && sinking < -1575 && survived.mode === 'flying' && !(await shown('#screen-crashed')) && (await c.getAttribute('#override', 'aria-checked')) === 'true',
+    'crash override on: the same dive into the ground, and the flight carries on', `arriving at ${Math.round(-sinking).toLocaleString('en-US')} ft/min; mode ${survived.mode} two seconds later`);
+  const box10 = await c.locator('#dev').textContent();
+  check(/\nsensor β .+ screen \d+ +tilt .+\nstick -?[\d.]+ back, -?[\d.]+ right +throttle [\d.]+\nlast touchdown: /.test(box10), 'the overlay shows the tilt, the stick and the last touchdown', box10.split('\n').slice(-3).join(' | '));
+  check(errs.length === 0, 'no page errors in the flight', errs.join(' | '));
+  await flown.close();
+
+  // Motion refused: the motion-access screen, and no flight.
+  const refused = await browser.newContext({ viewport: { width: 852, height: 393 }, serviceWorkers: 'block' });
+  const r = await refused.newPage();
+  // Not allowed here: the browser's own answer to the app's question is not "granted".
+  await r.goto(base);
+  await on(r).ready();
+  await r.click('#fly');
+  await r.waitForTimeout(500);
+  check((await r.locator('#screen-denied').isVisible()) && (await on(r).mode()) === 'start' && (await r.locator('#screen-denied p').textContent()) === 'Reopen FSG, tap Fly and allow motion. If it doesn\'t ask, allow motion in your browser\'s settings.' && !(await on(r).flight()).flying,
+    'motion refused: the motion-access screen shows, in its few words, and nothing flies');
+  if (shots) await r.screenshot({ path: join(shots, 'denied.png') });
+  await refused.close();
+
+  // The prompt takes focus from the app while it is up; then Allow: the flight flies.
+  const asked = await browser.newContext({ viewport: { width: 852, height: 393 }, serviceWorkers: 'block', permissions: MOTION });
+  const a = await asked.newPage();
+  await a.addInitScript(() => {
+    DeviceOrientationEvent.requestPermission = () => new Promise((allow) => { window.dispatchEvent(new Event('blur')); setTimeout(() => { window.dispatchEvent(new Event('focus')); allow('granted'); }, 600); });
+  });
+  await a.goto(base);
+  await on(a).ready();
+  check(await on(a).fly(), 'focus lost to the motion prompt, then Allow: the flight flies');
+  check((await on(a).mode()) === 'flying' && !(await a.locator('#screen-pause').isVisible()), 'and it is not left on the pause screen');
+  await asked.close();
+
+  // The device is turned upright while the prompt is up, then Allow: no flight starts behind the rotate screen.
+  // It waits on the pause screen, held, for Resume.
+  const turned = await browser.newContext({ viewport: { width: 852, height: 393 }, serviceWorkers: 'block' });
+  const t = await turned.newPage();
+  await t.addInitScript(() => { DeviceOrientationEvent.requestPermission = () => new Promise((allow) => { window.allow = () => allow('granted'); }); });
+  await t.goto(base);
+  await on(t).ready();
+  await t.click('#fly');
+  await t.setViewportSize({ width: 393, height: 852 });
+  await t.evaluate(() => window.allow());
+  await t.waitForTimeout(800);
+  const upright = await on(t).flight();
+  check((await on(t).mode()) === 'paused' && !upright.flying && upright.states === 0 && (await t.locator('#rotate').isVisible()), 'turned upright while the motion prompt is up, then Allow: nothing flies behind the rotate screen', `mode ${await on(t).mode()}, ${upright.states} states`);
+  await t.setViewportSize({ width: 852, height: 393 });
+  await t.waitForTimeout(300);
+  check((await t.locator('#screen-pause').isVisible()) && (await t.locator('#resume').textContent()) === 'Resume' && (await t.locator('#restart').isVisible()), 'back in landscape it is on the pause screen, with Resume');
+  // The pause menu, with an update offered, is inside an iPhone's landscape safe area: 348 points under the top margin.
+  const menu = await t.evaluate(() => {
+    for (const b of document.querySelectorAll('#screen-pause .update')) b.hidden = false;
+    const box = (q) => document.querySelector(q).getBoundingClientRect();
+    return { card: box('#screen-pause .card').bottom, update: box('#screen-pause .update').bottom, credits: box('.credits'), height: innerHeight };
+  });
+  check(menu.card <= 12 + 348 && menu.update < menu.card && menu.credits.bottom <= menu.height && menu.credits.top >= menu.card - 1,
+    'the pause menu with an update offered fits an iPhone\'s landscape safe area, and the credits are on screen under it', `the menu ends ${Math.round(menu.card)} px down of ${menu.height}; the credits ${Math.round(menu.credits.top)} to ${Math.round(menu.credits.bottom)}`);
+  if (shots) await t.screenshot({ path: join(shots, 'pause-menu.png') });
+  await t.evaluate(() => { for (const b of document.querySelectorAll('#screen-pause .update')) b.hidden = true; });
+  await t.click('#resume');
+  check(await t.waitForFunction(() => window.fsg.picture.flying && window.fsg.picture.states > 0, null, { timeout: 3000 }).then(() => true, () => false), 'and Resume flies it');
+  await turned.close();
 }
 
 check(errors.length === 0, 'no console errors', errors.join(' | '));
