@@ -263,7 +263,7 @@ for (const model of MODELS) {
   }
 
   // JSBSim's own answer: the airplane stood on its wheels on level ground as the game parks it (engines idling,
-  // brakes on, flaps down) for ten seconds, with none of the copilot's trim. Read back.
+  // brakes on, flaps down or at its takeoff setting) for ten seconds, with none of the copilot's trim. Read back.
   let stood;
   const standing = () => (stood ??= (async () => {
     const flight = Flight.start(await moduleWith(aircraft, 'weh'), aircraft, { assists: null });

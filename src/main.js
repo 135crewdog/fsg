@@ -7,10 +7,10 @@ import { APP_VERSION } from './version.js';
 import { startGame } from './fdm.js';
 import { startFlight } from './flight.js';
 import { createHud } from './hud.js';
-import { buttonText, buttonsFor, controlsFrom } from './input/pilot.js';
+import { buttonText, buttonsFor, controlsFrom, flapLever, flapSettings } from './input/pilot.js';
 import { createTilt } from './input/tilt.js';
 import { createThrottle } from './ui/throttle.js';
-import { PARKED } from './sim/game.js';
+import { parkedFor } from './sim/game.js';
 import { readouts } from './readouts.js';
 import { C172P } from './sim/aircraft/c172p.js';
 
@@ -46,8 +46,10 @@ let game = null, jsbsim = null;
 // ---- the pilot's controls (after Wings) ----
 // The throttle and the buttons live here; the stick comes from tilt. They go to the Worker as each sensor
 // reading and each touch arrives, not once a frame, so a slow screen adds no delay to the hands.
-const pilot = { throttle: 0, gear: true, flaps: true, speedbrake: false, brake: true };
-const send = () => { if (mode === 'flying' && game) game.controls(controlsFrom(pilot, tilt.stick)).catch(() => {}); };
+// `flaps` is down or up (true or false), or for an airplane with a flap lever the setting chosen, 0 to 1.
+const PARKED = parkedFor(AIRCRAFT);
+const pilot = { throttle: PARKED.throttle, gear: PARKED.gear, flaps: PARKED.flaps, speedbrake: PARKED.speedbrake, brake: PARKED.brake };
+const send = () => { if (mode === 'flying' && game) game.controls(controlsFrom(pilot, tilt.stick, AIRCRAFT)).catch(() => {}); };
 const recenterButton = $('recenter');
 let recenterTimer = null;
 const tilt = createTilt({
@@ -60,17 +62,37 @@ const tilt = createTilt({
   onStick: send,
 });
 const throttle = createThrottle($('throttle'), (value) => { pilot.throttle = value; send(); }, { mil: AIRCRAFT.mil ?? null });
-// A button shows only if the airplane has the thing: the Cessna has flaps and brakes.
-const buttons = buttonsFor(AIRCRAFT);
-for (const el of $('toggles').children) el.hidden = !buttons.some(([control]) => control === el.id);
+// A button shows only if the airplane has the thing: the Cessna has flaps and brakes. An airplane with more
+// than one flap setting has the flap lever in the Flaps button's place: Flaps Up, Flaps Down, and between them
+// what the setting is (milestone 3, PR F).
+const flapStops = flapSettings(AIRCRAFT);
+const buttons = buttonsFor(AIRCRAFT).filter(([control]) => !(flapStops && control === 'flaps'));
+for (const el of $('toggles').children) el.hidden = el.id === 'flap-lever' ? !flapStops : !buttons.some(([control]) => control === el.id);
 const showButtons = () => {
   for (const button of buttons) {
     $(button[0]).textContent = buttonText(button, pilot[button[0]]);
-    $(button[0]).setAttribute('aria-pressed', String(pilot[button[0]]));
+    $(button[0]).setAttribute('aria-pressed', String(Boolean(pilot[button[0]])));   // on or off, also when a parked setting came as a number
+  }
+  if (flapStops) {
+    // The indicator reads the setting chosen: while the flaps travel, the one they are going to.
+    const lever = flapLever(flapStops, pilot.flaps);
+    $('flaps-reads').textContent = lever.reads;
+    $('flaps-up').disabled = lever.up === null;
+    $('flaps-down').disabled = lever.down === null;
   }
 };
 for (const [control] of buttons) $(control).addEventListener('click', () => { pilot[control] = !pilot[control]; showButtons(); send(); });
-// As every flight starts: throttle closed, gear and flaps down, brakes on.
+// Each press of Flaps Up or Flaps Down moves one setting; at the last one the button does nothing.
+for (const way of flapStops ? ['up', 'down'] : []) {
+  $(`flaps-${way}`).addEventListener('click', () => {
+    const next = flapLever(flapStops, pilot.flaps)[way];
+    if (next === null) return;
+    pilot.flaps = next;
+    showButtons();
+    send();
+  });
+}
+// As every flight starts: throttle closed, gear down, flaps down (or at the takeoff setting, with a flap lever), brakes on.
 const parkControls = () => {
   Object.assign(pilot, { gear: PARKED.gear, flaps: PARKED.flaps, speedbrake: PARKED.speedbrake, brake: PARKED.brake });
   throttle.set(PARKED.throttle);

@@ -14,6 +14,7 @@ import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
  * `set({ flaps, elevator, aileron, rudder, gear })` puts each motion the model has at a position from 0 to 1:
  * gear and flaps from up to down; the controls from full forward or left, through neutral at 0.5, to full
  * back or right. Motions left out stay where they are; one the model lacks (a fixed gear) is passed over.
+ * `shown()` reads the motions back from the model: where each one it has stands, 0 to 1 (for the browser checks).
  * `propeller(rpm, dt)` turns the propeller, if it has one, for a frame `dt` seconds long.
  */
 export function createAircraft(url) {
@@ -54,6 +55,7 @@ export function createAircraft(url) {
     }
     mixer.update(0);
   };
+  airplane.shown = () => Object.fromEntries(Object.entries(actions).map(([name, action]) => [name, action.time / action.getClip().duration]));
   // The propeller, as FlightGear draws its Cessna's (c172p-team, Models/c172p.xml): the solid blades below
   // 500 RPM, turning at the engine's speed; the blurred disc above 400, more see-through the faster it
   // turns (up to half), and drifting round slowly, a thousandth of the real speed, so it does not strobe.

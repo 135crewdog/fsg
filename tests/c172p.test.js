@@ -76,7 +76,7 @@ for (const variant of VARIANTS) {
     assert.equal(flight.get('fcs/throttle-pos-norm'), 0, 'throttle at idle');
     assert.ok(rpm >= 700 && rpm <= 900, `idling at ${rpm} RPM`);
     for (const name of C172P.controls.brake.to) assert.equal(flight.get(name), 1, `${name}: brakes on`);
-    assert.equal(flight.get('fcs/flap-pos-deg'), 30, 'flaps down');
+    assert.equal(flight.get('fcs/flap-pos-deg'), 10, 'flaps at the takeoff setting, 10 degrees');   // milestone 3, PR F (fully down, 30, until 0.0.18)
     let most = 0;
     for (let second = 0; second < 10; second++) { assert.equal(flight.step(120), 0); most = Math.max(most, Math.abs(flight.get('attitude/theta-deg') - pitch0)); }
     const later = flight.where(), moved = Math.hypot(later.north - at.north, later.east - at.east) / FT;
@@ -193,9 +193,9 @@ for (const variant of VARIANTS) {
     const flight = Flight.start(await moduleWith(C172P.files, variant), C172P), motions = surfaceReader(C172P.surfaces, flight.stateNames);
     const after = (controls) => { flight.fly({ pitch: 0, roll: 0, brake: true, ...controls }); run(flight, 4); return motions(flight.state); };
     const parked = after({});
-    assert.equal(parked.flaps, 1, 'it starts with its flaps down');
+    assert.equal(parked.flaps, 1 / 3, 'it starts with its flaps at the takeoff setting, 10 degrees of its 30');   // milestone 3, PR F (fully down, 1, until 0.0.18)
     assert.ok(Math.abs(parked.elevator - 0.5) < 0.12 && Math.abs(parked.aileron - 0.5) < 0.05 && Math.abs(parked.rudder - 0.5) < 0.01, `stick neutral: near neutral, but for the trim (${JSON.stringify(parked)})`);
-    const back = after({ pitch: 1 }), forward = after({ pitch: -1 }), right = after({ roll: 1 }), left = after({ roll: -1 }), clean = after({ flaps: false });
+    const back = after({ pitch: 1 }), forward = after({ pitch: -1 }), right = after({ roll: 1 }), left = after({ roll: -1 }), down = after({ flaps: true }), clean = after({ flaps: false });
     console.log(`  ${variant}: stick back ${back.elevator.toFixed(2)}, forward ${forward.elevator.toFixed(2)}; stick right, aileron ${right.aileron.toFixed(2)} and (on the ground) rudder ${right.rudder.toFixed(2)}; left ${left.aileron.toFixed(2)} and ${left.rudder.toFixed(2)}; flaps up ${clean.flaps.toFixed(2)}`);
     // The trim is nose down and adds to the stick, so full back stick is not quite full up elevator: JSBSim's own figure.
     const pitchTrim = new Map(trim.sets).get('fcs/pitch-trim-cmd-norm');
@@ -203,6 +203,7 @@ for (const variant of VARIANTS) {
     assert.ok(right.aileron > 0.95 && left.aileron < 0.05, 'the ailerons');
     // Milestone 3, PR 2: the rudder is the copilot's alone. Parked, with no swing to hold, the stick does not move it (it was the pedals until 0.0.17).
     assert.ok(Math.abs(right.rudder - 0.5) < 0.02 && Math.abs(left.rudder - 0.5) < 0.02, `the rudder stays the copilot's: the stick does not move it (${right.rudder}, ${left.rudder})`);
+    assert.equal(down.flaps, 1, 'flaps down: fully down');
     assert.ok(clean.flaps < 1e-6, `the flaps (${clean.flaps})`);
     flight.dispose();
   });

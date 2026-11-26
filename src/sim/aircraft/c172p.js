@@ -37,6 +37,17 @@ export const C172P = {
     brake: { to: ['fcs/left-brake-cmd-norm', 'fcs/right-brake-cmd-norm'] },
   },
   /**
+   * Its flap settings, from up to fully down (milestone 3, PR F: docs/milestones/3.md). `at` is the flaps
+   * control that selects the setting, 0 to 1; `reads` is what the indicator says, the airplane's own way: a
+   * Cessna's indicator is in degrees. `takeoff` is which setting every flight starts at: 10 degrees.
+   * The aircraft file's flaps have a stop at 0, 10, 20 and 30 degrees, and its command runs 0 to 1 over the
+   * 30 (c172p.xml, "Flaps Control"). tests/flaps.test.js reads back that each `at` puts them there.
+   */
+  flaps: {
+    settings: [{ at: 0, reads: '0°' }, { at: 1 / 3, reads: '10°' }, { at: 2 / 3, reads: '20°' }, { at: 1, reads: '30°' }],
+    takeoff: 1,
+  },
+  /**
    * The game's assists (src/sim/assists.js).
    *   trim   Neutral speed 100 knots: JSBSim's own pitch and roll trim for level flight at 100 knots and
    *          2,000 ft, set once. tests/c172p.test.js re-derives them.

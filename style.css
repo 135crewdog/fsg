@@ -69,6 +69,30 @@ button:active { opacity: 0.6; }
   background: rgba(0, 0, 0, 0.3); color: rgba(255, 255, 255, 0.85);
 }
 #toggles button[aria-pressed="true"] { background: rgba(255, 255, 255, 0.9); color: #1c1c1e; }
+/* the flap lever (milestone 3, PR F), in the Flaps button's place on an airplane with more than one flap
+   setting. The owner's pick from the prototypes, 26 November 2026: Flaps Up over Flaps Down, pushed together
+   2 px apart with rounded corners only on the outside of the block, and a pill set into the seam that reads
+   the setting. Each button is cut away round the pill (the mask: all of the button but a pill-shaped hole
+   2 px bigger than the pill all round), so the picture shows in the gap. The pill is not a button: a tap on
+   it does nothing. At the last setting that button is dim and does nothing. */
+#toggles .lever { position: relative; width: 104px; display: flex; flex-direction: column; gap: 2px; }
+#toggles .lever button { height: 42px; }
+#toggles .lever button:disabled { opacity: 0.4; }
+#toggles .lever .up {
+  border-radius: 10px 10px 0 0; padding-bottom: 9px;
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='104' height='42'%3E%3Cpath fill-rule='evenodd' d='M0 0H104V42H0Z M36 28h32a15 15 0 0 1 0 30h-32a15 15 0 0 1 0-30z'/%3E%3C/svg%3E");
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='104' height='42'%3E%3Cpath fill-rule='evenodd' d='M0 0H104V42H0Z M36 28h32a15 15 0 0 1 0 30h-32a15 15 0 0 1 0-30z'/%3E%3C/svg%3E");
+}
+#toggles .lever .down {
+  border-radius: 0 0 10px 10px; padding-top: 9px;
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='104' height='42'%3E%3Cpath fill-rule='evenodd' d='M0 0H104V42H0Z M36 -16h32a15 15 0 0 1 0 30h-32a15 15 0 0 1 0-30z'/%3E%3C/svg%3E");
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='104' height='42'%3E%3Cpath fill-rule='evenodd' d='M0 0H104V42H0Z M36 -16h32a15 15 0 0 1 0 30h-32a15 15 0 0 1 0-30z'/%3E%3C/svg%3E");
+}
+#toggles .lever .pill {
+  position: absolute; left: 23px; top: 30px; width: 58px; height: 26px; border-radius: 13px;
+  display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 700; color: #fff;
+  background: rgba(0, 0, 0, 0.55); box-shadow: inset 0 0 0 1.5px rgba(255, 255, 255, 0.55);
+}
 
 /* the debug overlay (after Rage's ?debug=1): small, bottom left, in one place on every screen (the owner's
    advice, milestone 3): clear of the throttle on the left edge and of the screens' cards */

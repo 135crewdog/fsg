@@ -143,7 +143,7 @@ Three words, used the same way everywhere (the owner's, 26 November 2026):
   - With the phone at neutral, the airplane holds a trimmed speed. Faster than that the nose rises, as with fixed trim in a real airplane.
   - How that's done on top of a real JSBSim airplane is Claude Code's to research and propose. The owner judges it by flying.
 - **Throttle:** a slider on the left edge.
-- **Four toggles:** gear, flaps, speedbrakes and wheel brakes. A button shows only if the airplane has the thing: the Cessna shows Flaps and Brakes.
+- **Four toggles:** gear, flaps, speedbrakes and wheel brakes. A button shows only if the airplane has the thing: the Cessna shows Flaps and Brakes. An airplane with more than one flap setting gets two buttons, Flaps Up and Flaps Down, pushed together with a pill between them that reads the setting.
 - **No rudder control.** The copilot's feet hold the ball centred. On the ground the tilt is always the ailerons, and the copilot's feet turn the airplane as the tilt asks: with the nosewheel at low speed and the rudder at higher speed, handing over smoothly (milestone 3, PR 2).
 - **The copilot acts only through the cockpit controls,** as a pilot would. It never adds forces or changes the aircraft file.
   - The F-4C's real feel system and stability augmentation are FCS: they live in its aircraft file.
@@ -158,7 +158,7 @@ Three words, used the same way everywhere (the owner's, 26 November 2026):
 - afterburner plumes, with Rage's water and sky
 - US units only, with no units setting
 
-**The world** is `docs/hawaii.md`: the real Hawaiian Islands with the channels shortened, USGS heights and Sentinel-2 photographs. Every paved runway of 3,000 feet or more is level and landable. Every flight starts on the numbers of runway 8R at Honolulu and Hickam, with gear and flaps down and the brakes on. The tiles download once into their own store on the phone, which app updates never touch.
+**The world** is `docs/hawaii.md`: the real Hawaiian Islands with the channels shortened, USGS heights and Sentinel-2 photographs. Every paved runway of 3,000 feet or more is level and landable. Every flight starts on the numbers of runway 8R at Honolulu and Hickam, with gear down, flaps at the takeoff setting and the brakes on. The tiles download once into their own store on the phone, which app updates never touch.
 
 **Airplanes must look right to a pilot.** 3D models are built in Blender in separate Claude chats on the owner's laptop, never by Claude Code. `docs/models.md` is the handoff: what the app needs from a model. A test checks every model against it. One exception, the owner's: milestone 2's stand-in Cessna is FlightGear's model, converted to the handoff by a script kept in the repo.
 
