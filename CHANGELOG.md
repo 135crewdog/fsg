@@ -2,6 +2,10 @@
 
 What changed in each version a player can see, newest first.
 
+## 0.0.16
+
+- A gentler middle to the stick, after the first flight: small and medium tilts now roll and pull about half as much. Full tilt still gives everything the airplane has. At 100 knots, half tilt rolls about 16 degrees a second and pulls 2 g, where it rolled 32 and pulled 3. On takeoff it wants a little more back tilt than before to fly off at the same speed.
+
 ## 0.0.15
 
 - The controls: the first flight. Tilt the device to fly, held in landscape like a steering wheel: top edge toward you is back stick, turning it clockwise is right stick. Wherever you hold it when you tap Fly is neutral, and with it there the Cessna holds 100 knots. The first Fly tap asks for motion access.

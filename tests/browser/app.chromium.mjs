@@ -544,7 +544,8 @@ check(!js.error && js.build === 'weh' && (await text('#dev')).includes('wasm exc
   check(idle.width === 14 && Math.abs(idle.knob - idle.bottom) <= 1 && idle.knobHeight > idle.width && !idle.stripes,
     'the throttle: a 14 px groove, the knob over its end at idle, no caution stripes on an airplane with no afterburner', `groove ${idle.width} px wide; the knob's middle ${Math.abs(idle.knob - idle.bottom).toFixed(1)} px from its foot`);
 
-  // A takeoff: Brakes off, the throttle slid full, and from 50 knots the device tipped back 10 degrees.
+  // A takeoff: Brakes off, the throttle slid full, and from 50 knots the device tipped back 15 degrees (10 until
+  // the stick's middle was made gentler in 0.0.16: docs/milestones/2.md, PR 8).
   // Returns the liftoff speed. Tipped back the whole climb the Cessna rears up, as any airplane held at takeoff stick would: so it is eased.
   const takeOff = async () => {
     await c.click('#brake');
@@ -555,17 +556,17 @@ check(!js.error && js.build === 'weh' && (await text('#dev')).includes('wasm exc
     await c.mouse.up();
     const rolling = await until(() => window.fsg.picture.groundKt > 5, null, 20000);
     await until(() => window.fsg.picture.knots >= 50, null, 60000);
-    await hold(10, 0);
+    await hold(15, 0);
     const off = await until(() => window.fsg.picture.wheelsDown === 0 && window.fsg.picture.aboveGroundFt - 4.356 > 1, null, 30000);
     const pulling = await now();
-    await hold(4, 'level');
+    await hold(8, 'level');   // eased to the back stick it was eased to before the middle was made gentler (4 degrees then)
     return { rolling, off, liftoff: pulling.knots, pulling };
   };
   const first = await takeOff();
   const full = await groove(), rolled = await now();
   check((await c.locator('#brake').textContent()) === 'Brakes Off' && rolled.pilot.throttle === 1 && Math.abs(full.knob - full.top) <= 1 && first.rolling, 'Brakes off and the throttle slid full: the knob covers the groove\'s top, and the Cessna rolls',
     `throttle ${rolled.pilot.throttle}; the knob's middle ${Math.abs(full.knob - full.top).toFixed(1)} px from the groove's top`);
-  check(first.off && first.liftoff >= 45 && first.liftoff <= 70, 'flaps down, tipped back 10 degrees from 50 knots, it lifts off between 45 and 70 knots', `${first.liftoff.toFixed(1)} kt`);
+  check(first.off && first.liftoff >= 45 && first.liftoff <= 70, 'flaps down, tipped back 15 degrees from 50 knots, it lifts off between 45 and 70 knots', `${first.liftoff.toFixed(1)} kt`);
   if (shots) await c.screenshot({ path: join(shots, 'airborne.png') });
   // Stick back shows the elevator up; the flaps are down; the HUD's flight path is above the horizon in the climb.
   const pulling = first.pulling;
@@ -575,17 +576,17 @@ check(!js.error && js.build === 'weh' && (await text('#dev')).includes('wasm exc
     'stick back: the elevator\'s trailing edge is up, the flaps are down, and the HUD\'s flight path marker is above the horizon in the climb', `stick ${pulling.stick.pitch.toFixed(2)} back; elevator motion ${pulling.surfaces.elevator.toFixed(2)} (0.5 is neutral); climbing ${(-climbing.reading.velocity[2] * 100).toFixed(0)} in 100`);
   await until(() => window.fsg.picture.aboveGroundFt > 200, null, 60000);
   // Turned 15 degrees clockwise for one second: a right bank.
-  // The wings are being held level, with the device turned a little to do it; from there, 15 degrees more.
+  // The wings are being held level, with the device turned a little to do it; from there, 20 degrees more (15 until 0.0.16).
   await hold(3, 'level');
   await c.waitForTimeout(3000);
   const level = await now(), holding = await c.evaluate(() => window.held.clockwise);
-  await hold(3, holding + 15);
+  await hold(3, holding + 20);
   await c.waitForTimeout(500);
   const rolling = await now();
   await c.waitForTimeout(500);
   const banked = await now();
   await hold(3, 'level');
-  check(Math.abs(level.reading.roll) < 5 && banked.reading.roll >= 10 && banked.reading.roll <= 50, 'turned 15 degrees right for one second, it is banked 10 to 50 degrees right',
+  check(Math.abs(level.reading.roll) < 5 && banked.reading.roll >= 10 && banked.reading.roll <= 50, 'turned 20 degrees right for one second, it is banked 10 to 50 degrees right',
     `from ${level.reading.roll.toFixed(1)} to ${banked.reading.roll.toFixed(1)} deg, at ${banked.knots.toFixed(0)} kt (the wings were being held level with the device ${holding.toFixed(1)} deg right)`);
   check(rolling.stick.roll > 0.3 && rolling.surfaces.aileron > 0.6, 'stick right: the ailerons are over for a right roll (left one down, right one up)', `stick ${rolling.stick.roll.toFixed(2)} right; aileron motion ${rolling.surfaces.aileron.toFixed(2)} (0.5 is neutral)`);
   check(banked.behindWithinMs > 0 && banked.behindWithinMs <= 40 && banked.missing === 0, 'in the air the picture still trails the newest state as it did on the ground', `99 frames in 100 within ${banked.behindWithinMs} ms`);
