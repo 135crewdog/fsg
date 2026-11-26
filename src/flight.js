@@ -8,6 +8,8 @@
 import * as THREE from 'three';
 import { C172P } from './sim/aircraft/c172p.js';
 import { FIELD, FT, toWorld } from './sim/world.js';
+import { focalLength } from './hud.js';
+import { createVsi, instrumentReader } from './instruments.js';
 import { attachLook, createLook } from './input/look.js';
 import { createAircraft } from './render/aircraft.js';
 import { createBetween } from './render/between.js';
@@ -29,10 +31,15 @@ const MOST_MS = 250;   // the picture's delay is counted in whole milliseconds u
  *   state(message)    a state from the Worker; one of an earlier flight is dropped
  *   fly()             time runs: the picture moves, and every frame is drawn
  *   hold()            time stands still (the pause screen): the picture stays as it is
+ *   redraw()          something outside the flight changed what is drawn (the HUD's switch): draw again
  *   status()          what is on screen and how it is running, for the debug overlay and the browser checks
  * }
+ * `onReadout(reading, project, view)` is called every frame drawn once a flight has begun, for the HUD (as in
+ * Wings): the newest state's readings (src/instruments.js, with `vsi`, the smoothed climb rate, and `jet`);
+ * `project`, which puts a north, east, down direction on the screen as the camera sees it; and the view:
+ * { looking, yaw, pitch, focal }, how far it is swung and the camera's focal length in px.
  */
-export function startFlight(canvas, aircraft = C172P, field = FIELD) {
+export function startFlight(canvas, aircraft = C172P, field = FIELD, { onReadout } = {}) {
   const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, powerPreference: 'high-performance' });
   const scene = new THREE.Scene();
   const world = createWorld(scene, renderer, field);
@@ -51,6 +58,8 @@ export function startFlight(canvas, aircraft = C172P, field = FIELD) {
 
   // ---- the flight being shown ----
   let flight = 0, read = null, surfaces = null, at = null, newest = null, flying = false, loaded = false;
+  let instruments = null, reading = null;
+  const vsi = createVsi();
   // How it is running, over the whole flight: for the debug overlay. The worst of each number is kept
   // from Fly until a new flight begins, across any pause, so a slow stretch cannot be lost from a screenshot.
   // `warm` counts the half seconds since time was last let go: the first second after that is not counted.
@@ -62,6 +71,8 @@ export function startFlight(canvas, aircraft = C172P, field = FIELD) {
     flight = start.flight;
     read = poseReader(start.stateNames);
     surfaces = surfaceReader(aircraft.surfaces, start.stateNames);
+    instruments = instrumentReader(start.stateNames, aircraft.standingFt);
+    vsi.set(instruments(start.state).climb);
     const index = (name) => start.stateNames.indexOf(name);
     at = { time: index('simulation/sim-time-sec'), lat: index('position/lat-geod-rad'), lon: index('position/long-gc-rad'), agl: index('position/h-agl-ft'),
       heading: index('attitude/psi-rad'), knots: index('velocities/vc-kts'), vn: index('velocities/v-north-fps'), ve: index('velocities/v-east-fps'),
@@ -87,6 +98,15 @@ export function startFlight(canvas, aircraft = C172P, field = FIELD) {
     run.dropped = message.droppedSeconds;
     newest = message;
     between.push(message.state[at.time], message.state);
+  };
+
+  // Where a north, east, down direction falls on the screen, as the camera sees it: for the HUD's conformal
+  // symbols (Wings' way).
+  const projected = new THREE.Vector3();
+  const project = (ned) => {
+    const [x, y, z] = toPicture(ned), from = chase.camera.position;
+    projected.set(from.x + x * 10000, from.y + y * 10000, from.z + z * 10000).project(chase.camera);
+    return { x: ((projected.x + 1) / 2) * canvas.clientWidth, y: ((1 - projected.y) / 2) * canvas.clientHeight, visible: projected.z < 1 };
   };
 
   const fit = () => {
@@ -139,6 +159,13 @@ export function startFlight(canvas, aircraft = C172P, field = FIELD) {
     chase.update(airplane.position, airplane.quaternion, elapsed, groundY, 0, look);
     world.follow(chase.camera);
     renderer.render(scene, chase.camera);
+    if (instruments) {
+      // The HUD reads the newest state, like the moving parts; its symbols are laid on the view just drawn.
+      reading = instruments(newest.state);
+      reading.vsi = vsi.toward(reading.climb, flying ? elapsed : 0);
+      reading.jet = aircraft.jet === true;
+      onReadout?.(reading, project, { looking: look.active, yaw: look.yaw, pitch: look.pitch, focal: focalLength(chase.camera.fov, canvas.clientHeight) });
+    }
     frames++;
     if (loaded) withModel++;
     settle = flying ? SETTLE : settle - 1;
@@ -171,6 +198,7 @@ export function startFlight(canvas, aircraft = C172P, field = FIELD) {
   const box = new THREE.Box3(), nose = new THREE.Vector3();
   return {
     ready, began, state,
+    redraw: wake,
     fly() {
       flying = true;
       between.hold(false);
@@ -210,6 +238,7 @@ export function startFlight(canvas, aircraft = C172P, field = FIELD) {
           states: run.states, missing: run.missing, outOfOrder: run.outOfOrder, steps: run.steps, seconds: run.seconds, stepsPerSecond: run.seconds > 0 ? run.steps / run.seconds : 0, droppedSeconds: run.dropped,
           fps: run.fps, leastFps: Number.isFinite(run.leastFps) ? run.leastFps : 0, behindMs: run.behindNow, behindWithinMs: run.behindCount ? within : 0, behindMostMs: run.behindMost,
           look: { yaw: look.yaw, pitch: look.pitch },
+          reading,
         });
       }
       return out;

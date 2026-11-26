@@ -6,6 +6,8 @@
 import { APP_VERSION } from './version.js';
 import { startGame } from './fdm.js';
 import { startFlight } from './flight.js';
+import { createHud } from './hud.js';
+import { readouts } from './readouts.js';
 import { C172P } from './sim/aircraft/c172p.js';
 
 const $ = (id) => document.getElementById(id);
@@ -16,12 +18,23 @@ const screens = [...document.querySelectorAll('.screen')];
 const show = (name) => {
   for (const el of screens) el.hidden = el.id !== `screen-${name}`;
   $('controls').hidden = name !== null;
+  $('dev').classList.toggle('flying', name === null);   // in flight it moves clear of the HUD
 };
 
 // ---- the flight on screen, and the game in its Worker ----
 const AIRCRAFT = C172P;
 let mode = 'start';   // start, flying, paused or crashed
-const flight = startFlight($('view'), AIRCRAFT);
+// The HUD (Wings', Rage's before it), or with it off just its airspeed and altitude. Altitude reads at the
+// wheels, and below 2,000 ft above the ground it is the radar altitude, with an R.
+const hud = createHud($('hud'), () => $('safe').getBoundingClientRect());
+let hudOn = true;
+const flight = startFlight($('view'), AIRCRAFT, undefined, {
+  onReadout(reading, project, view) {
+    if (mode !== 'flying') return;   // the HUD is in flight only: its canvas is hidden with the controls
+    const text = readouts(reading.knots, reading.feet, reading.aboveGround);
+    hud.draw({ ...reading, airspeed: text.airspeed, altitude: text.radar || text.altitude }, project, view, hudOn);
+  },
+});
 // The game: JSBSim in its Worker, with the airplane parked on the numbers and held. It is started when the
 // app opens, so that Fly has nothing to wait for; held, the Worker rests. `jsbsim` is what the debug
 // overlay says about it: null while it starts, then which build (and why, for the fallback), or the error.
@@ -104,6 +117,21 @@ let savedDev = null;
 try { savedDev = localStorage.getItem(DEV_KEY); } catch { /* storage may be blocked */ }
 setDev(savedDev === 'on');
 devSwitch.addEventListener('click', () => setDev(devSwitch.getAttribute('aria-checked') !== 'true'));
+
+// The HUD's switch: on until the pilot turns it off, kept between visits. Off, only its airspeed and altitude
+// show, in their places.
+const HUD_KEY = 'fsg.hud';
+const hudSwitch = $('hud-switch');
+const setHud = (on) => {
+  hudOn = on;
+  hudSwitch.setAttribute('aria-checked', String(on));
+  flight.redraw();
+  try { localStorage.setItem(HUD_KEY, on ? 'on' : 'off'); } catch { /* storage may be blocked; the choice still holds for this visit */ }
+};
+let savedHud = null;
+try { savedHud = localStorage.getItem(HUD_KEY); } catch { /* storage may be blocked */ }
+setHud(savedHud !== 'off');
+hudSwitch.addEventListener('click', () => setHud(hudSwitch.getAttribute('aria-checked') !== 'true'));
 
 // Fly waits for the two things a flight needs: the airplane's model, and the game in its Worker.
 const opened = openGame();

@@ -7,7 +7,7 @@
 // skips waiting on its own; the app offers the update and posts
 // "skip-waiting" when the pilot accepts.
 
-const VERSION = '0.0.13';   // the same value as APP_VERSION in src/version.js
+const VERSION = '0.0.14';   // the same value as APP_VERSION in src/version.js
 const CACHE = `fsg-${VERSION}`;
 const FILES = [
   './',
@@ -22,6 +22,9 @@ const FILES = [
   './src/version.js',
   './src/fdm.js',
   './src/flight.js',
+  './src/hud.js',
+  './src/instruments.js',
+  './src/readouts.js',
   './src/input/look.js',
   './src/render/aircraft.js',
   './src/render/between.js',

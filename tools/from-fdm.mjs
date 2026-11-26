@@ -53,6 +53,8 @@ export const FILES = [
   ...['docs/models.md', 'models/glb.mjs'].map((f) => adapted('wings', f)),
   // The look-around, from Wings (itself from Rage, as it is), with a line at its top saying so.
   adapted('wings', 'src/input/look.js'),
+  // The HUD, its readouts and their tests, from Wings' main at 0.0.62 (milestone 2, pull request 6).
+  ...['src/hud.js', 'src/readouts.js', 'tests/hud.test.js'].map((f) => adapted('wings', f, f, WINGS_0_0_62)),
   adapted('FDM', 'tests/page.chromium.mjs', 'tests/browser/app.chromium.mjs'),
   adapted('FDM', 'web/page.ts', 'src/fdm.js'),   // how the page starts the Worker, and the fallback marker
 
