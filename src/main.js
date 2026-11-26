@@ -290,7 +290,16 @@ const fly = () => {
   allowed.then((yes) => {
     if (!yes) { letSleep(); show('denied'); return; }
     tilt.recenter();
-    takeOff();
+    // While iOS was asking, the app may have been left or the device turned upright; pause() could do nothing
+    // then, with no flight running. So look again: if so, the flight waits on the pause screen, held, for
+    // Resume. (The prompt itself takes focus from the app; that alone is not a reason to wait.)
+    if (document.hidden || isPortrait()) {
+      mode = 'paused';
+      menu(false);
+      letSleep();
+      show('pause');
+      showDev();
+    } else takeOff();
   });
 };
 $('fly').addEventListener('click', fly);

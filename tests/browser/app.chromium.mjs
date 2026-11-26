@@ -673,6 +673,36 @@ check(!js.error && js.build === 'weh' && (await text('#dev')).includes('wasm exc
   check(await on(a).fly(), 'focus lost to the motion prompt, then Allow: the flight flies');
   check((await on(a).mode()) === 'flying' && !(await a.locator('#screen-pause').isVisible()), 'and it is not left on the pause screen');
   await asked.close();
+
+  // The device is turned upright while the prompt is up, then Allow: no flight starts behind the rotate screen.
+  // It waits on the pause screen, held, for Resume.
+  const turned = await browser.newContext({ viewport: { width: 852, height: 393 }, serviceWorkers: 'block' });
+  const t = await turned.newPage();
+  await t.addInitScript(() => { DeviceOrientationEvent.requestPermission = () => new Promise((allow) => { window.allow = () => allow('granted'); }); });
+  await t.goto(base);
+  await on(t).ready();
+  await t.click('#fly');
+  await t.setViewportSize({ width: 393, height: 852 });
+  await t.evaluate(() => window.allow());
+  await t.waitForTimeout(800);
+  const upright = await on(t).flight();
+  check((await on(t).mode()) === 'paused' && !upright.flying && upright.states === 0 && (await t.locator('#rotate').isVisible()), 'turned upright while the motion prompt is up, then Allow: nothing flies behind the rotate screen', `mode ${await on(t).mode()}, ${upright.states} states`);
+  await t.setViewportSize({ width: 852, height: 393 });
+  await t.waitForTimeout(300);
+  check((await t.locator('#screen-pause').isVisible()) && (await t.locator('#resume').textContent()) === 'Resume' && (await t.locator('#restart').isVisible()), 'back in landscape it is on the pause screen, with Resume');
+  // The pause menu, with an update offered, is inside an iPhone's landscape safe area: 348 points under the top margin.
+  const menu = await t.evaluate(() => {
+    for (const b of document.querySelectorAll('#screen-pause .update')) b.hidden = false;
+    const box = (q) => document.querySelector(q).getBoundingClientRect();
+    return { card: box('#screen-pause .card').bottom, update: box('#screen-pause .update').bottom, credits: box('.credits'), height: innerHeight };
+  });
+  check(menu.card <= 12 + 348 && menu.update < menu.card && menu.credits.bottom <= menu.height && menu.credits.top >= menu.card - 1,
+    'the pause menu with an update offered fits an iPhone\'s landscape safe area, and the credits are on screen under it', `the menu ends ${Math.round(menu.card)} px down of ${menu.height}; the credits ${Math.round(menu.credits.top)} to ${Math.round(menu.credits.bottom)}`);
+  if (shots) await t.screenshot({ path: join(shots, 'pause-menu.png') });
+  await t.evaluate(() => { for (const b of document.querySelectorAll('#screen-pause .update')) b.hidden = true; });
+  await t.click('#resume');
+  check(await t.waitForFunction(() => window.fsg.picture.flying && window.fsg.picture.states > 0, null, { timeout: 3000 }).then(() => true, () => false), 'and Resume flies it');
+  await turned.close();
 }
 
 check(errors.length === 0, 'no console errors', errors.join(' | '));

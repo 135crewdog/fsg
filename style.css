@@ -105,6 +105,16 @@ button:active { opacity: 0.6; }
 .card .sub, .card .about { font-size: 13px; color: #aeaeb2; }
 .btn { width: 100%; padding: 11px 16px; border-radius: 12px; font-size: 17px; font-weight: 600; background: rgba(255, 255, 255, 0.16); }
 .btn.primary, .btn.update { background: #007aff; }
+/* the pause screen's menu, as compact as Wings': four buttons (with an update offered) and three switches fit
+   an iPhone's landscape safe area, 348 points tall */
+#screen-pause .card { padding: 10px 16px; gap: 5px; }
+#screen-pause .btn { padding: 9px 8px; white-space: nowrap; }
+#screen-pause .row { padding: 0 4px 0 16px; }
+/* the credits: small print at the pause screen's foot, on the right, as a map's attribution (Wings' are along its map's foot) */
+.credits {
+  position: absolute; right: calc(env(safe-area-inset-right, 0px) + 16px); bottom: calc(env(safe-area-inset-bottom, 0px) + 10px);
+  margin: 0; font-size: 11px; line-height: 1.35; text-align: right; color: rgba(255, 255, 255, 0.75); text-shadow: 0 1px 2px #000; pointer-events: none;
+}
 /* a setting: its name on the left, an on/off switch on the right, as in iOS Settings */
 .row { display: flex; align-items: center; justify-content: space-between; padding: 6px 4px 6px 16px; font-size: 17px; text-align: left; }
 .switch { position: relative; width: 51px; height: 31px; border-radius: 16px; background: rgba(120, 120, 128, 0.5); transition: background 0.2s; }
