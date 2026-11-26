@@ -416,6 +416,8 @@ check(!js.error && js.build === 'weh' && (await text('#dev')).includes('wasm exc
   await noWorker.route('**/jsbsim-data/**', async (route) => { await new Promise((done) => setTimeout(done, 400)); await route.continue(); });
   const w = await noWorker.newPage();
   await w.addInitScript(() => { try { localStorage.setItem('fsg.dev', 'on'); } catch { /* not yet on the page's origin */ } });
+  // Motion access has not been given on this visit: the page counts how often it is asked for, and allows it.
+  await w.addInitScript(() => { window.asked = 0; DeviceOrientationEvent.requestPermission = () => { window.asked++; return Promise.resolve('granted'); }; });
   await w.goto(base);
   const settled = await w.waitForFunction(() => window.fsg.jsbsim !== null, null, { timeout: 20000 }).then(() => true, () => false);
   const r3 = settled ? await on(w).jsbsim() : null;
@@ -430,6 +432,11 @@ check(!js.error && js.build === 'weh' && (await text('#dev')).includes('wasm exc
     await w.click('#crash-restart');
     await w.waitForFunction(() => window.fsg.mode === 'flying' && window.fsg.picture.states > 0, null, { timeout: 60000 }).catch(() => {});
     check((await on(w).jsbsim())?.build === 'weh' && parked(await on(w).flight()), 'Restart tries again, and now it starts and flies');
+    check((await w.evaluate(() => window.asked)) === 1, 'and that Restart, the first tap to fly, asked for motion access', `asked ${await w.evaluate(() => window.asked)} time(s)`);
+    await w.click('#pause');
+    await w.click('#restart');
+    await w.waitForFunction(() => window.fsg.mode === 'flying' && window.fsg.picture.states > 0, null, { timeout: 10000 }).catch(() => {});
+    check((await w.evaluate(() => window.asked)) === 1 && (await on(w).mode()) === 'flying', 'a later Restart does not ask again');
   }
   await noWorker.close();
 }

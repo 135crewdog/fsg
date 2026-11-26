@@ -215,6 +215,7 @@ window.fsg = Object.freeze({
 });
 
 // ---- flying, pausing, restarting (after Wings) ----
+let motionAllowed = false;   // the pilot has allowed motion access on this visit
 let restarting = false, interrupted = false;   // a Restart being made, and whether the app was left or lost focus meanwhile
 const isPortrait = () => window.innerHeight > window.innerWidth;   // read directly: the media query's answer can be stale
 // The screen is kept awake only in flight. On the start, pause and crashed
@@ -289,6 +290,7 @@ const fly = () => {
   keepAwake();
   allowed.then((yes) => {
     if (!yes) { letSleep(); show('denied'); return; }
+    motionAllowed = true;
     tilt.recenter();
     // While iOS was asking, the app may have been left or the device turned upright; pause() could do nothing
     // then, with no flight running. So look again: if so, the flight waits on the pause screen, held, for
@@ -318,8 +320,13 @@ for (const id of ['restart', 'crash-restart']) {
     if (restarting || isPortrait() || (mode !== 'paused' && mode !== 'crashed')) return;
     restarting = true;
     interrupted = false;
+    // If JSBSim failed before the first Fly, this tap is the first to fly: motion access is asked for here,
+    // first thing in the tap, as in Fly.
+    const allowed = motionAllowed ? Promise.resolve(true) : tilt.request();
     keepAwake();
     try {
+      if (!(await allowed)) { mode = 'start'; letSleep(); show('denied'); return; }
+      motionAllowed = true;
       if (!game || game.failed) await openGame();
       else { flight.began(await game.fly({ held: true, crashOverride: overrideOn })); touchdown = null; }
       if (!game) return;   // it did not start: the crashed screen says so
