@@ -33,7 +33,8 @@ export const SOURCES = {
 //                       the original's hash is recorded here. What guards the bytes now is
 //                       jsbsim/dist-wasm/build-info.json, jsbsim/tests/build.test.js and the rebuild workflow
 const copy = (source, from, to = from) => ({ source, from, to, how: 'byte for byte' });
-// A file brought up to a later commit of its source than the one above carries that commit itself (`at`).
+// A file brought up to a later commit of its source than the one above carries that commit itself (`at`):
+// an adapted file names it at its top too; a byte-for-byte copy cannot, and is the original at that commit.
 const adapted = (source, from, to = from, at) => ({ source, from, to, how: 'adapted', ...(at ? { at } : {}) });
 const rebuilt = (source, from, to = from) => ({ source, from, to, how: 'rebuilt' });
 const typesRemoved = (from, to, extra = {}) => ({ source: 'FDM', from, to, how: 'types removed', ...extra });
@@ -49,8 +50,13 @@ export const FILES = [
   ...['index.html', 'style.css', 'sw.js', 'manifest.webmanifest', 'src/main.js', 'src/version.js', 'tests/app.test.js',
     '.github/workflows/test.yml', '.github/workflows/pages.yml', '.github/dependabot.yml']
     .map((f) => adapted('wings', f, f, AT_WINGS_0_0_62.includes(f) ? WINGS_0_0_62 : undefined)),
-  // The model handoff and the reader its test uses, from Wings (milestone 2). Both files are the same at Wings' later commits.
-  ...['docs/models.md', 'models/glb.mjs'].map((f) => adapted('wings', f)),
+  // The reader the model tools and tests use, from Wings (milestone 2). It is the same at Wings' later commits.
+  adapted('wings', 'models/glb.mjs'),
+  // The owner's F-4C, from Wings' main at 0.0.62 (milestone 3, pull request 4): his model as it is, bit for bit (it
+  // last changed in Wings at 9006d56); the handoff a model is built to (FSG's own version since milestone 2,
+  // brought up to that commit); the script that measures a model; and the test that checks every model.
+  { ...copy('wings', 'models/f4c.glb'), at: WINGS_0_0_62 },
+  ...['docs/models.md', 'models/measure.mjs', 'tests/model.test.js'].map((f) => adapted('wings', f, f, WINGS_0_0_62)),
   // The look-around, from Wings (itself from Rage, as it is), with a line at its top saying so.
   adapted('wings', 'src/input/look.js'),
   // The HUD, its readouts and their tests, from Wings' main at 0.0.62 (milestone 2, pull request 6).
@@ -285,7 +291,7 @@ function main() {
     repos[name] = args[i + 1];
   }
   const original = (entry) => git(repos[entry.source], ['show', `${entry.at ?? SOURCES[entry.source].commit}:${entry.from}`]);
-  const mode = (entry) => git(repos[entry.source], ['ls-tree', SOURCES[entry.source].commit, entry.from], { encoding: 'utf8' }).split(' ')[0];
+  const mode = (entry) => git(repos[entry.source], ['ls-tree', entry.at ?? SOURCES[entry.source].commit, entry.from], { encoding: 'utf8' }).split(' ')[0];
 
   const record = { sources: SOURCES, files: {}, trees: {} };
   let bad = 0;

@@ -24,9 +24,10 @@ test('every copied file is still the copy on record', () => {
     assert.ok(existsSync(join(ROOT, file)), `${file} exists`);
     assert.match(item.original, /^[0-9a-f]{64}$/, `${file}: the original's hash is on record`);
     // A file brought up to a later commit of its source than the source's own pin says which, here and at its top.
+    // (A byte-for-byte copy has nothing added at its top: it is the original at that commit, held by its hash below.)
     if (item.commit) {
       assert.match(item.commit, /^[0-9a-f]{40}$/, `${file}: the commit it was last brought up to is on record`);
-      assert.ok(readFileSync(join(ROOT, file), 'utf8').split('\n').slice(0, 6).join('\n').includes(`commit ${item.commit.slice(0, 7)}`) || file.endsWith('.webmanifest'),
+      assert.ok(item.how === 'byte for byte' || readFileSync(join(ROOT, file), 'utf8').split('\n').slice(0, 6).join('\n').includes(`commit ${item.commit.slice(0, 7)}`) || file.endsWith('.webmanifest'),
         `${file} names commit ${item.commit.slice(0, 7)} at its top (a manifest is JSON and cannot)`);
     }
     if (item.how === 'adapted') continue;   // rewritten for FSG on purpose; it says at its top where it came from

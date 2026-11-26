@@ -68,15 +68,35 @@
       "original": "0daf60f182970f97849e6e518c3d31f871c65f02958151c7443b06a25f583308",
       "commit": "6d689b789fedb783d7ad6ae8cc990904a12fe32e"
     },
-    "docs/models.md": {
-      "from": "wings:docs/models.md",
-      "how": "adapted",
-      "original": "75f426861419bc54e68a157f1db46ffeab4ab5258eb2d0c808a00840487182b3"
-    },
     "models/glb.mjs": {
       "from": "wings:models/glb.mjs",
       "how": "adapted",
       "original": "c35f0420d0e254cbccce619a8ca66ef682e8cc73f9e7a1f7aef667524766c205"
+    },
+    "models/f4c.glb": {
+      "from": "wings:models/f4c.glb",
+      "how": "byte for byte",
+      "original": "a536b9dd567429a323b912d82877bb3ab257a08daf5f378026983cfbf2dd2475",
+      "commit": "6d689b789fedb783d7ad6ae8cc990904a12fe32e",
+      "copy": "a536b9dd567429a323b912d82877bb3ab257a08daf5f378026983cfbf2dd2475"
+    },
+    "docs/models.md": {
+      "from": "wings:docs/models.md",
+      "how": "adapted",
+      "original": "75f426861419bc54e68a157f1db46ffeab4ab5258eb2d0c808a00840487182b3",
+      "commit": "6d689b789fedb783d7ad6ae8cc990904a12fe32e"
+    },
+    "models/measure.mjs": {
+      "from": "wings:models/measure.mjs",
+      "how": "adapted",
+      "original": "430abeaa04c673c2f91b45df9f55763552c771413fcbe9d419cb73dcfe1cee1e",
+      "commit": "6d689b789fedb783d7ad6ae8cc990904a12fe32e"
+    },
+    "tests/model.test.js": {
+      "from": "wings:tests/model.test.js",
+      "how": "adapted",
+      "original": "3a6d73465349af409ef88747f288e49f0ec8b99dc5505200f568884eecd95393",
+      "commit": "6d689b789fedb783d7ad6ae8cc990904a12fe32e"
     },
     "src/input/look.js": {
       "from": "wings:src/input/look.js",
