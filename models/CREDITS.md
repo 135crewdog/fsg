@@ -17,3 +17,13 @@ What the script changed (20 November 2026):
 - named the propeller's parts and the three tyres as `docs/models.md` asks.
 
 It wears FlightGear's own default paint and registration. It is a stand-in for the test flights of milestone 2 and leaves the game when the F-4C arrives.
+
+## `f4c.glb`: the F-4C Phantom II (milestone 3)
+
+The owner's own model, built in Blender with Claude in his Wings project, from his reference photos and drawings. Its Blender file, `f4c.blend`, is in the owner's Google Drive.
+
+It is painted as a USAF F-4C in Southeast Asia camouflage, loosely Robin Olds's jet.
+
+This file is Wings' `models/f4c.glb` (135crewdog/wings, commit `6d689b7`; it last changed there in `9006d56`), byte for byte: `provenance.json` holds its fingerprint, and `tests/model.test.js` checks it. Nothing was changed for FSG.
+
+It is not in the app yet: it arrives with the F-4C itself (milestone 3, pull request 8).

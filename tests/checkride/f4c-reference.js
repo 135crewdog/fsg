@@ -1,5 +1,5 @@
 // The F-4C's reference numbers: what the aircraft file (aircraft/f4c/) is built from and its checkride
-// (tests/f4c.test.js) is checked against. New in FSG, milestone 3 (docs/milestones/3.md, pull request 3);
+// (tests/f4c.test.js, tests/model.test.js) is checked against. New in FSG, milestone 3 (docs/milestones/3.md, pull request 3);
 // each later pull request adds the numbers it uses.
 //
 // Every number is { value, unit, source, where }: the report or manual it is from, and the table, figure,
@@ -42,6 +42,12 @@ export const RIGHT_MAIN_WHEEL = { value: [-3.52, 8.96, 6.4], unit: WHEEL_UNIT, s
 /** The middle of each engine's exit. Fore and aft and sideways the file's thrust points are here; in height they are CR-2144's thrust line. */
 export const LEFT_ENGINE_EXIT = { value: [-16.16, -2.17, 0.61], unit: WHEEL_UNIT, source: WINGS, where: `${CARD}, nozzles_ft[0]` };
 export const RIGHT_ENGINE_EXIT = { value: [-16.16, 2.17, 0.61], unit: WHEEL_UNIT, source: WINGS, where: `${CARD}, nozzles_ft[1]` };
+/**
+ * The middle of the two speedbrake panels, fully open, on the centreline: where their drag acts. Measured from the
+ * owner's model (models/f4c.glb, the same file as Wings') by models/measure.mjs; Wings' card has the same figure.
+ * tests/model.test.js holds this number to the model. The aircraft file gets its speedbrakes in pull request 7.
+ */
+export const SPEEDBRAKE_PANELS = { value: [-5.99, 0, 2.49], unit: WHEEL_UNIT, source: WINGS, where: `models/f4c.glb, measured by models/measure.mjs (speedbrakeAt); ${CARD}, speedbrake_ft` };
 /** Gear up or down. Wings' figure: the flight manual gives none. */
 export const GEAR_SECONDS = { value: 4, unit: 's', source: WINGS, where: 'src/sim/sim.js, GEAR_SECONDS' };
 

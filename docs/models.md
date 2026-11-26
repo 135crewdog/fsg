@@ -1,7 +1,8 @@
-<!-- After 135crewdog/wings, docs/models.md, commit 557a8d0. Changed for FSG in milestone 2 (docs/milestones/2.md):
+<!-- After 135crewdog/wings, docs/models.md, commit 6d689b7. Changed for FSG in milestone 2 (docs/milestones/2.md):
      fixed gear, the propeller, a hinge's parent, the wheels checked against the aircraft file, a borrowed
-     stand-in's budget, and the stand-in Cessna. Wings' card, speedbrake drag and nozzle rules are left out
-     until the F-4C needs them. -->
+     stand-in's budget, and the stand-in Cessna. In milestone 3 (docs/milestones/3.md, pull request 4) Wings'
+     speedbrake and engine-exit rules came back, written for a JSBSim aircraft file where Wings has its card,
+     with the owner's F-4C. -->
 # What the app needs from a 3D model
 
 This is the handoff between a model chat and the app: what an airplane's model must be.
@@ -39,10 +40,16 @@ Rules for the motions:
 - **A part belongs to one motion only.** The app runs all five at once, so two motions moving the same part would fight.
 - **Frame rate:** set the scene to 24 frames per second and key frames 0, 12 and 24. Use linear interpolation between keys, so half way in time is half way in travel. The exporter may write a key for every frame; that is fine.
 - **The file's own resting pose doesn't matter.** The app sets all five motions before it draws anything, and the tools and tests pose the model the same way: gear down, flaps up, controls at 0.5 s.
-- **Deflections are the real airplane's.** Check them against the references; for the F-4C they are about: stabilator 21° trailing edge up to 9° down; ailerons 30° down, with the spoiler on the other wing up 45°; rudder 30° each way; trailing-edge flaps 60°.
+- **Deflections are the real airplane's.** Check them against the references; for the F-4C they are about: stabilator 21° trailing edge up to 9° down; ailerons 30° down, with the spoiler on the other wing up 45°; rudder 30° each way; trailing-edge flaps 60° and leading-edge flaps 30°; speedbrakes 60°.
 - The gear should take its whole second: doors opening first, legs swinging down after.
 - **A model may carry other motions.** The app leaves any it doesn't know at 0 s, so 0 s must be the closed, flush position. No spinning wheels, no pilots' heads.
-- **`speedbrake`,** if the airplane has them: 0 s closed and flush, 1 s fully open, every panel it moves opening into the airflow, one each side.
+- **`speedbrake`,** if the airplane has them: 0 s closed and flush, 1 s fully open, every panel it moves opening into the airflow, one each side. The app opens them with the speedbrake button. Their drag is JSBSim's, from the airplane's aircraft file, and acts where the model has the panels: the middle of the open panels, on the centreline, is measured from the model (`models/measure.mjs`) and the aircraft file's speedbrake point is written there. `tests/model.test.js` holds the two together, within an inch.
+
+## The engines' exits
+
+A jet's exits need nothing named: Claude Code measures the middle and the opening of each one from the model (`models/measure.mjs` finds them by their shape). Fore and aft and sideways, the aircraft file's thrust points are written there, and `tests/model.test.js` holds the two together, within an inch; the afterburner plumes will start there too. In height the thrust line is the real airplane's, from its data, and the test reports how far that is from the model's exits.
+
+An exit must be a round rim, open at the back, with nothing of the airframe inside the opening for the first metre behind it, or the flame would come out through the skin.
 
 ## The propeller
 
@@ -81,10 +88,34 @@ Save the Blender file and the export side by side in the owner's Drive. The owne
 
 Claude Code puts the file in `models/` and runs `tests/model.test.js`. If the test finds a rule broken, Claude Code reports exactly what is off for the model chat to fix. The owner gets two rounds of revision on the look, unless he asks for more.
 
-## The model in the app today
+`node models/measure.mjs models/f4c.glb` prints where a model has its wheels, engine exits, speedbrake panels and lowest points, in feet forward, right and down from its origin, for the author of its aircraft file.
+
+## The models today
+
+### The stand-in Cessna, in the app
 
 `models/c172p.glb` is milestone 2's stand-in: FlightGear's Cessna 172P, licence GPL version 2, converted by `models/convert-c172p.py`. It is the one exception to "models are built in a model chat": `models/CREDITS.md` says whose it is and what the script changed. It flies as JSBSim's `c172p`, which came from the same FlightGear airplane, so its wheels are where the flight model's are.
 
 Two things about it are not as this page asks, and are on record, not fixed:
 - Its gear is drawn hanging free, as FlightGear models it. So that the tyres still stand on the ground, the airplane is sat about 2° more nose-up than FlightGear draws it.
 - Its wing is 13 inches wider than a real 172's (2.9%).
+
+### The owner's F-4C, not in the app yet
+
+`models/f4c.glb` is the owner's own F-4C, built in Blender with Claude in a Wings project chat: the same file as Wings', bit for bit, locked in `provenance.json`. `models/CREDITS.md` has its history. It is 17.70 m long and 11.70 m in span, 3,669 triangles, with one material and two textures of 1,024 pixels. It comes into the app in milestone 3, pull request 8.
+
+It has six motions, each one second, measured by `tests/model.test.js` and each exactly the travel this page asks:
+
+| Motion | What it moves | Travel |
+|---|---|---|
+| `gear` | three legs, their wheels and three doors | up and closed to down and locked |
+| `flaps` | two trailing-edge flaps, and four leading-edge flaps | 60° down; 30° down |
+| `elevator` | the stabilator, one piece | 9° trailing edge down (forward stick) to 21° up (back stick) |
+| `aileron` | two ailerons and two spoilers | the aileron 30° down on the wing that rises, with the other wing's spoiler 45° up; the other aileron and spoiler stay flush |
+| `rudder` | the rudder | 30° each way |
+| `speedbrake` | two panels under the wings | 60° open |
+
+Against its aircraft file, `aircraft/f4c/f4c.xml`, stood in JSBSim:
+- **Its wheels.** The gear is drawn at its loaded length, so the airplane stands on its tyres at the height JSBSim stands it: the tyres meet the runway 6.40 ft below the origin, the nose wheel 19.75 ft ahead of it and the main wheels 3.52 ft behind and 8.96 ft out. Every tyre is within a quarter of an inch of the file's wheel, fore and aft, sideways and in height.
+- **Its engine exits.** Their middles are 16.16 ft behind the origin, 2.14 ft out and 0.60 ft below it, each opening 2.4 ft across. The file's thrust points are within half an inch of them fore and aft and sideways. In height the thrust line is NASA CR-2144's, which passes 6 in below the model's exits.
+- **Its speedbrake panels.** Open, their middle is 5.99 ft behind the origin and 2.49 ft below it (`tests/checkride/f4c-reference.js`). The aircraft file has no speedbrakes until pull request 7, which writes its point there; the test that will hold the two together is marked as still to do.
