@@ -15,7 +15,8 @@
     "index.html": {
       "from": "wings:index.html",
       "how": "adapted",
-      "original": "3a2075338783276886d304fb1adc8948472f6b65eebadfa43b651e4473c629d5"
+      "original": "bbc664c5abd5e0fe15f0c7e28544dd747ca8d390e4a162ed6c6bb3a5a3211a5f",
+      "commit": "6d689b789fedb783d7ad6ae8cc990904a12fe32e"
     },
     "style.css": {
       "from": "wings:style.css",
@@ -30,12 +31,14 @@
     "manifest.webmanifest": {
       "from": "wings:manifest.webmanifest",
       "how": "adapted",
-      "original": "19064276f8b7755a2be8373c68e9b4448792c0b9e7260a652592e1597ec6a402"
+      "original": "71b795f046548b8f280f77ede867a15fa643c4cdbb224886266fc2219f32639b",
+      "commit": "6d689b789fedb783d7ad6ae8cc990904a12fe32e"
     },
     "src/main.js": {
       "from": "wings:src/main.js",
       "how": "adapted",
-      "original": "7d86f0b14987b4f11e1223e11a447764003bec4e409a1bb1401acff93ec4926e"
+      "original": "cfe40723fcfe4df5653745ffde20055c6bc1ccf365be8203a5600bddae268bf9",
+      "commit": "6d689b789fedb783d7ad6ae8cc990904a12fe32e"
     },
     "src/version.js": {
       "from": "wings:src/version.js",
@@ -50,12 +53,20 @@
     ".github/workflows/test.yml": {
       "from": "wings:.github/workflows/test.yml",
       "how": "adapted",
-      "original": "f0b5789194593c18abb253820bf73b6febb82a191cc8d9737912823d68fe83c5"
+      "original": "969496118bf2c4cd22ead8d642c5acefaf9253f0eb82dfb56939d882b5c20bbd",
+      "commit": "6d689b789fedb783d7ad6ae8cc990904a12fe32e"
     },
     ".github/workflows/pages.yml": {
       "from": "wings:.github/workflows/pages.yml",
       "how": "adapted",
-      "original": "efc87c8d0ff880755cc8e24ed5a9b91f7f2859777ea7a4a77dea46b1d63f81db"
+      "original": "3a02528c0c70e930cfe298b3a04423016831c8e55211675d799d807f1786bd62",
+      "commit": "6d689b789fedb783d7ad6ae8cc990904a12fe32e"
+    },
+    ".github/dependabot.yml": {
+      "from": "wings:.github/dependabot.yml",
+      "how": "adapted",
+      "original": "0daf60f182970f97849e6e518c3d31f871c65f02958151c7443b06a25f583308",
+      "commit": "6d689b789fedb783d7ad6ae8cc990904a12fe32e"
     },
     "docs/models.md": {
       "from": "wings:docs/models.md",

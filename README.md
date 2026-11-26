@@ -43,11 +43,11 @@ Then open <http://localhost:8000/>.
 ## How JSBSim runs in the app
 
 - `src/fdm.js`, on the page, starts a module Worker, `src/sim/worker.js`, when the app opens, and posts it the three JSBSim files the Cessna needs (`src/sim/aircraft/c172p.js`), fetched as they are from `jsbsim/jsbsim-data/`.
-- The Worker imports the Emscripten file `jsbsim/dist-wasm/fdm-weh.mjs`, which fetches `fdm-weh.wasm` from beside itself. If that build doesn't start, a fresh Worker tries the fallback build, `fdm-jseh`, and the developer overlay says why.
+- The Worker imports the Emscripten file `jsbsim/dist-wasm/fdm-weh.mjs`, which fetches `fdm-weh.wasm` from beside itself. If that build doesn't start, a fresh Worker tries the fallback build, `fdm-jseh`, and the debug overlay says why.
 - Every one of those files is in `sw.js`, so it all works offline.
 - The Worker holds one flight at a time (`src/sim/flight-run.js`): the Cessna parked on the runway of the test field, held until Fly is tapped, then stepped 120 times a second by the Worker's own clock (`src/sim/clock.js`), with the state posted to the page after every batch of steps. Paused, the Worker's timer is stopped. Restart is a new flight.
 - The page draws it (`src/flight.js`): the picture's clock (`src/render/between.js`) trails the newest state by two steps, and the airplane is drawn between the two states either side of it.
-- With Developer on (Settings), the overlay shows how the flight is running: frames a second, steps a second, time dropped, how far the picture is behind, and where the airplane is.
+- With the debug overlay on (Settings), the overlay shows how the flight is running: frames a second, steps a second, time dropped, how far the picture is behind, and where the airplane is.
 - The Worker's own clock was chosen over ticks from the page on the owner's phone (`docs/milestones/1.md`): it kept 120.0 steps a second, in Low Power Mode too.
 
 ## The one build

@@ -8,7 +8,7 @@
 //
 // Milestone 2: the Worker is started when the app opens and lives as long as the page does. It holds one
 // flight at a time (src/sim/flight-run.js). The timing runs of milestones 0 and 1 are gone from the app:
-// their numbers are in docs/milestones/, and the developer overlay now shows the flight's own.
+// their numbers are in docs/milestones/, and the debug overlay now shows the flight's own.
 //
 // Nothing here runs until startGame() is called.
 import { buildPack } from './sim/files.js';
@@ -32,7 +32,7 @@ export const DT = 1 / 120;
 // (Found on the owner's phone at 0.0.5: the marker was held for a whole
 // run, he took an update during one, and the next launch used the fallback.)
 const STARTING_KEY = 'fsg.fdmStarting';
-/** Why a launch is on the fallback build: the two causes there are. The developer overlay shows the one it was. */
+/** Why a launch is on the fallback build: the two causes there are. The debug overlay shows the one it was. */
 export const WHY = {
   marker: 'the launch before this stopped while the fast build was starting',
   failed: 'the fast build did not start',
@@ -79,7 +79,7 @@ async function open(build, aircraft, why, { onState, onFailure }) {
     started = true;
     return {
       build, why,
-      /** JSBSim's own version text, and the line the developer overlay shows for this build. */
+      /** JSBSim's own version text, and the line the debug overlay shows for this build. */
       version: init.version,
       says: `${init.version.match(/^JSBSim [\d.]+/)?.[0] ?? init.version}   ${BUILDS[build].name}${why ? `: ${why}` : ''}`,
       /** The first flight's start: the reply to "fly" (its number, the state's names, its first state). */

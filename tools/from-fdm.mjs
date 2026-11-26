@@ -33,14 +33,22 @@ export const SOURCES = {
 //                       the original's hash is recorded here. What guards the bytes now is
 //                       jsbsim/dist-wasm/build-info.json, jsbsim/tests/build.test.js and the rebuild workflow
 const copy = (source, from, to = from) => ({ source, from, to, how: 'byte for byte' });
-const adapted = (source, from, to = from) => ({ source, from, to, how: 'adapted' });
+// A file brought up to a later commit of its source than the one above carries that commit itself (`at`).
+const adapted = (source, from, to = from, at) => ({ source, from, to, how: 'adapted', ...(at ? { at } : {}) });
 const rebuilt = (source, from, to = from) => ({ source, from, to, how: 'rebuilt' });
 const typesRemoved = (from, to, extra = {}) => ({ source: 'FDM', from, to, how: 'types removed', ...extra });
 
+const WINGS_0_0_62 = '6d689b789fedb783d7ad6ae8cc990904a12fe32e';
+const AT_WINGS_0_0_62 = ['index.html', 'manifest.webmanifest', 'src/main.js', '.github/workflows/test.yml', '.github/workflows/pages.yml', '.github/dependabot.yml'];
+
 export const FILES = [
   // The app shell, from Wings. (Wings' four icons were copied here too until the owner's own icon replaced them, 23 November 2026.)
+  // Wings is not frozen (CLAUDE.md): before anything more is copied from it, the file is brought up to
+  // Wings' main as it then is, and that commit is recorded with the file. Brought up to 6d689b7 (Wings
+  // 0.0.62) on 26 November 2026: the page, the app, the manifest, the workflows, and Dependabot's file.
   ...['index.html', 'style.css', 'sw.js', 'manifest.webmanifest', 'src/main.js', 'src/version.js', 'tests/app.test.js',
-    '.github/workflows/test.yml', '.github/workflows/pages.yml'].map((f) => adapted('wings', f)),
+    '.github/workflows/test.yml', '.github/workflows/pages.yml', '.github/dependabot.yml']
+    .map((f) => adapted('wings', f, f, AT_WINGS_0_0_62.includes(f) ? WINGS_0_0_62 : undefined)),
   // The model handoff and the reader its test uses, from Wings (milestone 2). Both files are the same at Wings' later commits.
   ...['docs/models.md', 'models/glb.mjs'].map((f) => adapted('wings', f)),
   // The look-around, from Wings (itself from Rage, as it is), with a line at its top saying so.
@@ -270,7 +278,7 @@ function main() {
     if (i < 0 || !args[i + 1]) throw new Error(`give --${name.toLowerCase()} <path to a clone of ${SOURCES[name].repo}>`);
     repos[name] = args[i + 1];
   }
-  const original = (entry) => git(repos[entry.source], ['show', `${SOURCES[entry.source].commit}:${entry.from}`]);
+  const original = (entry) => git(repos[entry.source], ['show', `${entry.at ?? SOURCES[entry.source].commit}:${entry.from}`]);
   const mode = (entry) => git(repos[entry.source], ['ls-tree', SOURCES[entry.source].commit, entry.from], { encoding: 'utf8' }).split(' ')[0];
 
   const record = { sources: SOURCES, files: {}, trees: {} };
@@ -281,6 +289,7 @@ function main() {
     const from = `${entry.source}:${entry.from}`;
     const bytes = original(entry);
     const item = { from, how: entry.how, original: sha256(bytes) };
+    if (entry.at) item.commit = entry.at;
     if (entry.why) item.why = entry.why;
     const path = join(ROOT, entry.to);
     if (entry.how === 'adapted' || entry.how === 'rebuilt') {

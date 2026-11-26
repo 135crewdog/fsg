@@ -101,6 +101,11 @@ await page.waitForFunction(() => navigator.serviceWorker.controller !== null, nu
 const caches = await page.evaluate(() => caches.keys());
 check(caches.length === 1 && caches[0] === `fsg-${version}`, 'one cache, named for the version', caches.join(', '));
 
+// An error screen (docs/milestones/2.md, "Wings catch-up"): its heading is not "Crashed", it has one sentence
+// of 12 words or fewer that says what to do, and none of the error's own text.
+const errorScreen = (said, error) => said.title !== 'Crashed' && said.title.length > 0 && /Restart/.test(said.line)
+  && said.line.trim().split(/\s+/).length <= 12 && !(error && (said.line.includes(error) || said.title.includes(error))) && !/Worker|JSBSim|Error/.test(said.title + said.line);
+
 // 3. The game (milestone 2, pull request 5). JSBSim starts in its Worker when the app opens: the fast build,
 //    the Cessna parked on the numbers and held. Fly lets it go.
 const KT = 1.6878;
@@ -132,13 +137,13 @@ let later = await app.flight();
 check(parked(f) && !f.flying && f.states === 0 && later.states === 0 && later.time === f.time, 'the Cessna is parked on the numbers and held: no state is posted and no time passes', where(f));
 check(rests && later.resting, 'held, the picture rests');
 
-// Settings before the first flight: the pause screen, with Fly at its top and no Restart; the Developer switch.
+// Settings before the first flight: the pause screen, with Fly at its top and no Restart; the Debug overlay switch.
 await page.click('#settings');
 check(await visible('#screen-pause') && !(await visible('#screen-start')), 'Settings opens the pause screen');
 check((await text('#resume')) === 'Fly' && !(await visible('#restart')), 'before the first flight its top button is Fly, and there is no Restart');
 check(!(await visible('#dev')), 'the overlay is off until it is switched on');
 await page.click('#dev-switch');
-check(await visible('#dev'), 'Developer on shows the overlay');
+check((await text('#dev-label')) === 'Debug overlay' && await visible('#dev'), 'the switch reads "Debug overlay", and on, it shows the overlay');
 let box = await text('#dev');
 check(box.includes(`FSG ${version}`) && box.includes('browser tab') && box.includes('offline ready: yes') && overlaySays(box, 'parked'), 'the overlay says what it should', box.replace(/\n/g, ' | '));
 check((await page.evaluate(() => localStorage.getItem('fsg.dev'))) === 'on', 'the choice is kept as fsg.dev');
@@ -229,6 +234,32 @@ if (shots) await page.screenshot({ path: join(shots, 'flying.png') });
   await page.click('#resume');
   check((await app.mode()) === 'flying', 'and Resume flies it');
 }
+// Losing focus pauses the flight, as leaving the app does (Wings 6542a06): the Worker rests, and only Resume flies on.
+{
+  await page.evaluate(() => window.dispatchEvent(new Event('blur')));
+  await page.waitForTimeout(500);
+  const stopped = await app.flight();
+  await page.waitForTimeout(1000);
+  const held = await app.flight();
+  check((await app.mode()) === 'paused' && (await visible('#screen-pause')) && held.states === stopped.states && held.time === stopped.time,
+    'the app loses focus: the pause screen within half a second, and the Worker posts nothing more', `${held.states} states`);
+  await page.evaluate(() => window.dispatchEvent(new Event('focus')));
+  await page.waitForTimeout(300);
+  check((await app.mode()) === 'paused', 'focus coming back does not fly it on');
+  // Losing focus while a restart is being made: the new flight waits on the pause screen, held.
+  const before = await app.flight();
+  await page.evaluate(() => {
+    document.getElementById('restart').click();   // the tap; the new flight is asked for, and is not there yet
+    window.dispatchEvent(new Event('blur'));
+  });
+  await page.waitForFunction((n) => window.fsg.picture.flight > n, before.flight, { timeout: 5000 }).catch(() => {});
+  await page.waitForTimeout(500);
+  const waiting = await app.flight();
+  check((await app.mode()) === 'paused' && waiting.flight === before.flight + 1 && !waiting.flying && waiting.states === 0 && (await visible('#screen-pause')),
+    'focus lost while Restart makes the new flight: it waits on the pause screen, held', `flight ${waiting.flight}, ${waiting.states} states, mode ${await app.mode()}`);
+  await page.click('#resume');
+  check((await app.mode()) === 'flying', 'and Resume flies it');
+}
 // A hidden page pauses the flight, and it stays paused when the page comes back.
 {
   await page.evaluate(() => { Object.defineProperty(document, 'hidden', { configurable: true, get: () => true }); document.dispatchEvent(new Event('visibilitychange')); });
@@ -245,7 +276,7 @@ await context.setOffline(true);
 await page.reload();
 check((await text('#screen-start .version')) === version, 'offline: a reload still opens the app');
 await pictureIs('offline');
-check(await visible('#dev'), 'the Developer switch is still on after a reload');
+check(await visible('#dev'), 'the Debug overlay switch is still on after a reload');
 check(await app.ready(), 'offline: Fly is ready');
 js = await app.jsbsim();
 check(!js.error && js.build === 'weh', 'offline: JSBSim starts in its Worker all the same', js.error ?? js.says);
@@ -257,7 +288,8 @@ await context.setOffline(false);
 
 // 5. Portrait shows the rotate screen, and pauses the flight.
 await page.setViewportSize({ width: 393, height: 852 });
-check(await visible('#rotate'), 'portrait shows the rotate screen');
+check(await visible('#rotate') && (await text('#rotate h1')) === 'Rotate your device' && (await text('#rotate p')) === 'If it won\'t turn, turn off rotation lock.', 'portrait shows the rotate screen, in its few words');
+if (shots) await page.screenshot({ path: join(shots, 'rotate.png') });
 check((await app.mode()) === 'paused', 'and pauses the flight');
 await page.setViewportSize({ width: 852, height: 393 });
 check(!(await visible('#rotate')) && (await app.mode()) === 'paused' && (await visible('#screen-pause')), 'landscape takes it away, and the flight waits on the pause screen');
@@ -333,8 +365,10 @@ check(!js.error && js.build === 'weh' && (await text('#dev')).includes('wasm exc
   const settled = await w.waitForFunction(() => window.fsg.jsbsim !== null, null, { timeout: 20000 }).then(() => true, () => false);
   const r3 = settled ? await on(w).jsbsim() : null;
   const b3 = await w.locator('#dev').textContent();
-  check(settled && typeof r3.error === 'string' && b3.includes('JSBSim did not start') && (await w.locator('#screen-crashed').isVisible()) && (await w.locator('#crash-why').textContent()).includes('JSBSim did not start'),
-    'the Worker itself fails to load: the app says so, on the crashed screen and the overlay', settled ? b3.split('\n').slice(3).join(' | ') : `stuck at: ${b3.split('\n').slice(3).join(' | ')}`);
+  const said3 = { title: await w.locator('#crash-title').textContent(), line: await w.locator('#crash-why').textContent() };
+  check(settled && typeof r3.error === 'string' && b3.includes(`JSBSim did not start: ${r3?.error}`) && (await w.locator('#screen-crashed').isVisible()) && errorScreen(said3, r3?.error) && (await w.locator('#crash-restart').isVisible()),
+    'the Worker itself fails to load: the screen says so in a few words and what to do, and the error\'s own words are on the overlay', settled ? b3.split('\n').slice(3).join(' | ') : `stuck at: ${b3.split('\n').slice(3).join(' | ')}`);
+  if (shots) await w.screenshot({ path: join(shots, 'error-start.png') });
   check((await w.evaluate(() => localStorage.getItem('fsg.fdmStarting'))) === null, 'and the marker is cleared');
   if (settled) {
     await noWorker.unroute('**/src/sim/worker.js');
@@ -350,6 +384,7 @@ check(!js.error && js.build === 'weh' && (await text('#dev')).includes('wasm exc
 {
   const failing = await browser.newContext({ viewport: { width: 852, height: 393 }, serviceWorkers: 'block' });
   const g = await failing.newPage();
+  await g.addInitScript(() => { try { localStorage.setItem('fsg.dev', 'on'); } catch { /* not yet on the page's origin */ } });
   await g.goto(base);
   await on(g).ready();
   await on(g).fly();
@@ -358,7 +393,11 @@ check(!js.error && js.build === 'weh' && (await text('#dev')).includes('wasm exc
   check(g.workers().length === 1 && (await on(g).mode()) === 'flying', 'a Worker is running the flight');
   await first.evaluate(() => { setTimeout(() => { throw new Error('made to fail'); }, 0); });
   const shown = await g.waitForFunction(() => window.fsg.mode === 'crashed', null, { timeout: 10000 }).then(() => true, () => false);
-  check(shown && (await g.locator('#screen-crashed').isVisible()) && (await g.locator('#crash-why').textContent()).includes('the Worker failed: Uncaught Error: made to fail'), 'the Worker is made to fail: the crashed screen says so, with the Worker\'s own error', await g.locator('#crash-why').textContent());
+  const said = { title: await g.locator('#crash-title').textContent(), line: await g.locator('#crash-why').textContent() };
+  const box8 = await g.locator('#dev').textContent();
+  check(shown && (await g.locator('#screen-crashed').isVisible()) && errorScreen(said, 'made to fail') && box8.includes('stopped: the Worker failed: Uncaught Error: made to fail'),
+    'the Worker is made to fail: the screen says so in a few words and what to do, and the Worker\'s own error is on the overlay', `"${said.title}" "${said.line}" | ${box8.split('\n').find((l) => l.startsWith('stopped'))}`);
+  if (shots) await g.screenshot({ path: join(shots, 'error-flight.png') });
   await g.click('#crash-restart');
   await g.waitForFunction(() => window.fsg.mode === 'flying' && window.fsg.picture.states > 0, null, { timeout: 60000 }).catch(() => {});
   const again = await on(g).flight();

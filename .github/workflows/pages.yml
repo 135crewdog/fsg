@@ -1,5 +1,5 @@
 # Publishes main to GitHub Pages, only if the tests pass.
-# After 135crewdog/wings, .github/workflows/pages.yml, commit 557a8d0.
+# After 135crewdog/wings, .github/workflows/pages.yml, commit 6d689b7 (first copied at 557a8d0).
 name: Pages
 
 on:
