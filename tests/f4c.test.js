@@ -1,6 +1,9 @@
-// The F-4C, FSG's own aircraft file (aircraft/f4c/, src/sim/aircraft/f4c.js): so far it stands and runs its
+// The F-4C, FSG's own aircraft file (aircraft/f4c/, src/sim/aircraft/f4c.js): how it stands and runs its
 // engines. New in FSG, milestone 3 (pull request 3); the "done" lines are in docs/milestones/3.md, written
 // before any of this was built, and each test below is named for the line it holds. After tests/c172p.test.js.
+// How it flies is tests/f4c-aero.test.js (pull request 5). Since the file has aerodynamics, two tests here
+// changed with it, and each says how: the one that rolls the airplane in the air now counts the air's own
+// pitching moment, and the list of what the game writes has the pitch trim in it.
 // Every measured number is printed beside its reference (tests/checkride/f4c-reference.js) and kept in
 // jsbsim/build/results/checkride-f4c.txt.
 import { test } from 'node:test';
@@ -58,7 +61,7 @@ const still = (flight) => {
   assert.ok(flight.value('velocities/vg-fps') < 0.001 && flight.value('velocities/mach') < 1e-6, `standing still (${flight.value('velocities/vg-fps')} ft/s)`);
   assert.ok(Math.abs(flight.value('position/h-sl-ft') - F4C.standingFt) < 0.1 && FIELD.heightFt === 0, `at sea level (${flight.value('position/h-sl-ft')} ft)`);
 };
-/** In the air with no trim (there is no aerodynamics to trim, so it falls): 20,000 ft and 400 knots, gear up. Read back. */
+/** In the air with no trim, so not in steady flight: 20,000 ft and 400 knots, gear up. Read back. */
 function inTheAir(module, controls, sets = []) {
   const flight = Flight.start(module, F4C, { sets: [['ic/h-sl-ft', 20000], ['ic/vc-kts', 400], ...sets], settleSeconds: 0, controls: { gear: false, brake: false, ...controls } });
   assert.ok(Math.abs(flight.value('position/h-sl-ft') - 20000) < 1 && Math.abs(flight.value('velocities/vc-kts') - 400) < 0.5, `${flight.value('velocities/vc-kts')} kt at ${flight.value('position/h-sl-ft')} ft`);
@@ -104,15 +107,19 @@ for (const variant of VARIANTS) {
     assert.ok(Math.abs(flight.get('inertia/ixy-slugs_ft2')) < 1e-9 && Math.abs(flight.get('inertia/iyz-slugs_ft2')) < 1e-9, 'the airplane is the same left and right');
     flight.dispose();
 
-    // The sense of it, from a run and not from a sign in a file. Rolled at 2 radians a second with nothing
-    // else acting, an airplane whose mass leans nose down (a positive Ixz) pitches nose down at Ixz p2 / Iyy:
+    // The sense of it, from a run and not from a sign in a file. Rolled at 2 radians a second, an airplane
+    // whose mass leans nose down (a positive Ixz) is pitched nose down by its own rolling, at Ixz p2 / Iyy:
     // the pitch equation of any textbook (Stevens, Lewis and Johnson: Iyy q' = (Izz - Ixx) p r - Ixz (p2 - r2) + M).
+    // M is what the engines and, since pull request 5, the air add. Both are read from the same moment and
+    // taken out, so what is judged is still the rolling's own part, by the same 1%.
     const rolling = inTheAir(module, { throttle: 0 }, [['ic/p-rad_sec', 2]]);
-    const p = rolling.value('velocities/p-rad_sec'), r = rolling.value('velocities/r-rad_sec'), power = rolling.get('moments/m-prop-lbsft');
+    const p = rolling.value('velocities/p-rad_sec'), r = rolling.value('velocities/r-rad_sec');
+    const power = rolling.get('moments/m-prop-lbsft'), air = rolling.get('moments/m-aero-lbsft');
     assert.ok(Math.abs(p - 2) < 1e-3 && Math.abs(r) < 1e-3, `rolling at ${p} rad/s, yawing at ${r}`);
-    const measured = rolling.get('accelerations/qdot-rad_sec2');
-    const expected = (-CROSS_INERTIA.value * (p * p - r * r) + power) / PITCH_INERTIA.value;
-    say(`rolling at 2 rad/s, the nose goes ${measured < 0 ? 'down' : 'UP'} at ${measured.toFixed(5)} rad/s2; a positive Ixz of ${CROSS_INERTIA.value} gives ${expected.toFixed(5)} (the engines add ${power.toFixed(1)} lb-ft); within 1%`);
+    const pitching = rolling.get('accelerations/qdot-rad_sec2');
+    const measured = pitching - (power + air) / PITCH_INERTIA.value;
+    const expected = (-CROSS_INERTIA.value * (p * p - r * r)) / PITCH_INERTIA.value;
+    say(`rolling at 2 rad/s, the nose is pitching at ${pitching.toFixed(5)} rad/s2, of which the engines' ${power.toFixed(1)} lb-ft and the air's ${air.toFixed(1)} lb-ft give ${((power + air) / PITCH_INERTIA.value).toFixed(5)}; the rest, the rolling's own, is nose ${measured < 0 ? 'down' : 'UP'} at ${measured.toFixed(5)}; a positive Ixz of ${CROSS_INERTIA.value} gives ${expected.toFixed(5)}; within 1%`);
     assert.ok(measured < 0, 'nose down: the cross inertia has CR-2144\'s sense');
     assert.ok(Math.abs(measured / expected - 1) <= 0.01);
     rolling.dispose();
@@ -311,9 +318,10 @@ for (const variant of VARIANTS) {
     // MIL is in one place on the throttle for the game and for the airplane.
     assert.equal(flight.get('fcs/mil-throttle-norm'), F4C.mil, 'the file\'s MIL is the settings\'');
     assert.equal(F4C.jet, true);
-    // Everything the game writes is a cockpit control, and both engines have the one throttle.
-    assert.deepEqual(assistWrites(F4C.assists), ['fcs/steer-cmd-norm']);
-    assert.deepEqual([...flight.inputNames].sort(), ['fcs/aileron-cmd-norm', 'fcs/elevator-cmd-norm', 'fcs/left-brake-cmd-norm', 'fcs/right-brake-cmd-norm', 'fcs/steer-cmd-norm',
+    // Everything the game writes is a cockpit control, and both engines have the one throttle. (The pitch
+    // trim came with the aerodynamics, pull request 5: the copilot's neutral trim, set once.)
+    assert.deepEqual(assistWrites(F4C.assists), ['fcs/pitch-trim-cmd-norm', 'fcs/steer-cmd-norm']);
+    assert.deepEqual([...flight.inputNames].sort(), ['fcs/aileron-cmd-norm', 'fcs/elevator-cmd-norm', 'fcs/left-brake-cmd-norm', 'fcs/pitch-trim-cmd-norm', 'fcs/right-brake-cmd-norm', 'fcs/steer-cmd-norm',
       'fcs/throttle-cmd-norm', 'fcs/throttle-cmd-norm[1]', 'gear/gear-cmd-norm']);
     flight.fly({ throttle: 0.5 });
     run(flight, 1);
@@ -486,7 +494,7 @@ test('f4c: every reference number names its source and where in it', () => {
     assert.ok([ref.value].flat().every((x) => typeof x === 'number' && Number.isFinite(x)), `${name}: a number`);
     assert.ok(typeof ref.unit === 'string' && ref.unit.trim().length > 0, `${name}: its unit`);
     for (const key of ['source', 'where']) assert.ok(typeof ref[key] === 'string' && ref[key].trim().length > 5, `${name}: its ${key}`);
-    assert.match(ref.source, /^(NASA CR-2144|T\.O\. 1F-4C-1 \(1 October 1970\)|135crewdog\/wings, commit [0-9a-f]{7})$/, `${name}: a source we have read`);
+    assert.match(ref.source, /^(NASA CR-2144|AFWAL-TR-80-3141 Part III|T\.O\. 1F-4C-1 \(1 October 1970\)|135crewdog\/wings, commit [0-9a-f]{7})$/, `${name}: a source we have read`);
   }
   console.log(`  ${entries.length} reference numbers, each with its source and where`);
 });

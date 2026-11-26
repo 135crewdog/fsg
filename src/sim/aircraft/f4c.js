@@ -1,9 +1,10 @@
 // The game's settings for the F-4C Phantom II, FSG's own aircraft file (aircraft/f4c/f4c.xml). New in FSG,
 // milestone 3 (docs/milestones/3.md, pull request 3), after c172p.js and f16.js.
 //
-// So far the file has weight, wheels and engines and no aerodynamics: it stands and runs its engines. It is
-// not in the app yet (the Cessna still flies there); pull request 8 puts it in. Everything here is about the
-// game; the airplane itself, with its own throttle system and afterburner, is the aircraft file.
+// So far the file has weight, wheels, engines and, since pull request 5a (the first half of the plan's pull
+// request 5), its aerodynamics at low speed with the stick straight to the surfaces: it flies, headless. It
+// is not in the app yet (the Cessna still flies there); pull request 8 puts it in. Everything here is about
+// the game; the airplane itself, with its own throttle system and afterburner, is the aircraft file.
 import { WINGS_CRASH_FPM } from '../rules.js';
 
 export const F4C = {
@@ -14,7 +15,11 @@ export const F4C = {
    * which is never edited. Inside JSBSim they go where its usual layout finds them, as any aircraft's do.
    */
   own: true,
-  /** The files JSBSim reads to load it, relative to the repo's root. tests/f4c.test.js shows each is needed. */
+  /**
+   * The files JSBSim reads to load it, relative to the repo's root. tests/f4c.test.js shows each is needed.
+   * (aircraft/f4c/data/ is the record of where the aircraft file's tables came from. JSBSim does not read it,
+   * and the app does not fetch it.)
+   */
   files: [
     'aircraft/f4c/f4c.xml',
     'aircraft/f4c/Engines/J79-GE-15.xml',
@@ -27,8 +32,10 @@ export const F4C = {
   /**
    * Which JSBSim command each of the game's seven controls drives (as in c172x.js). The one throttle works
    * both engines. The flaps and the speedbrakes drive nothing yet: the file gets them in pull request 7.
-   * The stick's two commands are JSBSim's standard ones; the file's flight controls (pull request 6) will
-   * say what they mean on this jet.
+   * The stick's two commands are JSBSim's standard ones. For now (pull request 5a) the file takes them
+   * straight to the surfaces: full back stick is the stabilator 21 degrees trailing edge up, full right
+   * stick the left aileron 30 degrees down and the right spoiler up. The jet's own flight controls (pull
+   * request 6) will say what they mean after that.
    */
   controls: {
     pitch: { to: ['fcs/elevator-cmd-norm'], sign: -1 },   // JSBSim: positive is nose down
@@ -48,13 +55,18 @@ export const F4C = {
   jet: true,
   /**
    * The copilot (src/sim/assists.js).
-   *   trim   None yet: with no aerodynamics there is nothing to trim. Pull request 5 finds the neutral speed's.
-   *   feet   None yet: no rudder to work. Pull requests 6 and 7 decide what is the jet's own and what the copilot's.
+   *   trim   Neutral speed 350 knots, Wings' own for its F-4C (135crewdog/wings, src/sim/cards/f4c.js,
+   *          neutral_speed_kt, commit 6d689b7): JSBSim's own pitch trim for level flight at 350 knots and
+   *          2,000 ft, set once. tests/f4c-aero.test.js re-derives it. It is the trim of pull request 5a's
+   *          airplane, stick straight to the stabilator and no Mach effects: each pull request that changes
+   *          either finds it again. The airplane is the same left and right, so there is no roll trim.
+   *   feet   None yet: the rudder stays in the middle. Pull requests 6 and 7 decide what is the jet's own
+   *          (its yaw damper, its aileron-rudder interconnect) and what the copilot's.
    *   steer  The nosewheel, straight from the stick with no fade, as f16.js has it for now. Pull request 7
    *          gives the jet its copilot's feet on the ground; until then no test taxis it at speed.
    */
   assists: {
-    trim: null,
+    trim: { knots: 350, heightFt: 2000, sets: [['fcs/pitch-trim-cmd-norm', -0.0333]] },
     feet: null,
     steer: { wheel: { to: 'fcs/steer-cmd-norm', sign: 1, halfAtKt: 0 } },
   },
