@@ -30,6 +30,18 @@ export const buttonText = ([, name, on, off], pressed) => `${name} ${pressed ? o
  * indicator that reads the setting. It is the cockpit's way: a lever with a stop for each setting, and a
  * separate indicator (docs/milestones/3.md, PR F, "How others solved this").
  *
+ * The phone sims do the same two things, a control that moves the flaps a stage at a time and a number that
+ * says where they are (read 26 November 2026, after the lever was built; the plan asked for it before):
+ *   X-Plane Mobile  an on-screen flap control with a number beside it that "is a true representation of the
+ *                   angle of the flaps" (x-plane.helpscoutdocs.com/article/80-flap-settings-on-the-x-plane-mobile-737);
+ *                   its earlier version moved them "in stages" by press, slide, release.
+ *   Aerofly         a flap indicator that "shows the actual flap position in degree"
+ *                   (aerofly.com/dokuwiki/doku.php/manual:general_settings); Aerofly 2 took two presses to pick any stage
+ *                   (simflight.com/2015/08/22/simming-on-the-go-round-2, for both older versions).
+ *   Infinite Flight nothing from its maker was found on how its flap control is drawn.
+ * One departure from X-Plane's: while the flaps travel the indicator reads the setting chosen, as a lever sits
+ * in its stop, not the angle on the way there. The owner asked for the setting's own name ("1/2", "Full").
+ *
  * Returns the airplane's settings, from up to fully down, each { at, reads } (src/sim/aircraft/c172p.js), or
  * null for an airplane whose flaps are only up or down (it keeps the one button) or that has none.
  */
