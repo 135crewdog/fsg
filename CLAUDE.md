@@ -109,7 +109,7 @@ Wings stays live at its own address, and the owner keeps improving it. FSG never
   The precedent to study is Richard Harrison's FlightGear F-14, a JSBSim fighter built from NASA wind-tunnel reports (zaretto.com). Its stability augmentation system goes in JSBSim's flight-control format, as on the real jet. The owner's figures from Wings still stand: rotation at 150 knots, and the centre of gravity 3.5 feet ahead of the main wheels, where his model puts it.
 - **Test aircraft:** JSBSim's bundled Cessnas and F-16, well-known files used to prove the wiring before the F-4C. They are not in the finished game.
   - `c172x` and `f16` are flown headless against native JSBSim (milestone 1).
-  - `c172p` is the Cessna on screen in milestone 2, flown as JSBSim ships it: no slack in its elevator, and a nosewheel the stick can steer. Its picture is FlightGear's own c172p model (GPL 2), which fits it within an inch (the owner's choice, 20 November 2026).
+  - `c172p` is the Cessna on screen since milestone 2, flown as JSBSim ships it: no slack in its elevator, and a nosewheel the stick can steer. Its picture is FlightGear's own c172p model (GPL 2), which fits it within an inch (the owner's choice, 20 November 2026).
   - The owner's own C172 model stays in his Drive.
 - **The physics clock:**
   - JSBSim runs in a Web Worker at a fixed 120 steps a second, decoupled from the screen. It uses an accumulator with a catch-up cap ("Fix Your Timestep").
@@ -216,8 +216,8 @@ Claude Code plans each milestone in Plan Mode when the one before is done. The l
 |---|---|---|
 | 0, done | **Setup.** Repo, Actions, Pages, Codex review; the Wings app shell; the JSBSim build copied in from FDM with its tests | A test pull request goes through Codex review, merges and deploys. The shell installs on the owner's iPhone and takes an update. Inside the app, on the phone, the Worker loads `c172x` and reports its step time on the debug overlay |
 | 1, done | **JSBSim as the game's core, headless.** Worker clock, controls in, state out, height-patch ground callback, contact points, game rules, assists; the checkride harness | `c172x` and `f16` take off, fly a circuit and land headless, with checkride results matching native JSBSim within the written tolerances |
-| 2, under way | **First flight.** Tilt, throttle, toggles, chase camera, HUD over a flat test field with a runway, on the phone, flying `c172p` | The owner takes off, flies a circuit and lands on his iPhone, and says the controls and the ground feel right |
+| 2, done | **First flight.** Tilt, throttle, toggles, chase camera, HUD over a flat test field with a runway, on the phone, flying `c172p` | The owner takes off, flies a circuit and lands on his iPhone, and says the controls and the ground feel right |
 | 3 | **The F-4C.** Its JSBSim file built from real data, with its stability augmentation; `models/f4c.glb` with moving surfaces, gear and flaps; plumes | The F-4C passes its checkride against the flight manual and NASA data, and the owner flies it on the test field and approves the feel |
 | 4 | **Hawaii.** The real islands under the F-4C, ground callback fed from the tiles, the islands map, crash rules on real terrain | The owner flies from Hickam to every island on his iPhone, lands on another island, and the game is the minimum viable FSG |
 
-Milestones 0 and 1 are done: their plans and results are in `docs/milestones/0.md` and `docs/milestones/1.md`. Milestone 2 is under way: its approved plan is `docs/milestones/2.md`.
+Milestones 0, 1 and 2 are done: their plans and results are in `docs/milestones/0.md`, `docs/milestones/1.md` and `docs/milestones/2.md`. Milestone 3 is next: it starts in a new chat, in Plan Mode.
