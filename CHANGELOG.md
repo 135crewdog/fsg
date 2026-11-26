@@ -2,6 +2,12 @@
 
 What changed in each version a player can see, newest first.
 
+## 0.0.14
+
+- The HUD, in green, as in Wings: the heading on a tape across the top (magnetic, so the runway reads 080), a bank scale under it, the pitch ladder, the flight path marker and the waterline, airspeed on the left and altitude on the right, a VSI just above the altitude, and g, angle of attack, Mach and power in the lower left. Below 2,000 feet above the ground the altitude is the radar altitude, with an R. Drag a finger to look around and the heading tape slides with the view.
+- A HUD switch on the pause screen, on to begin with. Off, only the airspeed and altitude show.
+- With the debug overlay on, it sits top left in flight, clear of the HUD.
+
 ## 0.0.13
 
 - Caught up with Wings. The Developer switch is now called Debug overlay; if yours was on, it stays on.

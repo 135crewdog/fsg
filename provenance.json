@@ -83,6 +83,24 @@
       "how": "adapted",
       "original": "77b5843289379085d793124d1029f43ee479e37a5a37bc0bde63ba849663adf7"
     },
+    "src/hud.js": {
+      "from": "wings:src/hud.js",
+      "how": "adapted",
+      "original": "f8a960f588057a4dbd8705e1ec1bc7c6f4ad45f701da9f73e9e09770d881629b",
+      "commit": "6d689b789fedb783d7ad6ae8cc990904a12fe32e"
+    },
+    "src/readouts.js": {
+      "from": "wings:src/readouts.js",
+      "how": "adapted",
+      "original": "4179441d2f0d39a54d6c0c488c1420dc5fb45f432318830b3ecd65640bdbcaf7",
+      "commit": "6d689b789fedb783d7ad6ae8cc990904a12fe32e"
+    },
+    "tests/hud.test.js": {
+      "from": "wings:tests/hud.test.js",
+      "how": "adapted",
+      "original": "4c8f9c3c3bf41653b827d411f023114938c471865da3a451de63c9d8e03b93d4",
+      "commit": "6d689b789fedb783d7ad6ae8cc990904a12fe32e"
+    },
     "tests/browser/app.chromium.mjs": {
       "from": "FDM:tests/page.chromium.mjs",
       "how": "adapted",

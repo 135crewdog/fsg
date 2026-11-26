@@ -1,8 +1,8 @@
 <!doctype html>
 <!-- After 135crewdog/wings, index.html, commit 6d689b7 (first copied at 557a8d0):
      cut down to the picture, the pause button, the start, pause and crashed
-     screens, the debug overlay and the rotate screen. The controls and the HUD
-     are still to come. -->
+     screens, the HUD, the debug overlay and the rotate screen. The controls are
+     still to come. -->
 <html lang="en">
 <head>
   <meta charset="utf-8">
@@ -23,6 +23,8 @@
   <canvas id="view"></canvas>
 
   <div id="controls" hidden>
+    <canvas id="hud"></canvas>
+    <div id="safe"></div>
     <button id="pause" aria-label="Pause">II</button>
   </div>
 
@@ -40,6 +42,10 @@
     <div class="card" aria-label="Paused">
       <button id="resume" class="btn primary">Resume</button>
       <button id="restart" class="btn">Restart</button>
+      <div class="row">
+        <span id="hud-label">HUD</span>
+        <button id="hud-switch" class="switch" role="switch" aria-checked="true" aria-labelledby="hud-label"></button>
+      </div>
       <div class="row">
         <span id="dev-label">Debug overlay</span>
         <button id="dev-switch" class="switch" role="switch" aria-checked="false" aria-labelledby="dev-label"></button>

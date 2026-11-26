@@ -183,6 +183,56 @@ if (shots) await page.screenshot({ path: join(shots, 'flying.png') });
   const back = await page.waitForFunction(() => window.fsg.picture.look.yaw === 0 && window.fsg.picture.look.pitch === 0, null, { timeout: 5000 }).then(() => true, () => false);
   check(Math.abs(dragged.yaw - 75) < 1 && Math.abs(dragged.pitch + 10) < 1 && back, 'a drag across the picture looks around the airplane; let go and the view comes back', `dragged to yaw ${dragged.yaw}, pitch ${dragged.pitch}`);
 }
+// The HUD (pull request 6): drawn in green over the flight; its tape follows the view; switched off, only the
+// airspeed and altitude are left. What is on its canvas is read back and held against src/hud.js's own places.
+{
+  // Green at a place on the HUD's canvas (CSS px, within 2 px), and how much green there is in a band of rows.
+  const hudRead = (swungBy) => page.evaluate(async (wantYaw) => {
+    const hud = await import('./src/hud.js');
+    const canvas = document.getElementById('hud'), scale = canvas.width / canvas.clientWidth;
+    const data = canvas.getContext('2d').getImageData(0, 0, canvas.width, canvas.height).data;
+    const green = (x, y) => { const i = (Math.round(y * scale) * canvas.width + Math.round(x * scale)) * 4; return data[i + 3] > 128 && data[i + 1] > 180 && data[i] < 190 && data[i + 2] < 160; };
+    const near = (x, y) => { for (let dx = -2; dx <= 2; dx++) for (let dy = -1; dy <= 1; dy++) if (green(x + dx, y + dy)) return true; return false; };
+    const count = (y0, y1) => { let n = 0; for (let y = y0; y < y1; y++) for (let x = 0; x < canvas.clientWidth; x++) if (green(x, y)) n++; return n; };
+    const w = canvas.clientWidth, h = canvas.clientHeight, cx = w / 2, cy = h / 2, top = document.getElementById('safe').getBoundingClientRect().top + 8;
+    const { reading, look } = window.fsg.picture;
+    const focal = hud.focalLength(55, h), reach = w * 0.22;
+    const swing = hud.viewHeading(reading.pitch, reading.roll, look.yaw, look.pitch), pointer = hud.tapeX(-swing, focal);
+    const centre = hud.magnetic(reading.heading) + swing, marks = hud.tapeMarks(centre, focal, reach, pointer);
+    const gaps = marks.slice(1).map((m, k) => (m.x + marks[k].x) / 2).filter((x) => Math.abs(x - pointer) > 12);
+    return {
+      yaw: look.yaw, wantYaw, swing, pointer, centre, marks: marks.length,
+      ticksDrawn: marks.filter((m) => near(cx + m.x, top + 6)).length, gapsClear: gaps.filter((x) => !near(cx + x, top + 6)).length, gaps: gaps.length,
+      pointerDrawn: near(cx + pointer - 3, top + 6) && near(cx + pointer + 3, top + 6), middleClear: !near(cx - 3, top + 5) || !near(cx + 3, top + 5),
+      topGreen: count(0, 45), middleGreen: count(cy - 12, cy + 12), lowGreen: count(h - 80, h),
+    };
+  }, swungBy);
+  const plain = await hudRead(0);
+  check(await visible('#hud') && plain.topGreen > 200 && plain.middleGreen > 200 && plain.lowGreen > 200 && plain.pointerDrawn && plain.ticksDrawn === plain.marks && plain.marks >= 6,
+    'the HUD is drawn: the heading tape with its pointer in the middle, the numbers, the rows lower left', `${plain.ticksDrawn} of ${plain.marks} tape marks where src/hud.js puts them; tape centred on ${plain.centre.toFixed(1)} magnetic`);
+  if (shots) await page.screenshot({ path: join(shots, 'hud.png') });
+  // The view swung 15 degrees left: the tape's middle is the heading the view looks along, and the pointer has gone right with the nose.
+  await page.mouse.move(300, 250);
+  await page.mouse.down();
+  await page.mouse.move(360, 250, { steps: 6 });
+  await page.waitForTimeout(300);
+  const swung = await hudRead(15);
+  if (shots) await page.screenshot({ path: join(shots, 'hud-swung.png') });
+  await page.mouse.up();
+  await page.waitForFunction(() => window.fsg.picture.look.yaw === 0, null, { timeout: 5000 }).catch(() => {});
+  check(Math.abs(swung.yaw - 15) < 1 && Math.abs(swung.centre - (plain.centre - 15)) < 2 && swung.ticksDrawn === swung.marks && swung.gapsClear === swung.gaps && swung.gaps >= 4,
+    'with the view swung, the tape\'s middle reads the heading the view looks along, within 2 degrees', `swung ${swung.yaw} deg left: the tape is centred on ${swung.centre.toFixed(1)} (${plain.centre.toFixed(1)} not swung); ${swung.ticksDrawn} of ${swung.marks} marks in place, ${swung.gapsClear} of ${swung.gaps} gaps between them clear`);
+  check(swung.pointer > 90 && swung.pointer < 115 && swung.pointerDrawn && swung.middleClear, 'and the pointer has moved with the nose', `${swung.pointer.toFixed(0)} px right of the middle`);
+  // Off: only the airspeed and altitude, in the same places. The choice is kept as fsg.hud.
+  await page.click('#pause');
+  await page.click('#hud-switch');
+  await page.click('#resume');
+  await page.waitForTimeout(400);
+  const off = await hudRead(0);
+  if (shots) await page.screenshot({ path: join(shots, 'hud-off.png') });
+  check(off.topGreen === 0 && off.lowGreen === 0 && off.middleGreen > 100 && off.middleGreen < plain.middleGreen && (await page.evaluate(() => localStorage.getItem('fsg.hud'))) === 'off',
+    'HUD off: only the airspeed and altitude are drawn, and the choice is kept as fsg.hud', `green: ${off.topGreen} at the top, ${off.middleGreen} across the middle (${plain.middleGreen} with it on), ${off.lowGreen} at the bottom`);
+}
 // Pause: the picture stops, the Worker rests. Resume catches nothing up.
 {
   // The tap and the count of frames at that moment, in one go: this browser draws slowly, and a count read a moment before the tap would be stale.
@@ -277,6 +327,9 @@ await page.reload();
 check((await text('#screen-start .version')) === version, 'offline: a reload still opens the app');
 await pictureIs('offline');
 check(await visible('#dev'), 'the Debug overlay switch is still on after a reload');
+check((await page.getAttribute('#hud-switch', 'aria-checked')) === 'false', 'and the HUD switch is still off after a reload');
+await page.evaluate(() => document.getElementById('hud-switch').click());
+check((await page.getAttribute('#hud-switch', 'aria-checked')) === 'true' && (await page.evaluate(() => localStorage.getItem('fsg.hud'))) === 'on', 'switched on again, it says so');
 check(await app.ready(), 'offline: Fly is ready');
 js = await app.jsbsim();
 check(!js.error && js.build === 'weh', 'offline: JSBSim starts in its Worker all the same', js.error ?? js.says);

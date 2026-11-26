@@ -8,13 +8,14 @@
 
 import * as THREE from 'three';
 import { FT } from '../sim/world.js';
+import { VARIATION } from '../hud.js';
 import { toPicture } from './frames.js';
 
 const HORIZON = 0xcfe6f7, ZENITH = 0x1f5fb8;   // the app's sky colours, as in style.css
 const SUN = new THREE.Vector3(-3, 6, 4).normalize();   // the way to the sun: high in the south-west (x east, y up, z south)
 export const FAR = 30000;                       // m: the haze has hidden everything by here
-/** Hawaii's magnetic variation, degrees east, as Wings' HUD has it: the runway is numbered by its magnetic heading. */
-export const VARIATION = 9.6;
+/** Hawaii's magnetic variation, degrees east: the HUD's (src/hud.js), since the runway is numbered by its magnetic heading. */
+export { VARIATION };
 /** A runway's two numbers from its true heading: 090 true is 080 magnetic, so 8 and 26. */
 export function runwayNumbers(headingDeg) {
   const number = (((Math.round((headingDeg - VARIATION) / 10) + 35) % 36) + 1);
