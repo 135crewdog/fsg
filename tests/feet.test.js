@@ -145,3 +145,37 @@ test('reported: the rudder the tilt asks of the copilot, by speed (the plan\'s l
   }
   console.log(`  rudder asked for by a 10 degree tilt, of full: ${rows.join(', ')}`);
 });
+
+// Two things Codex's review of pull request 40 found, each made a test before it was fixed.
+test('sending the same controls again changes nothing: a takeoff flown with the controls sent once a step and sent three times a step is the same flight', () => {
+  const flown = (times) => {
+    const f = Flight.start(module, C172P), rows = [];
+    for (let k = 0; k < 25 / DT; k++) {
+      const controls = { brake: false, throttle: 1, flaps: true, pitch: 0, roll: 0.1 * Math.sin(k * DT) };
+      for (let n = 0; n < times; n++) f.fly(controls);
+      assert.equal(f.step(1), 0, 'JSBSim stepped');
+      if (k % 120 === 0) rows.push(Array.from(f.state));
+    }
+    f.dispose();
+    return rows;
+  };
+  assert.deepEqual(flown(3), flown(1));
+});
+
+test('a taxi turn is not paid back later: after 30 s of full right stick at a quarter throttle, stick neutral and full throttle, at every second of the next 8 s the nose is within 3 degrees of where it is with no hold at all', () => {
+  // First written as "the nose swings less than 5 degrees": wrong, because the turn itself runs on about 12 degrees after the
+  // stick is centred, hold or no hold (it was turning 20 degrees a second). What the copilot must not do is add to that.
+  const flown = (assists) => {
+    const f = Flight.start(module, C172P, { assists }), heading = () => f.value('attitude/psi-rad') * DEG, out = [];
+    const run = (seconds, controls) => { for (let k = 0; k < seconds / DT; k++) { f.fly({ brake: false, flaps: true, pitch: 0, ...controls }); assert.equal(f.step(1), 0, 'JSBSim stepped'); } };
+    run(30, { throttle: 0.25, roll: 1 });
+    const from = heading();
+    for (let second = 0; second < 8; second++) { run(1, { throttle: 1, roll: 0 }); out.push(((heading() - from + 540) % 360) - 180); }
+    f.dispose();
+    return out;
+  };
+  const held = flown(C172P.assists), bare = flown({ ...C172P.assists, steer: { wheel } });
+  const most = Math.max(...held.map((h, i) => Math.abs(h - bare[i])));
+  console.log(`  the nose runs on ${held[1].toFixed(1)} degrees with the hold and ${bare[1].toFixed(1)} without; they differ by ${most.toFixed(1)} degrees at most (68 degrees the other way before the fix, by Codex's run)`);
+  assert.ok(most < 3, `${most} degrees`);
+});

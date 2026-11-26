@@ -58,7 +58,7 @@ export const C172P = {
     feet: { to: 'fcs/rudder-cmd-norm', sign: -1 },
     steer: {
       wheel: { to: 'fcs/steer-cmd-norm', sign: 1, halfAtKt: 28, power: 3 },
-      hold: { turnRadPerSec: 4 * DEG, follow: 0.65, wheelbaseFt: 65 / 12, rate: 6, heading: 20, forgetSeconds: 20 },
+      hold: { turnRadPerSec: 4 * DEG, follow: 0.65, wheelbaseFt: 65 / 12, rate: 6, heading: 40, forgetSeconds: 10 },
     },
   },
   /** A name for each wheel and airframe contact point, in the aircraft file's order (tests/c172p.test.js checks it against the file). */

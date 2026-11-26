@@ -90,7 +90,13 @@ export class Assists {
   #feet;
   #air = { beta: 0, alpha: 0, bank: 0, pitch: 0, p: 0, r: 0, vtrueFps: 0, roll: 0 };
   #dt;
-  /** How far the nose has swung, unasked, on the ground (rad), forgotten slowly: the copilot's sense of the heading it is holding. */
+  /**
+   * How far the nose has swung, unasked, on the ground (rad), forgotten slowly: the copilot's sense of the
+   * heading it is holding. It is moved on by `advance`, once for every physics step and never by `apply`, so
+   * that sending the same controls twice changes nothing. It gathers only as fast as the feet have a say
+   * (the hold's weight): a swing at a taxi, where the nosewheel has the airplane and the feet have none, is
+   * not saved up to be paid back when the speed comes. (Both found by Codex's review of pull request 40.)
+   */
   #drift = 0;
 
   constructor(settings, stateAt, inputAt, wheels, dt = 1 / 120) {
@@ -119,6 +125,26 @@ export class Assists {
     return (this.#settings.trim?.sets ?? []).map(([name, value]) => [name, value]);
   }
 
+  /** The swing nobody asked for, rad/s: the yaw rate, less the turn the tilt is asking for (`askedTurn`). */
+  #swing(state, stick, share) {
+    const s = this.#s, { steer } = this.#settings;
+    return state[s.r] - askedTurn(steer.hold, share, stick, (steer.wheel.sign * state[s.wheel] * Math.PI) / 180, state[s.vg]);
+  }
+
+  /**
+   * Moves the copilot's memory on by one physics step: call it once before each step, with the state after
+   * the last one and the controls as they are. `apply` only reads what this keeps.
+   */
+  advance(state, controls) {
+    const { steer = {} } = this.#settings, hold = steer.hold;
+    if (!hold || !this.#feet) return;
+    let onGround = false;
+    for (const i of this.#wheels) if (state[i] === 1) { onGround = true; break; }
+    if (!onGround) { this.#drift = 0; return; }
+    const share = wheelShare(state[this.#s.vg] / KT, steer.wheel), weight = (1 - share) ** 2;
+    this.#drift += (weight * this.#swing(state, controls.roll, share) - this.#drift / hold.forgetSeconds) * this.#dt;
+  }
+
   /**
    * Writes the assists' commands into `inputs`, from the state after the last step and the roll stick.
    * The controls' own commands are already there; only the wheel brakes are shared, and the assists never
@@ -143,11 +169,10 @@ export class Assists {
         if (hold && onGround) {
           // The swing nobody asked for: the yaw rate, less the turn the tilt is asking for. The feet's own
           // law sees only that (it must not push against an asked-for turn), and so does the hold.
-          const swing = air.r - askedTurn(hold, share, stick, (steer.wheel.sign * state[s.wheel] * Math.PI) / 180, state[s.vg]);
+          const swing = this.#swing(state, stick, share);
           air.r = swing;
-          this.#drift += (swing - this.#drift / hold.forgetSeconds) * this.#dt;
-          held = -((1 - share) ** 2) * (hold.rate * swing + hold.heading * this.#drift);
-        } else this.#drift = 0;
+          held = -((1 - share) ** 2) * hold.rate * swing - hold.heading * this.#drift;
+        }
         rudder = this.#feet(air) * clamp((state[s.vc] - FEET.fromKt) / (FEET.fullKt - FEET.fromKt), 0, 1) + held;
       }
       if (onGround && steer.rudder) rudder += stick;

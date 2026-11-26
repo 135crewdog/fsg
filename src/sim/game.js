@@ -273,6 +273,8 @@ export class Flight {
     this.stepsRun = 0;
     for (let k = 0; k < n; k++) {
       if (this.ended || !this.#groundReady()) return 0;
+      // The copilot's memory moves on here, once a step, and nowhere else: a control sent twice changes nothing.
+      this.assists?.advance(this.state, this.controls);
       this.#write();
       const inputs = this.recorded ? Float64Array.from(this.inputs) : null;
       const result = this.fdm.step(1);
