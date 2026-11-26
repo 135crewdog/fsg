@@ -45,6 +45,11 @@ const errors = [];
 page.on('pageerror', (e) => errors.push(String(e)));
 page.on('console', (m) => { if (m.type() === 'error') errors.push(m.text()); });
 
+// Where the debug overlay's box is on a page: how far its left and bottom edges are from the screen's, and its rectangle.
+// Milestone 3, PR 2: one place on every screen (the owner's advice).
+const overlayAt = (p) => p.evaluate(() => { const r = document.getElementById('dev').getBoundingClientRect(); return { left: r.left, fromBottom: innerHeight - r.bottom, top: r.top, right: r.right, bottom: r.bottom }; });
+const overlayPlaces = {};
+
 let failed = 0;
 const check = (ok, what, detail = '') => {
   if (!ok) failed++;
@@ -172,6 +177,27 @@ if (shots) await page.screenshot({ path: join(shots, 'flying.png') });
   check(to.behindWithinMs > 0 && to.behindWithinMs <= 40, 'the picture trails the newest state (in this browser, drawing in software)', `99 frames in 100 within ${to.behindWithinMs} ms, most ${to.behindMostMs.toFixed(0)}; ${to.fps.toFixed(0)} frames a second`);
   box = await text('#dev');
   check(overlaySays(box, 'flying'), 'in flight the overlay shows how it is running', box.replace(/\n/g, ' | '));
+  // In flight: the overlay's box against the throttle, the buttons and the pause button, and against what the HUD has drawn.
+  overlayPlaces.flying = await overlayAt(page);
+  const under = await page.evaluate(() => {
+    const dev = document.getElementById('dev').getBoundingClientRect();
+    const hits = ['throttle', 'toggles', 'pause'].filter((id) => { const r = document.getElementById(id).getBoundingClientRect(); return r.width > 0 && r.left < dev.right && r.right > dev.left && r.top < dev.bottom && r.bottom > dev.top; });
+    // The HUD's canvas under the box: how many of its pixels carry any drawing.
+    const hud = document.getElementById('hud'), box = hud.getBoundingClientRect(), k = hud.width / box.width;
+    const x = Math.max(0, Math.round((dev.left - box.left) * k)), y = Math.max(0, Math.round((dev.top - box.top) * k));
+    const w = Math.max(1, Math.round(dev.width * k)), h = Math.max(1, Math.round(dev.height * k));
+    const px = hud.getContext('2d').getImageData(x, y, w, h).data;
+    let ink = 0;
+    for (let i = 3; i < px.length; i += 4) if (px[i] > 0) ink++;
+    return { hits, ink, of: w * h, box: `${Math.round(dev.width)} x ${Math.round(dev.height)} px at ${Math.round(dev.left)}, ${Math.round(dev.top)} of ${innerWidth} x ${innerHeight}` };
+  });
+  check(under.hits.length === 0, 'in flight the overlay covers none of the throttle, the buttons or the pause button', under.hits.join(', ') || under.box);
+  // The plan's line "it covers none of the HUD's numbers" failed (docs/milestones/3.md, PR 2): a twelve-line box does not fit
+  // anywhere on a phone's screen clear of the HUD. What is true is checked: it sits wholly below the airspeed and altitude,
+  // which are on the screen's middle line. What it does cover is reported.
+  const middle = await page.evaluate(() => { const r = document.getElementById('safe').getBoundingClientRect(); return (r.top + r.bottom) / 2; });
+  check(overlayPlaces.flying.top > middle, 'it sits wholly below the HUD\'s airspeed and altitude', `its top is at ${Math.round(overlayPlaces.flying.top)} px, the airspeed's line at ${Math.round(middle)}`);
+  console.log(`     reported: ${under.ink} of ${under.of} HUD pixels under it carry drawing (g, angle of attack, Mach and power, and the lower left of the pitch ladder)`);
 }
 // A finger dragged across the picture looks around; let go and the view comes back.
 {
@@ -245,6 +271,7 @@ if (shots) await page.screenshot({ path: join(shots, 'flying.png') });
   check(stopped.resting && stopped.frames - atTap <= 30, 'paused, the picture stops within 30 frames', `${stopped.frames - atTap} frames after the tap`);
   box = await text('#dev');
   check(overlaySays(box, 'paused') && /\(least [1-9]/.test(box), 'on the pause screen the overlay keeps the flight\'s numbers, for a screenshot', box.replace(/\n/g, ' | '));
+  overlayPlaces.paused = await overlayAt(page);
   if (shots) await page.screenshot({ path: join(shots, 'paused.png') });
   await page.waitForTimeout(3000);
   const held = await app.flight();
@@ -329,6 +356,7 @@ await page.reload();
 check((await text('#screen-start .version')) === version, 'offline: a reload still opens the app');
 await pictureIs('offline');
 check(await visible('#dev'), 'the Debug overlay switch is still on after a reload');
+overlayPlaces.start = await overlayAt(page);
 check((await page.getAttribute('#hud-switch', 'aria-checked')) === 'false', 'and the HUD switch is still off after a reload');
 await page.evaluate(() => document.getElementById('hud-switch').click());
 check((await page.getAttribute('#hud-switch', 'aria-checked')) === 'true' && (await page.evaluate(() => localStorage.getItem('fsg.hud'))) === 'on', 'switched on again, it says so');
@@ -426,6 +454,7 @@ check(!js.error && js.build === 'weh' && (await text('#dev')).includes('wasm exc
   check(settled && typeof r3.error === 'string' && b3.includes(`JSBSim did not start: ${r3?.error}`) && (await w.locator('#screen-crashed').isVisible()) && errorScreen(said3, r3?.error) && (await w.locator('#crash-restart').isVisible()),
     'the Worker itself fails to load: the screen says so in a few words and what to do, and the error\'s own words are on the overlay', settled ? b3.split('\n').slice(3).join(' | ') : `stuck at: ${b3.split('\n').slice(3).join(' | ')}`);
   if (shots) await w.screenshot({ path: join(shots, 'error-start.png') });
+  overlayPlaces.crashed = await overlayAt(w);
   check((await w.evaluate(() => localStorage.getItem('fsg.fdmStarting'))) === null, 'and the marker is cleared');
   if (settled) {
     await noWorker.unroute('**/src/sim/worker.js');
@@ -713,6 +742,11 @@ check(!js.error && js.build === 'weh' && (await text('#dev')).includes('wasm exc
   await turned.close();
 }
 
+{
+  const places = Object.entries(overlayPlaces), [, first] = places[0];
+  check(places.length === 4 && places.every(([, at]) => Math.abs(at.left - first.left) < 1 && Math.abs(at.fromBottom - first.fromBottom) < 1), 'the debug overlay is in one place on the start, flight, pause and crashed screens',
+    places.map(([name, at]) => `${name}: ${at.left.toFixed(0)} px from the left, ${at.fromBottom.toFixed(0)} from the bottom`).join('; '));
+}
 check(errors.length === 0, 'no console errors', errors.join(' | '));
 console.log(`\nChromium ${browser.version()} (headless), FSG ${version}: ${failed ? `${failed} FAILED` : 'all passed'}`);
 await browser.close();

@@ -177,7 +177,7 @@ export class Flight {
       flight.stateNames.forEach((name, i) => flight.#at.set(name, i));
       flight.#lat = flight.#at.get('position/lat-geod-rad');
       flight.#lon = flight.#at.get('position/long-gc-rad');
-      if (assists) flight.assists = new Assists(assists, (name) => flight.#at.get(name), inputAt, wheels);
+      if (assists) flight.assists = new Assists(assists, (name) => flight.#at.get(name), inputAt, wheels, DT);
       flight.rules = new Rules(aircraft, (name) => flight.#at.get(name), flight.stateNames, DT);
       flight.rules.crashOverride = crashOverride;
       flight.startSets = [

@@ -4,7 +4,6 @@
 // Why this Cessna and not `c172x` (the plan has the numbers): its elevator has no free play, so it comes back
 // to its trimmed speed; a pilot can steer its nosewheel; and FlightGear's own model of it, the picture in
 // models/c172p.glb, has its wheels where this file has its gear.
-import { STEER_HALF_KT } from '../assists.js';
 import { WINGS_CRASH_FPM } from '../rules.js';
 
 const DEG = Math.PI / 180;
@@ -42,16 +41,24 @@ export const C172P = {
    *   trim   Neutral speed 100 knots: JSBSim's own pitch and roll trim for level flight at 100 knots and
    *          2,000 ft, set once. tests/c172p.test.js re-derives them.
    *   feet   The game's: this file has no yaw damper. JSBSim's rudder command is positive nose left.
-   *   steer  On the ground the stick works the rudder and the nosewheel together, as a Cessna's pedals do.
-   *          The nosewheel's share fades with speed (Wings' fade: half at 29 knots), so it does not twitch
-   *          on the takeoff roll. No wheel brakes are used to steer: this nosewheel is the pilot's.
+   *   steer  The copilot's feet on the ground (milestone 3, PR 2; docs/milestones/3.md has what was flown).
+   *          The tilt is always the ailerons. The nosewheel turns the airplane as the tilt asks, its share
+   *          falling smoothly with speed: a half at 28 knots, 9% at 60. The rudder is the copilot's alone:
+   *          it holds the nose against any swing the tilt did not ask for, which is what keeps this Cessna
+   *          straight against its engine at full power. No wheel brakes are used to steer.
+   *            wheel.halfAtKt, power  the nosewheel's curve (src/sim/assists.js `wheelShare`)
+   *            hold.turnRadPerSec     the gentle turn full tilt asks for once the nosewheel has let go: 4 degrees a second
+   *            hold.follow            how much of the turn its angle promises the nosewheel really makes (tyres slip)
+   *            hold.wheelbaseFt       nosewheel to main wheels, 65 in (the aircraft file's gear)
+   *            hold.rate, heading     how firmly the feet oppose an unasked swing, and the heading it has drifted
+   *            hold.forgetSeconds     how slowly that heading is forgotten
    */
   assists: {
     trim: { knots: 100, heightFt: 2000, sets: [['fcs/pitch-trim-cmd-norm', 0.1873], ['fcs/roll-trim-cmd-norm', 0.0331]] },
     feet: { to: 'fcs/rudder-cmd-norm', sign: -1 },
     steer: {
-      rudder: { to: 'fcs/rudder-cmd-norm', sign: -1 },
-      wheel: { to: 'fcs/steer-cmd-norm', sign: 1, halfAtKt: STEER_HALF_KT },
+      wheel: { to: 'fcs/steer-cmd-norm', sign: 1, halfAtKt: 28, power: 3 },
+      hold: { turnRadPerSec: 4 * DEG, follow: 0.65, wheelbaseFt: 65 / 12, rate: 6, heading: 20, forgetSeconds: 20 },
     },
   },
   /** A name for each wheel and airframe contact point, in the aircraft file's order (tests/c172p.test.js checks it against the file). */

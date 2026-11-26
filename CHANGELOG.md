@@ -2,6 +2,11 @@
 
 What changed in each version a player can see, newest first.
 
+## 0.0.17
+
+- The takeoff roll, after the owner's Cessna notes: tilt is always the ailerons, so your hands hold the wings. The copilot's feet do the rest. They turn the airplane with the nosewheel as the tilt asks, less and less as the speed builds, and they hold the nose straight against the engine's pull. Picking up a wing at 60 knots no longer swings the nose off the centreline.
+- The debug overlay stays in one place, bottom left, on every screen.
+
 ## 0.0.16
 
 - A gentler middle to the stick, after the first flight: small and medium tilts now roll and pull about half as much. Full tilt still gives everything the airplane has. At 100 knots, half tilt rolls about 16 degrees a second and pulls 2 g, where it rolled 32 and pulled 3. On takeoff it wants a little more back tilt than before to fly off at the same speed.

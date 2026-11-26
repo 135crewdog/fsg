@@ -22,7 +22,6 @@ const screens = [...document.querySelectorAll('.screen')];
 const show = (name) => {
   for (const el of screens) el.hidden = el.id !== `screen-${name}`;
   $('controls').hidden = name !== null;
-  $('dev').classList.toggle('flying', name === null);   // in flight it moves clear of the HUD
 };
 
 // ---- the flight on screen, and the game in its Worker ----
