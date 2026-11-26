@@ -1,0 +1,3633 @@
+{
+ "about_this_copy": {
+  "what": "AFWAL-TR-80-3141 Part III, Appendix I, 'F-4J Extended Angle-of-Attack Simulation Model', as data: the 28 tables of its Table 9, the equations of its Table 1, its Tables 2 to 8, its sources and its own validation.",
+  "made_from": "The full transcription made for FSG milestone 3 on 26 November 2026 (340 KB). It and its reading notes were working files of the session that made them, and are not in the repo.",
+  "left_out_of_this_copy": [
+   "For each function: the pixel measurement of every breakpoint of its plotted figure, and each curve's pixel calibration ('figure_check.curves'). How many breakpoints were measured and how many agreed, the three fixed spot checks and any note are kept; each figure's scale is under 'figures_5_to_28'.",
+   "For each function: the two raw readings ('reading_A_previous_worker', 'reading_B_this_worker'). They are equal to 'values' in every cell but the two listed under 'final_differs_from_both_readings'."
+  ],
+  "paths": "Paths that start work/ or refs/ are in the transcription's working folder, not in this repo. The report itself is DTIC ADA101648.",
+  "see": "aircraft/f4c/data/README.md"
+ },
+ "source": {
+  "report": "AFWAL-TR-80-3141, Part III",
+  "dtic": "ADA101648",
+  "date": "1981",
+  "part": "Appendix I, 'F-4J Extended Angle-of-Attack Simulation Model' (the appendix heading on PDF p.17 is degraded in the scan; title as in the task and the report's contents)",
+  "originator": "Systems Technology, Inc. (the appendix cites STI working paper WP-2141-1 as its data base)",
+  "file": "refs/ada101648.pdf",
+  "scan": "1-bit CCITT page images at 300 dpi; Table 9 is a photo-reduced dot-matrix listing with characters about 24 px high",
+  "page_numbering": "printed page = PDF page - 16 throughout the appendix (checked at PDF 29/13, 40/24, 41/25, 58/42, 66/50)"
+ },
+ "how_this_file_was_made": {
+  "script": "work/build_afwal_json.py (with work/build_afwal.py, work/t9_read2.py, work/glyphs.py, work/figcheck.py)",
+  "table_9": [
+   "Reading A: the previous worker's transcription (work/build_afwal.py, P1), kept unchanged. Its second pass is recorded there only as one differing cell (CDBAS at 50 deg, 1.129) and could not be checked as a separate reading.",
+   "Reading B: this worker's independent line-by-line reading from fresh, larger tiles (work/t9/p4x_NN.png), typed as the 163 printed lines (work/t9_read2.py).",
+   "A and B compared by program: 504 cells, 0 differences.",
+   "Machine check (work/glyphs.py): every character cut out of the native scan and each digit classified against the mean shape of all the other digits on its page. 2123 data digits: machine agrees with the final text on 2115, disagrees on 8 (each looked at again at pixel level; listed under each function).",
+   "Third look at every cell either reader or the machine doubted, at 8x native pixels beside the page's mean glyphs, and against the plotted figure where the figure can resolve it.",
+   "Final values differ from both human readings in 2 cells (CLSTAB at 30 deg, CMSTAB at 70 deg)."
+  ],
+  "figures": "work/figcheck.py: each figure page deskewed; both axis lines fitted; tick marks on both axes found and fitted to a uniform grid (tick-fit rms 0.05-0.9 px); the plotted line measured across its width on every straight segment; each breakpoint read as the intersection of its two fitted segments (or the fitted segment at the breakpoint's column). Agreement means |figure - table| <= 2 px of value plus 2 px of alpha carried through the local slope.",
+  "typeset_tables": "Tables 1-8, Figure 4 and the text were read on the page images (not from the OCR), once, at two magnifications where digits were small; internal cross-checks are noted with each."
+ },
+ "counts": {
+  "table_9_functions": 28,
+  "table_9_cells": 504,
+  "readings_A_vs_B_differences": 0,
+  "final_differs_from_both_readings": 2,
+  "machine_check": {"data_digits": 2123, "agree": 2115, "disagree": 8},
+  "figure_check": {
+   "breakpoints_with_a_plotted_figure": 434,
+   "measurable": 393,
+   "agree_within_tolerance": 382,
+   "three_fixed_points_per_function": {"points": 81, "agree": 78}
+  },
+  "table_9_cells_still_in_doubt": 7
+ },
+ "equations_of_motion_and_axes": {
+  "section": "B. EQUATIONS OF MOTION",
+  "pdf_pages": [17, 27],
+  "printed_pages": [1, 11],
+  "assumptions": [
+   "a. The airframe is assumed to be a rigid body.",
+   "b. The earth is assumed to be fixed in inertial space.",
+   "c. The mass and mass distribution of the vehicle are assumed to be constant.",
+   "d. The aircraft has a plane of symmetry.",
+   "e. Effects associated with rotation of the vertical relative to inertial space are assumed negligible; the magnitude of the gravity vector is assumed constant."
+  ],
+  "axis_systems": {
+   "pdf_page": 18,
+   "printed_page": 2,
+   "origin": "All the axis systems have their origin at the aircraft center of gravity.",
+   "earth": "Z along the local gravity vector; X_E, Y_E horizontal with arbitrary but fixed direction.",
+   "body": "X_B positive forward along the fuselage reference line; Z_B in the plane of symmetry, positive down; Y_B positive out the right wing. Euler angles psi, theta, phi in that order. 'All angles and angular rates are positive in a righthanded sense.'",
+   "flight_path_or_wind": "X_W along the total velocity VT; Z_W in the plane of symmetry; located from the body axes by alpha (rotation about Y_B) and beta (rotation about Z_W). Still air: flight-path axes = wind axes.",
+   "wind_to_body_equation_1": [
+    "X_B = cos(alpha)cos(beta) X_W - cos(alpha)sin(beta) Y_W - sin(alpha) Z_W",
+    "Y_B = sin(beta) X_W + cos(beta) Y_W",
+    "Z_B = sin(alpha)cos(beta) X_W - sin(alpha)sin(beta) Y_W + cos(alpha) Z_W"
+   ],
+   "body_velocities_equation_9": ["U = VT cos(alpha) cos(beta)", "V = VT sin(beta)", "W = VT sin(alpha) cos(beta)"],
+   "alpha_beta_definitions_used_in_the_piloted_simulation": "alpha = asin(w/VT), beta = asin(v/VT) (p.5), with the body-axis w-dot equation substituted for the alpha-dot equation because of the large excursions"
+  },
+  "moment_equations_2_3": {
+   "pdf_page": 20,
+   "printed_page": 4,
+   "equations": ["P_dot = (c1 R + c2 P) Q + c3 L + c4 N", "Q_dot = c5 R P + c6 (R^2 - P^2) + c7 M", "R_dot = (c8 P + c9 R) Q + c4 L + c10 N"],
+   "constants": [
+    "c1 = G{(Iy - Iz) Iz - Ixz^2}",
+    "c2 = G{Ix - Iy + Iz} Ixz",
+    "c3 = G Iz",
+    "c4 = G Ixz",
+    "c5 = (Iz - Ix)/Iy",
+    "c6 = Ixz/Iy",
+    "c7 = 1/Iy",
+    "c8 = G{(Ix - Iy) Ix + Ixz^2}",
+    "c9 = G{Iy - Iz - Ix} Ixz",
+    "c10 = G Ix",
+    "G = 1/(Ix Iz - Ixz^2)"
+   ]
+  },
+  "force_equations_4": {
+   "pdf_page": 21,
+   "printed_page": 5,
+   "equations": [
+    "alpha_dot = Q - tan(beta)(P cos(alpha) + R sin(alpha)) + Z_W/(m VT cos(beta))",
+    "beta_dot = P sin(alpha) - R cos(alpha) + Y_W/(m VT)",
+    "VT_dot = X_W/m"
+   ]
+  },
+  "body_axis_moments_5": {
+   "pdf_page": 21,
+   "printed_page": 5,
+   "equations": ["L = q S b Cl", "M = q S c Cm + z_j T", "N = q S b Cn"],
+   "quote": "Cl, Cm, and Cn are the total body-axis nondimensional aerodynamic moment coefficients (referenced to the c.m.). (p.6)"
+  },
+  "flight_path_axis_forces_6": {
+   "pdf_page": 22,
+   "printed_page": 6,
+   "equations": [
+    "X_W = T cos(beta) cos(alpha + xi_0) + m g {cos(theta) cos(phi) sin(alpha) cos(beta) - sin(theta) cos(alpha) cos(beta) + cos(theta) sin(phi) sin(beta)} + YA sin(beta) - D cos(beta)",
+    "Y_W = -T sin(beta) cos(alpha + xi_0) + m g {cos(theta) sin(phi) cos(beta) + sin(theta) cos(alpha) sin(beta) - cos(theta) cos(phi) sin(alpha) sin(beta)} + YA cos(beta) + D sin(beta)",
+    "Z_W = -T sin(alpha + xi_0) + m g {sin(theta) sin(alpha) + cos(theta) cos(phi) cos(alpha)} - L"
+   ]
+  },
+  "aerodynamic_forces_7": {
+   "pdf_page": 22,
+   "printed_page": 6,
+   "equations": ["L = q S CL", "D = q S CD", "YA = q S Cy"],
+   "quote": "Lift, L, and drag, D, are assumed in the plane of symmetry; lift positive up and perpendicular to the velocity vector, drag positive aft and along the projection of the total velocity in the plane of symmetry. The side force YA is that component of the total aerodynamic force which is perpendicular to the plane of symmetry; it lies along the Y_B axis and is positive out the right wing."
+  },
+  "not_transcribed": "Equations 8 and 10-18 (Euler rates, earth velocities, flight-path angle, accelerometer signals, stability-axis rates and Euler angles; PDF p.23-27) are standard kinematics and were not transcribed; Figures 1-3 are sketches.",
+  "doubt": [
+   {
+    "cell": "equations 1, 2-3, 4, 6",
+    "candidates": [],
+    "chosen": "as given",
+    "note": "typeset equations read once on the page image; they are the standard forms, and the garbled OCR was not used"
+   }
+  ]
+ },
+ "table_1": {
+  "title": "TABLE 1. AERODYNAMIC COEFFICIENT EQUATIONS  a) Stability Axis Force Coefficients (PDF p.30, printed 14);  b) Body Axis Moment Coefficients (Concluded) (PDF p.31, printed 15)",
+  "pdf_page": [30, 31],
+  "printed_page": [14, 15],
+  "form": "hand-lettered; read once on the page image at two magnifications (the equations repeat the same pattern in each alpha range, which checks the reading)",
+  "notation": "alpha, beta in degrees; delta_stab, delta_a, delta_sp, delta_r in degrees; p, q, r, alpha_dot in rad/sec; VT total velocity in ft/sec; b span and c mean aerodynamic chord in ft. F(x) means table function F looked up at x degrees; F(45) or F(110) means the end value is held.",
+  "a_stability_axis_force_coefficients": {
+   "lift": [
+    {"alpha_range": "-180 <= alpha < -110", "equation": "CL = 2*CLBASIC(0) - CLBASIC(110) + CL_delta_stab(110)*delta_stab"},
+    {"alpha_range": "-110 <= alpha < 0", "equation": "CL = 2*CLBASIC(0) - CLBASIC(|alpha|) + CL_delta_stab(|alpha|)*delta_stab"},
+    {"alpha_range": "0 <= alpha < 110", "equation": "CL = CLBASIC(alpha) + CL_delta_stab(alpha)*delta_stab"},
+    {"alpha_range": "110 <= alpha < 180", "equation": "CL = CLBASIC(110) + CL_delta_stab(110)*delta_stab"}
+   ],
+   "drag": [
+    {"alpha_range": "|alpha| < 110", "equation": "CD = CDBASIC(|alpha|) + Delta_CD_STORES"},
+    {"alpha_range": "110 <= |alpha| <= 180", "equation": "CD = CDBASIC(110) + Delta_CD_STORES"}
+   ],
+   "sideforce": [
+    {
+     "alpha_range": "|alpha| < 45",
+     "equation": "Cy = Cy_beta(|alpha|)*beta + Cy_delta_a*delta_a + Cy_delta_sp*delta_sp + Cy_delta_r(|alpha|)*delta_r"
+    },
+    {
+     "alpha_range": "45 <= |alpha| < 110",
+     "equation": "Cy = Cy_beta(|alpha|)*beta + Cy_delta_a*delta_a + Cy_delta_sp*delta_sp + Cy_delta_r(45)*delta_r"
+    },
+    {
+     "alpha_range": "110 <= |alpha| <= 180",
+     "equation": "Cy = Cy_beta(110)*beta + Cy_delta_a*delta_a + Cy_delta_sp*delta_sp + Cy_delta_r(45)*delta_r"
+    }
+   ]
+  },
+  "b_body_axis_moment_coefficients": {
+   "rolling_moment": [
+    {
+     "alpha_range": "|alpha| < 45",
+     "equation": "Cl = Cl_beta_i(|alpha|)*beta + (b/(2*VT))*{Cl_p_j(|alpha|)*p + Cl_r(|alpha|)*r} + Cl_delta_a(|alpha|)*delta_a + Cl_delta_sp(|alpha|)*delta_sp + Cl_delta_r(|alpha|)*delta_r"
+    },
+    {
+     "alpha_range": "45 <= |alpha| < 110",
+     "equation": "Cl = Cl_beta_i(|alpha|)*beta + (b/(2*VT))*{Cl_p_j(45)*p + Cl_r(45)*r} + Cl_delta_a(45)*delta_a + Cl_delta_sp(45)*delta_sp + Cl_delta_r(45)*delta_r"
+    },
+    {
+     "alpha_range": "110 <= |alpha| <= 180",
+     "equation": "Cl = Cl_beta_i(110)*beta + (b/(2*VT))*{Cl_p_j(45)*p + Cl_r(45)*r} + Cl_delta_a(45)*delta_a + Cl_delta_sp(45)*delta_sp + Cl_delta_r(45)*delta_r"
+    }
+   ],
+   "pitching_moment": [
+    {
+     "alpha_range": "|alpha| < 45",
+     "equation": "Cm_REF = {Cm_BASIC(|alpha|)}*SGA + Delta_Cm_k(|alpha|, beta*) + (c/(2*VT))*{Cm_q(|alpha|)*q + Cm_alpha_dot(|alpha|)*alpha_dot} + {Cm_delta_stab(|alpha|) + K_beta*|beta|}*delta_stab + Cm_delta_a(|alpha|)*|delta_a| + Cm_delta_sp(|alpha|)*|delta_sp|"
+    },
+    {
+     "alpha_range": "45 <= |alpha| < 110",
+     "equation": "Cm_REF = {Cm_BASIC(|alpha|)}*SGA + Delta_Cm_k(45, beta*) + (c/(2*VT))*{Cm_q(45)*q + Cm_alpha_dot(45)*alpha_dot} + {Cm_delta_stab(|alpha|) + K_beta*|beta|}*delta_stab + Cm_delta_a(45)*|delta_a| + Cm_delta_sp(45)*|delta_sp|"
+    },
+    {
+     "alpha_range": "110 <= |alpha| <= 180",
+     "equation": "Cm_REF = {Cm_BASIC(110)}*SGA + Delta_Cm_k(45, beta*) + (c/(2*VT))*{Cm_q(45)*q + Cm_alpha_dot(45)*alpha_dot} + {Cm_delta_stab(110) + K_beta*|beta|}*delta_stab + Cm_delta_a(45)*|delta_a| + Cm_delta_sp(45)*|delta_sp|"
+    },
+    {
+     "alpha_range": "all alpha",
+     "equation": "Cm = Cm_REF + {(Xcg - Xref)/100}*{CL*cos(alpha) + CD*sin(alpha)}",
+     "note_as_printed": "NOTE: for |beta| <= 30 deg, beta* = |beta|;  |beta| > 30 deg, beta* = 30 deg.  for alpha >= 0, SGA = 1;  for alpha < 0, SGA = -1",
+     "K_beta": "printed as K with subscript beta and superscript Cm_delta_stab; value in Table 3 (0.00011 per deg^2)"
+    }
+   ],
+   "yawing_moment": [
+    {
+     "alpha_range": "|alpha| < 45",
+     "equation": "Cn_REF = Cn_beta_l(|alpha|)*beta + (b/(2*VT))*{Cn_p(|alpha|)*p + Cn_r(|alpha|)*r} + Cn_delta_a(|alpha|)*delta_a + Cn_delta_sp(|alpha|)*delta_sp + Cn_delta_r(|alpha|)*delta_r"
+    },
+    {
+     "alpha_range": "45 <= |alpha| <= 180",
+     "equation": "Cn_REF = Cn_beta_l(45)*beta + (b/(2*VT))*{Cn_p(45)*p + Cn_r(45)*r} + Cn_delta_a(45)*delta_a + Cn_delta_sp(45)*delta_sp + Cn_delta_r(45)*delta_r"
+    },
+    {"alpha_range": "all alpha", "equation": "Cn = Cn_REF + {(Xcg - Xref)/100}*{c/b}*Cy"}
+   ]
+  },
+  "axes_and_reference": {
+   "forces": "CL, CD, Cy are 'stability-axis' force coefficients as the report uses the term (p.6-7): lift up and perpendicular to the velocity vector, in the plane of symmetry; drag aft along the projection of the velocity on the plane of symmetry; side force Cy along the body Y axis, positive out the right wing. For non-zero sideslip D and YA are therefore not the wind-axis X and Y forces (Fig. 2).",
+   "moments": "Cl, Cm, Cn are body-axis moment coefficients: Cl and Cn made dimensional with q*S*b, Cm with q*S*c.",
+   "moment_reference": "The tables give moments about the reference centre Xref = 31% c. The transfer to the actual c.g. is the last line of the pitch and yaw blocks: Cm = Cm_REF + ((Xcg - Xref)/100)*(CL*cos(alpha) + CD*sin(alpha)); Cn = Cn_REF + ((Xcg - Xref)/100)*(c/b)*Cy. With Xcg = 29.3 the factor (Xcg - Xref)/100 is -0.017. No transfer is applied to the rolling moment and no vertical c.g. offset is modelled.",
+   "nondimensional_rates": "p and r with b/(2*VT); q and alpha_dot with c/(2*VT); rates in rad/sec (derivatives per radian)."
+  },
+  "doubt": [
+   {
+    "cell": "pitching-moment NOTE, 'for alpha ? 0, SGA = 1'",
+    "candidates": ["alpha >= 0", "alpha > 0"],
+    "chosen": "alpha >= 0",
+    "note": "the relation sign is partly lost in the scan ('alpha - 0'); the next line reads 'alpha < 0, SGA = -1', so >= is the only complement"
+   }
+  ]
+ },
+ "table_2": {
+  "title": "TABLE 2. ORGANIZATION OF TABULAR AERODYNAMIC DATA",
+  "pdf_page": 32,
+  "printed_page": 16,
+  "columns": ["PARAMETERS", "FUNCTION OF", "UNITS", "MNEMONIC AND ARRAY DIMENSIONS", "LINE NUMBERS", "alpha GRID"],
+  "rows": [
+   ["CL_BASIC", "alpha", "-", "CLBAS(23)", "2-8", "0.(5.)110."],
+   ["CL_delta_STAB", "alpha", "1/deg", "CLSTAB(23)", "9-15", "0.(5.)110."],
+   ["CD_BASIC", "alpha", "-", "CDBAS(23)", "16-22", "0.(5.)110."],
+   ["Cy_beta", "alpha", "1/deg", "CYB(23)", "23-29", "0.(5.)110."],
+   ["Cy_delta_r", "alpha", "1/deg", "CYDR(10)", "30-33", "0.(5.)45."],
+   ["Cl_beta_1", "alpha", "1/deg", "CRB1(23)", "34-40", "0.(5.)110."],
+   ["Cl_beta_2", "alpha", "1/deg", "CRB2(23)", "41-47", "0.(5.)110."],
+   ["Cl_p_1", "alpha", "1/rad", "CRP1(10)", "48-51", "0.(5.)45."],
+   ["Cl_p_2", "alpha", "1/rad", "CRP2(10)", "52-55", "0.(5.)45."],
+   ["Cl_r", "alpha", "1/rad", "CRR(10)", "56-59", "0.(5.)45."],
+   ["Cl_delta_a", "alpha", "1/deg", "CRDA(10)", "60-63", "0.(5.)45."],
+   ["Cl_delta_sp", "alpha", "1/deg", "CRDSP(10)", "64-67", "0.(5.)45."],
+   ["Cl_delta_r", "alpha", "1/deg", "CRDR(10)", "68-71", "0.(5.)45."],
+   ["Cm_BASIC", "alpha", "-", "CMBAS(23)", "72-78", "0.(5.)110."],
+   ["Delta Cm_1", "alpha, beta", "-", "DCM1(10,7)", "79-95", "0.(5.)45."],
+   ["Delta Cm_2", "alpha, beta", "-", "DCM2(10,7)", "96-112", "0.(5.)45."],
+   ["Cm_q", "alpha", "1/rad", "CMQ(10)", "113-116", "0.(5.)45."],
+   ["Cm_alpha_dot", "alpha", "1/rad", "CMAD(10)", "117-120", "0.(5.)45."],
+   ["Cm_delta_STAB", "alpha", "1/deg", "CMSTAB(23)", "121-127", "0.(5.)110."],
+   ["Cm_delta_a", "alpha", "1/deg", "CMDA(10)", "128-131", "0.(5.)45."],
+   ["Cm_delta_sp", "alpha", "1/deg", "CMDSP(10)", "132-135", "0.(5.)45."],
+   ["Cn_beta_1", "alpha", "1/deg", "CNB1(10)", "136-139", "0.(5.)45."],
+   ["Cn_beta_2", "alpha", "1/deg", "CNB2(10)", "140-143", "0.(5.)45."],
+   ["Cn_p", "alpha", "1/rad", "CNP(10)", "144-147", "0.(5.)45."],
+   ["Cn_r", "alpha", "1/rad", "CNR(10)", "148-151", "0.(5.)45."],
+   ["Cn_delta_a", "alpha", "1/deg", "CNDA(10)", "152-155", "0.(5.)45."],
+   ["Cn_delta_sp", "alpha", "1/deg", "CNDSP(10)", "156-159", "0.(5.)45."],
+   ["Cn_delta_r", "alpha", "1/deg", "CNDR(10)", "160-163", "0.(5.)45."]
+  ],
+  "footnote": "* 0.(5.)110. indicates values are given for alpha from 0 deg to 110 deg in 5 deg increments, i.e., 0., 5., 10., ..... 100., 105., 110.",
+  "cross_check": "Every row's array size, units and line numbers agree with the listing in Table 9 as read (asserted when this file was built).",
+  "doubt": []
+ },
+ "table_3": {
+  "title": "TABLE 3. CONSTANT AERODYNAMIC COEFFICIENTS",
+  "pdf_page": 33,
+  "printed_page": 17,
+  "rows": [
+   {
+    "symbol": "Delta_CD_STORES",
+    "units": "-",
+    "value": 0.0037,
+    "meaning": "incremental drag coefficient due to external stores (one centerline tank and one air-to-air missile, p.1)"
+   },
+   {"symbol": "Cy_delta_a", "units": "1/deg", "value": -0.000167, "meaning": "side force due to aileron"},
+   {"symbol": "Cy_delta_sp", "units": "1/deg", "value": -6e-05, "meaning": "side force due to spoiler"},
+   {
+    "symbol": "K_beta^(Cm_delta_stab)",
+    "units": "1/deg^2",
+    "value": 0.00011,
+    "meaning": "correction for the effect of delta_stab on Cm with sideslip, d(Cm_delta_stab)/d|beta| (nomenclature p.xii)"
+   }
+  ],
+  "doubt": []
+ },
+ "table_4": {
+  "title": "TABLE 4. AIRCRAFT CONFIGURATION/DERIVATIVE COMBINATIONS",
+  "pdf_page": 33,
+  "printed_page": 17,
+  "columns": ["AIRCRAFT CONFIGURATION", "Cl_beta_i: i", "Cl_p_j: j", "Delta_Cm_k: k", "Cn_beta_l: l"],
+  "rows": [["A", 1, 1, 1, 1], ["B", 1, 2, 1, 1], ["C", 2, 1, 1, 1], ["D", 1, 1, 2, 2]],
+  "tables_selected": {
+   "A": ["CRB1", "CRP1", "DCM1", "CNB1"],
+   "B": ["CRB1", "CRP2", "DCM1", "CNB1"],
+   "C": ["CRB2", "CRP1", "DCM1", "CNB1"],
+   "D": ["CRB1", "CRP1", "DCM2", "CNB2"]
+  },
+  "note": "Configuration A (all first sets) is the F-4J-based model. The second sets were 'defined' for the study (p.23: 'defining values for the second set of the parameters Cl_beta, Cn_beta, Cl_p, and Delta Cm'), giving four 'generic' aircraft.",
+  "doubt": []
+ },
+ "table_5": {
+  "title": "TABLE 5. AIRPLANE DIMENSIONAL PARAMETERS",
+  "pdf_page": 35,
+  "printed_page": 19,
+  "rows": [
+   {"symbol": "b", "definition": "Wing span, ft", "value": 38.67},
+   {"symbol": "c", "definition": "Wing mean aerodynamic chord, ft", "value": 16.04},
+   {"symbol": "S", "definition": "Wing area, ft^2", "value": 530},
+   {"symbol": "W", "definition": "Airplane weight, lb", "value": 37000},
+   {"symbol": "Xref", "definition": "Reference center of gravity, % c", "value": 31},
+   {"symbol": "Xcg", "definition": "Actual center of gravity, % c", "value": 29.3},
+   {"symbol": "Ix", "definition": "Moment of inertia about X-body axis, slug-ft^2", "value": 23850},
+   {"symbol": "Iy", "definition": "Moment of inertia about Y-body axis, slug-ft^2", "value": 127400},
+   {"symbol": "Iz", "definition": "Moment of inertia about Z-body axis, slug-ft^2", "value": 146000},
+   {"symbol": "Ixz", "definition": "Product of inertia about X-Z axes, slug-ft^2", "value": 2210},
+   {"symbol": "xi_0", "definition": "Thrust inclination, deg", "value": 5.25},
+   {"symbol": "z_j", "definition": "Thrust offset, ft", "value": -0.336},
+   {"symbol": "H", "definition": "Reference altitude, ft", "value": 15000}
+  ],
+  "notes": [
+   "The same weight, c.g. and inertias are printed again in the F-4E / F-4J comparison on PDF p.58 (printed 42): 37,000 lb, 29.3% MAC, 23,850 / 127,400 / 146,000 / 2,210.",
+   "Thrust geometry (sketch, PDF p.21): the thrust line is inclined xi up from the X body axis and z_j is its perpendicular offset from the c.g., drawn positive with the thrust line below the c.g.; the pitching moment from thrust is z_j*T (eq. 5). With z_j = -0.336 ft thrust gives a small nose-down moment."
+  ],
+  "doubt": []
+ },
+ "table_6": {
+  "title": "TABLE 6. CONTROL SURFACE DEFINITIONS",
+  "pdf_page": 36,
+  "printed_page": 20,
+  "columns": ["SURFACE", "DEFLECTION LIMITS, DEG"],
+  "rows": [
+   {"surface": "delta_stab", "positive": "TED (trailing edge down)", "limits_as_printed": "21 up, 9 down", "range_deg": [-21, 9]},
+   {
+    "surface": "delta_a",
+    "positive": "Left TED (left aileron trailing edge down)",
+    "limits_as_printed": "0 up, 30 down",
+    "range_deg": [-30, 30],
+    "note": "each aileron moves down only; delta_a > 0 is the left aileron down (roll right), delta_a < 0 the right aileron down"
+   },
+   {
+    "surface": "delta_sp",
+    "positive": "Right TEU (right spoiler trailing edge up)",
+    "limits_as_printed": "43 up, 0 down",
+    "range_deg": [-43, 43],
+    "note": "each spoiler moves up only; delta_sp > 0 is the right spoiler up (roll right)"
+   },
+   {"surface": "delta_r", "positive": "TEL (trailing edge left)", "limits_as_printed": "+-30", "range_deg": [-30, 30]}
+  ],
+  "signs_of_the_control_derivatives_as_tabulated": "CL_delta_stab +, Cm_delta_stab - (TED stabilator: nose down). Cl_delta_a +, Cl_delta_sp + (roll right), Cn_delta_a - (adverse), Cn_delta_sp + (proverse), Cy_delta_a -, Cy_delta_sp -. Cy_delta_r +, Cl_delta_r +, Cn_delta_r - (TEL rudder: nose left).",
+  "doubt": [
+   {
+    "cell": "delta_sp limit",
+    "candidates": [43, 45],
+    "chosen": 43,
+    "note": "Table 6 prints '43 up'; the limiter block on delta_sp in Figure 4 prints 45 deg. 43 = 11.58 deg/in x 30/8.08 in and 43/30 = 1.433 (the printed spoiler/aileron ratio), so 43 is the consistent travel."
+   }
+  ]
+ },
+ "table_7": {
+  "title": "TABLE 7. LONGITUDINAL CONTROL SYSTEM",
+  "pdf_page": 36,
+  "printed_page": 20,
+  "items_as_printed": [
+   "No SAS or CAS",
+   "Basic F-4 manual control system gain, delta_stab -> delta_long = 4.16 deg/in.",
+   "Feel system - simple spring/damper (gradient ~ 3.5 lb/in)",
+   "Breakout - 1.5 to 2 lb"
+  ],
+  "structured": {
+   "sas": null,
+   "cas": null,
+   "stick_to_stabilator_gain_deg_per_in": 4.16,
+   "feel": "simple spring/damper",
+   "feel_gradient_lb_per_in": 3.5,
+   "feel_gradient_note": "printed with \"~\" (approximately)",
+   "breakout_lb": [1.5, 2.0],
+   "actuator": "none stated",
+   "stabilator_limits_deg": [-21, 9]
+  },
+  "doubt": [
+   {
+    "cell": "'delta_stab -> delta_long = 4.16 deg/in.'",
+    "candidates": ["4.16 deg of stabilator per inch of longitudinal stick"],
+    "chosen": 4.16,
+    "note": "The arrow is printed from delta_stab to delta_long; the units (deg/in) show it is stabilator degrees per inch of stick. No sign is given: aft stick must give negative delta_stab (TEU)."
+   }
+  ]
+ },
+ "control_system": {
+  "spoiler_aileron_relation": {
+   "as_printed": "delta_sp = 1.433 delta_a",
+   "pdf_page": 34,
+   "printed_page": 18,
+   "text": "Lateral control is provided by a combination of spoilers and ailerons. The ailerons deflect downward only; the spoilers deflect upward only. The left aileron and right spoiler operate simultaneously, as do the right aileron and left spoiler.",
+   "check": "1.433 = 43/30 (Table 6 travels) = 11.58/8.08 (Figure 4 stick gains, unaugmented)"
+  },
+  "longitudinal": {
+   "source": "Table 7, PDF p.36 (printed 20)",
+   "sas": "none",
+   "cas": "none",
+   "stick_to_stabilator_gain_deg_per_in": 4.16,
+   "feel": "simple spring/damper, gradient about 3.5 lb/in",
+   "breakout_lb": [1.5, 2.0],
+   "actuator_lag": null,
+   "rate_limit": null,
+   "surface_limits_deg": [-21, 9],
+   "note": "Figure 33 (PDF p.65) is captioned 'with Pitch and Yaw SAS On', but no pitch SAS is defined anywhere in this appendix."
+  },
+  "lateral_directional_figure_4": {
+   "title": "Figure 4. Lateral/Directional Control System",
+   "pdf_page": 37,
+   "printed_page": 21,
+   "inputs": {
+    "F_LS": "lateral stick force, lb",
+    "F_p": "rudder pedal force, lb",
+    "p": "roll rate, rad/sec",
+    "r": "yaw rate, rad/sec",
+    "a_y_prime": "lateral acceleration a'y, units printed '(ft/sec)'",
+    "alpha": "angle of attack, deg"
+   },
+   "stick_and_pedal": {
+    "lateral": "F_LS -> Feel (deadband/breakout sketch, no numbers) -> Limit (no numbers) -> delta_stk (in.)",
+    "pedal": "F_p -> Feel -> Limit -> delta_p (in.)"
+   },
+   "aileron_path": {
+    "direct_gain": "K_delta_a [deg/in] x delta_stk",
+    "roll_rate_command": "p_c = 4/(0.1 s + 1) x delta_stk",
+    "feedback": "15.2 x p  (p in rad/sec)",
+    "summing": "p_c and 15.2*p meet at a summing junction (no signs printed), then Limit L1, then are added (+) to K_delta_a*delta_stk",
+    "actuator": "1/(0.05 s + 1)",
+    "surface_limit_as_printed": "30 deg",
+    "output": "delta_a (deg)"
+   },
+   "spoiler_path": {
+    "gain_deg_per_in": 11.58,
+    "actuator": "1/(0.05 s + 1)",
+    "surface_limit_as_printed": "Limit 45 deg",
+    "output": "delta_sp (deg)",
+    "note": "no augmentation signal goes to the spoilers"
+   },
+   "rudder_path": {
+    "pedal_gain_deg_per_in": 10,
+    "yaw_rate_washout": "-344 s/(2 s + 1) x r  (r in rad/sec)",
+    "lateral_acceleration_gain": "-.963 x a'y",
+    "sas_sum": "washed-out yaw rate and lateral acceleration are added (+)",
+    "crossfeed_ARI": "K_xf/(0.55 s + 1) x delta_stk, multiplied by a schedule on alpha: 0 up to 10 deg, rising linearly to 1 at 20 deg, 1 above",
+    "junction_before_L2": "SAS sum and the crossfeed both enter marked '-'",
+    "limit": "L2",
+    "final_junction": "10*delta_p enters marked '-', the L2 output enters marked '-'",
+    "actuator": "1/(0.05 s + 1)",
+    "surface_limit_as_printed": "Limit +-30 deg",
+    "output": "delta_r (deg)"
+   },
+   "gain_table": {
+    "columns": ["", "K_delta_a", "L1", "L2", "K_xf"],
+    "rows": [["Unaug.", 8.08, 0, 0, 0], ["Aug.", 4.0, "+-15 deg", "+-30 deg", "+-14.0 deg"]],
+    "definitions_from_nomenclature": {
+     "K_delta_a": "Gain for delta_stk -> delta_a control, deg/in",
+     "K_xf": "Crossfeed gain for delta_stk -> delta_r crossfeed, deg/in",
+     "L1": "Aileron command travel limit for roll-rate-command augmentation, deg",
+     "L2": "Command travel limit for delta_r with delta_stk -> delta_r crossfeed, deg",
+     "delta_stk": "Lateral stick position, delta_stk = K_delta_a*delta_a + 11.58*delta_sp, in. (as printed on p.xiv)"
+    }
+   },
+   "structured": {
+    "unaugmented": {
+     "K_delta_a_deg_per_in": 8.08,
+     "spoiler_gain_deg_per_in": 11.58,
+     "L1_deg": 0,
+     "L2_deg": 0,
+     "K_xf": 0,
+     "pedal_to_rudder_deg_per_in": 10,
+     "note": "L1 = L2 = 0 switches the roll CAS, the yaw SAS and the crossfeed off"
+    },
+    "augmented": {
+     "K_delta_a_deg_per_in": 4.0,
+     "spoiler_gain_deg_per_in": 11.58,
+     "roll_rate_command_gain": 4.0,
+     "roll_rate_command_lag_s": 0.1,
+     "roll_rate_feedback_gain_deg_per_rad_per_sec": 15.2,
+     "L1_deg": 15,
+     "yaw_rate_washout_numerator": -344,
+     "yaw_rate_washout_time_constant_s": 2.0,
+     "lateral_acceleration_gain": -0.963,
+     "L2_deg": 30,
+     "K_xf": 14.0,
+     "crossfeed_lag_s": 0.55,
+     "crossfeed_alpha_schedule": [[0, 0], [10, 0], [20, 1], [90, 1]],
+     "pedal_to_rudder_deg_per_in": 10
+    },
+    "actuators": {"aileron_lag_s": 0.05, "spoiler_lag_s": 0.05, "rudder_lag_s": 0.05, "rate_limits": "none shown"},
+    "surface_limits_deg": {"delta_a": 30, "delta_sp": 45, "delta_r": 30}
+   },
+   "doubt": [
+    {
+     "cell": "yaw-rate washout numerator",
+     "candidates": [-344, -34.4],
+     "chosen": -344,
+     "note": "Printed '-344s' with no decimal point visible at pixel level, where 15.2, 8.08, 0.55, 0.05 and '-.963' all show theirs. As printed the high-frequency gain is 172 deg of rudder per rad/sec (3.0 deg per deg/sec), limited by L2 = +-30 deg. A lost decimal point (-34.4) cannot be ruled out from the scan."
+    },
+    {
+     "cell": "units of a'y",
+     "candidates": ["ft/sec (as printed)", "ft/sec^2"],
+     "chosen": "ft/sec (as printed)",
+     "note": "an acceleration; the nomenclature gives accelerometer signals in ft/sec^2"
+    },
+    {
+     "cell": "signs at the roll-rate-command junction",
+     "candidates": ["p_c - 15.2 p", "not determinable"],
+     "chosen": "not printed",
+     "note": "no + or - is drawn at this junction; a rate-command loop needs command minus feedback, but the figure does not say it"
+    },
+    {
+     "cell": "K_xf augmented value",
+     "candidates": ["+-14.0 deg (as printed)"],
+     "chosen": 14.0,
+     "note": "printed with a degree sign and +-, although the nomenclature gives K_xf in deg/in"
+    },
+    {"cell": "delta_sp limit", "candidates": [45, 43], "chosen": "45 as printed here", "note": "Table 6 says 43 up"}
+   ]
+  }
+ },
+ "data_sources": {
+  "section": "E. DATA SOURCES",
+  "pdf_pages": [38, 39],
+  "printed_pages": [22, 23],
+  "summary": [
+   "Base data: Ref. 16 (Teper and Johnston, 'F4J Data Package', Systems Technology, Inc., WP-2141-1, June 1977), covering alpha -5 to 31 deg and beta -10 to 10 deg.",
+   "Extension of the static coefficients to 110 deg: wind-tunnel tests of an F-4 model, Ref. 2 = NASA TN D-6425 (Anglin, 1971; alpha -10 to 110 deg, beta -40 to 40 deg), 'the primary sources for the extension of static coefficients'.",
+   "Dynamic (rate) coefficients: 'extrapolated based on trends of data available from other sources to 60 deg angle-of-attack, with the intent of making such coefficients simple to mechanize'. (The rate tables as listed stop at 45 deg and Table 1 holds the 45-deg value above that.)",
+   "Ref. 16 itself drew on three sources: (1) Ref. 3, Bowser's digitised 'F-4 High-AOA Data Package' from McDonnell MDC A0005 Vol. II, based on the spin-evaluation data of Ref. 4 (functions of alpha 0-90, beta 0-40, delta_stab -21 to 0 deg); (2) a NASA Langley tabulation based on several tunnel investigations, 'e.g., Refs. 5 and 6' = NASA TN D-5361 and TN D-6091 (alpha -10 to 120, beta -40 to +40 deg); both 'limited to the very low speed regime (M = 0.2)'; (3) Ref. 7, the NASA Langley Differential Maneuvering Simulator data for the F-4J and slatted F-4E (NASA TM X-2827), functions of alpha, M and H over -5 < alpha < 30 deg, .2 < M < 2.4, 15,000 < H < 45,000 ft, from which 'several key damping derivatives were updated'.",
+   "'As originally received, the data did not coalesce at 0.2 M. The data of Ref. 4 were therefore given the most weight at this low Mach and were smoothed into the DMS data by about 0.4 M.' Ref. 16 was judged 'an excellent model of the aircraft' over -4 < alpha < 30 deg, -10 < beta < 10 deg, 0.2 < M < 1.0, 0 < H < 25,000 ft.",
+   "Simplifications made for this appendix: 'normalizing the data for trim Mach Number (determined from previous digital simulations using the Ref. 16 data set), using a single altitude (15,000 ft), and defining values for the second set of the parameters Cl_beta, Cn_beta, Cl_p, and Delta Cm.'"
+  ],
+  "per_function_attribution": "The report does not say which source each individual table came from. What it says is by group: static coefficients (CLBAS, CDBAS, CMBAS, CYB, CRB, CNB, Delta Cm, and the control effectiveness tables) from Ref. 16 to about 30 deg and from TN D-6425 trends beyond; rate derivatives (CRP, CRR, CNP, CNR, CMQ, CMAD) from Ref. 16 with DMS (TM X-2827) updates, extrapolated on trends; second sets (CRB2, CRP2, DCM2, CNB2) defined by the authors.",
+  "mach_range": "None in the tables: one value per alpha, 'normalized for trim Mach number' at 15,000 ft. The low-speed sources are M = 0.2; no compressibility terms.",
+  "rigid_or_flexible": "Not stated for the aerodynamic data. The equations of motion assume a rigid airframe (assumption a, p.1). The wind-tunnel sources are rigid models; whether Ref. 16's flight-range data carried flexibility corrections is not said.",
+  "configuration": "'a relatively \"clean\" aircraft (no flap, slat, or gear deflection) based upon an F-4J, with external stores consisting of one centerline fuel tank and one air-to-air missile' (p.1). The F-4J is a hard-wing (unslatted) F-4. Stores appear only as Delta_CD_STORES = 0.0037. The validation table lists the F-4J model with an empty centerline tank and wing pylons 2 and 8.",
+  "references": {
+   "2": "Anglin, E. L., Static Force Tests of a Model of a Twin-Jet Fighter Airplane for Angles of Attack from -10 to 110 deg and Sideslip Angles from -40 to 40 deg, NASA TN D-6425, Aug. 1971",
+   "3": "Bowser, D. K., F-4 High-AOA Data Package (digitized data from McDonnell Aircraft Co. Rept. MDC A0005, Vol. II), Aug. 1969",
+   "4": "Brady, C. C., W. A. Moran, and M. L. Rosenstein, Model F-4 Spin Evaluation Program, McDonnell Aircraft Co. Rept. MDC A0005, Vols. I and II, Aug. 1969",
+   "5": "Chambers, J. R., and E. L. Anglin, Analysis of Lateral-Directional Stability Characteristics of a Twin-Jet Fighter Airplane at High Angles of Attack, NASA TN D-5361, Aug. 1969",
+   "6": "Grafton, S. B., and C. E. Libbey, Dynamic Stability Derivatives of a Twin-Jet Fighter Model for Angles of Attack from -10 to 110 deg, NASA TN D-6091, Jan. 1971",
+   "7": "Meintel, A. J., Jr., J. E. Pennington, and W. W. Hankins III, Differential Maneuvering Simulator Validation, NASA TM X-2827, Oct. 1973",
+   "8": "McElroy, C. E., and P. S. Sharp, Stall/Near Stall Investigation of the F-4E Aircraft, USAF FTC-SD-70-20, Oct. 1970",
+   "16": "Teper, G. L., and D. E. Johnston, F4J Data Package, Systems Technology, Inc., WP-2141-1, Jun. 1977"
+  },
+  "reference_list_pdf_pages": [123, 124],
+  "note_on_reference_list": "reference list read from the OCR text (clean typescript), titles lightly normalised"
+ },
+ "table_8": {
+  "title": "TABLE 8. DATA FILE IDENTIFICATION LINES",
+  "pdf_page": 40,
+  "printed_page": 24,
+  "coefficient_identifier_line": {
+   "lines": 1,
+   "fields": [
+    ["VARIABLE NAME", "A8"],
+    ["VARIABLE UNITS", "A8"],
+    ["NUMBER OF INDEPENDENT VARIABLES", "I2"],
+    ["DATA POINTS PER LINE", "I2"],
+    ["NUMBER OF LINES", "I2"],
+    ["TOTAL NO. OF POINTS", "I3"]
+   ]
+  },
+  "independent_variable_identifier_lines": {
+   "lines": "1-2",
+   "fields": [
+    ["INDEPENDENT VARIABLE NAME", "A8"],
+    ["INDEPENDENT VARIABLE UNITS", "A8"],
+    ["MINIMUM VALUE", "E14.6"],
+    ["INCREMENT", "E14.6"],
+    ["MAXIMUM VALUE", "E14.6"],
+    ["NO. OF VALUES", "I2"]
+   ]
+  },
+  "text_under_the_table": [
+   "The coefficients DCM1 and DCM2 are functions of both alpha and beta. In this case, alpha is incremented first, then beta: (0,0) ... (20,0) / (25,0) ... (45,0) / (0,5) ... (20,5) / ... / (25,30) ... (alpha,beta)",
+   "As an example in interpreting the data file, the file for Cy_beta is given below:"
+  ],
+  "example_as_printed": [
+   "CYB PER DEG 1 5 5 23",
+   "ALPHA DEGREES 0.,5.,110.,23",
+   "-.011 -.011 -.011 -.011 -.011",
+   "-.011 -.011 -.0092 -.0079 -.0065",
+   "-.0050 -.0036 -.0023 -.0008 .0006",
+   ".0020 .0030 .0030 .0030 .0030",
+   ".0030 .0030 .0030"
+  ],
+  "explanation_as_printed": "The first line identifies the coefficient; gives the units; indicates that it is a function of one variable, and that it is listed five points per line in five lines, with a total of 23 data points given. The second line identifies alpha as the independent variable; gives its units; gives the minimum value as 0 deg, the delta-alpha increment as 5 deg, and the maximum value as 110 deg, for a total of 23 separate delta-alpha points.",
+  "layout_from_p23": "Values are listed five to a line in 5-degree steps: 0-110 deg tables run (0)...(20) / ... / (100) (105) (110); 0-45 deg tables run (0)...(20) / (25)...(45).",
+  "note": "The DCM identifier lines print '2 514 70' (2 variables, 5 per line, 14 lines, 70 points: the I2 fields run together).",
+  "doubt": []
+ },
+ "table_9": {
+  "title": "TABLE 9. AERODYNAMIC COEFFICIENTS  (PDF p.41);  TABLE 9 (CONTINUED) (PDF p.42);  TABLE 9. (CONCLUDED) (PDF p.43)",
+  "pdf_page": [41, 42, 43],
+  "printed_page": [25, 26, 27],
+  "header_line_as_printed": "S.O. 1081 EXTENDED AOA DATA; CRB1 & CRB2 CHANGED 11/20/78",
+  "form": "computer listing of the simulation's data file, 163 lines: for each function one identifier line, one or two independent-variable lines, then the values five to a line",
+  "functions_in_file_order": [
+   "CLBAS",
+   "CLSTAB",
+   "CDBAS",
+   "CYB",
+   "CYDR",
+   "CRB1",
+   "CRB2",
+   "CRP1",
+   "CRP2",
+   "CRR",
+   "CRDA",
+   "CRDSP",
+   "CRDR",
+   "CMBAS",
+   "DCM1",
+   "DCM2",
+   "CMQ",
+   "CMAD",
+   "CMSTAB",
+   "CMDA",
+   "CMDSP",
+   "CNB1",
+   "CNB2",
+   "CNP",
+   "CNR",
+   "CNDA",
+   "CNDSP",
+   "CNDR"
+  ],
+  "functions": {
+   "CLBAS": {
+    "mnemonic": "CLBAS",
+    "name_as_printed_in_table_9": "CLBAS",
+    "parameter_name_in_table_2": "CL_BASIC",
+    "name_in_table_1_equations": "CL_BASIC(alpha)",
+    "identifier_line_as_printed": "CLBAS 1 5 5 23",
+    "units_as_printed_in_file": "(blank)",
+    "units": "none",
+    "units_in_table_2": "-",
+    "coefficient": "CL",
+    "multiplies": "1 (basic lift coefficient, controls fixed)",
+    "pdf_page": 41,
+    "printed_page": 25,
+    "file_line_numbers": "2-8",
+    "from_figure": false,
+    "figure": 5,
+    "used_by_configurations": ["A", "B", "C", "D"],
+    "independent_variable": {"name": "ALPHA", "as_printed": "ALPHA DEGREES 0.,5.,110.,23", "units": "degrees", "minimum": 0, "increment": 5, "maximum": 110.0, "n": 23},
+    "alpha_deg": [0.0, 5.0, 10.0, 15.0, 20.0, 25.0, 30.0, 35.0, 40.0, 45.0, 50.0, 55.0, 60.0, 65.0, 70.0, 75.0, 80.0, 85.0, 90.0, 95.0, 100.0, 105.0, 110.0],
+    "values": [0.122, 0.4146, 0.6834, 0.9053, 0.9396, 1.01, 1.067, 1.049, 1.024, 0.969, 0.927, 0.872, 0.798, 0.677, 0.546, 0.418, 0.289, 0.157, 0.025, -0.116, -0.257, -0.402, -0.547],
+    "outside_the_table": "alpha < 0: CL = 2*CLBAS(0) - CLBAS(|alpha|) + CLSTAB(|alpha|)*delta_stab ('not quite anti-symmetric', p.13). alpha >= 110 deg: 110-deg value held.",
+    "readings": {
+     "A_vs_B_differences": [],
+     "final_differs_from_both_readings": [],
+     "machine_glyph_check": {"digits_checked": 78, "digits_machine_agrees": 78, "digits_machine_disagrees": []}
+    },
+    "figure_check": {
+     "spot_check_three": [
+      {
+       "alpha_deg": 25.0,
+       "table": 1.01,
+       "figure": 1.007008428016601,
+       "difference": -0.002991571983399055,
+       "tolerance": 0.012262434745379,
+       "agrees": true
+      },
+      {
+       "alpha_deg": 55.0,
+       "table": 0.872,
+       "figure": 0.8721961000556782,
+       "difference": 0.00019610005567816113,
+       "tolerance": 0.012486559258997675,
+       "agrees": true
+      },
+      {
+       "alpha_deg": 85.0,
+       "table": 0.157,
+       "figure": 0.1686327400131287,
+       "difference": 0.011632740013128695,
+       "tolerance": 0.016097454200631918,
+       "agrees": true
+      }
+     ],
+     "curves": [
+      {
+       "figure": 5,
+       "pdf_page": 44,
+       "printed_page": 28,
+       "line_style": "solid",
+       "breakpoints_measured": 23,
+       "breakpoints_total": 23,
+       "breakpoints_agree_within_tolerance": 23
+      }
+     ]
+    },
+    "doubt": [
+     {
+      "cell": "alpha=20",
+      "candidates": [0.9396, 0.9596],
+      "chosen": 0.9396,
+      "status": "resolved",
+      "note": "Faded second digit (3 or 5). Glyph: no left upright in its upper half, so 3 (machine: 3, 0.60 against 0.50). Figure 5 reads 0.940 +-0.012 at 20 deg by pixel measurement; 0.9596 would sit 5 px above the plotted line."
+     }
+    ]
+   },
+   "CLSTAB": {
+    "mnemonic": "CLSTAB",
+    "name_as_printed_in_table_9": "CLSTAB",
+    "parameter_name_in_table_2": "CL_delta_STAB",
+    "name_in_table_1_equations": "CL_delta_stab(alpha)",
+    "identifier_line_as_printed": "CLSTAB PER DEG 1 5 5 23",
+    "units_as_printed_in_file": "PER DEG",
+    "units": "per degree",
+    "units_in_table_2": "1/deg",
+    "coefficient": "CL",
+    "multiplies": "delta_stab [deg]",
+    "pdf_page": 41,
+    "printed_page": 25,
+    "file_line_numbers": "9-15",
+    "from_figure": false,
+    "figure": 6,
+    "used_by_configurations": ["A", "B", "C", "D"],
+    "independent_variable": {"name": "ALPHA", "as_printed": "ALPHA DEGREES 0.,5.,110.,23", "units": "degrees", "minimum": 0, "increment": 5, "maximum": 110.0, "n": 23},
+    "alpha_deg": [0.0, 5.0, 10.0, 15.0, 20.0, 25.0, 30.0, 35.0, 40.0, 45.0, 50.0, 55.0, 60.0, 65.0, 70.0, 75.0, 80.0, 85.0, 90.0, 95.0, 100.0, 105.0, 110.0],
+    "values": [0.00699, 0.00694, 0.00676, 0.00637, 0.00571, 0.00513, 0.00508, 0.00486, 0.00463, 0.00438, 0.00416, 0.00393, 0.00371, 0.00348, 0.00324, 0.003, 0.003, 0.003, 0.003, 0.003, 0.003, 0.003, 0.003],
+    "outside_the_table": "Negative alpha: table entered with |alpha| (CLBAS and CMBAS are the two exceptions, see Table 1). |alpha| > 110 deg: the 110-deg value is held.",
+    "readings": {
+     "A_vs_B_differences": [],
+     "final_differs_from_both_readings": [{"index": 6, "both_readings": 0.00503, "final": 0.00508}],
+     "machine_glyph_check": {"digits_checked": 115, "digits_machine_agrees": 115, "digits_machine_disagrees": []}
+    },
+    "figure_check": {
+     "spot_check_three": [
+      {
+       "alpha_deg": 25.0,
+       "table": 0.00513,
+       "figure": 0.005138158390635826,
+       "difference": 8.158390635826067e-06,
+       "tolerance": 4.394120104658027e-05,
+       "agrees": true
+      },
+      {
+       "alpha_deg": 55.0,
+       "table": 0.00393,
+       "figure": 0.003941786686385807,
+       "difference": 1.178668638580644e-05,
+       "tolerance": 2.218276410164241e-05,
+       "agrees": true
+      },
+      {
+       "alpha_deg": 85.0,
+       "table": 0.003,
+       "figure": 0.003005452385100183,
+       "difference": 5.452385100183053e-06,
+       "tolerance": 7.884362680683311e-06,
+       "agrees": true
+      }
+     ],
+     "curves": [
+      {
+       "figure": 6,
+       "pdf_page": 44,
+       "printed_page": 28,
+       "line_style": "solid",
+       "breakpoints_measured": 23,
+       "breakpoints_total": 23,
+       "breakpoints_agree_within_tolerance": 21
+      }
+     ]
+    },
+    "doubt": [
+     {
+      "cell": "alpha=30",
+      "candidates": [0.00508, 0.00503],
+      "chosen": 0.00508,
+      "status": "resolved",
+      "note": "Both human readings typed .00503. The glyph has no top bar (every 3 on the page has one) and both sides of an upper loop; the machine check reads 8; Figure 6 plots 0.00510 +-0.00002 at 30 deg and the .00503 corner lies 13 px off the ink. (The ratio -CMSTAB/CLSTAB does not decide it: 1.443 with .00508, 1.457 with .00503, against 1.445-1.454 at 0-25 deg.)"
+     }
+    ]
+   },
+   "CDBAS": {
+    "mnemonic": "CDBAS",
+    "name_as_printed_in_table_9": "CDBAS",
+    "parameter_name_in_table_2": "CD_BASIC",
+    "name_in_table_1_equations": "CD_BASIC(|alpha|)",
+    "identifier_line_as_printed": "CDBAS 1 5 5 23",
+    "units_as_printed_in_file": "(blank)",
+    "units": "none",
+    "units_in_table_2": "-",
+    "coefficient": "CD",
+    "multiplies": "1 (basic drag coefficient)",
+    "pdf_page": 41,
+    "printed_page": 25,
+    "file_line_numbers": "16-22",
+    "from_figure": false,
+    "figure": 7,
+    "used_by_configurations": ["A", "B", "C", "D"],
+    "independent_variable": {"name": "ALPHA", "as_printed": "ALPHA DEGREES 0.,5.,110.,23", "units": "degrees", "minimum": 0, "increment": 5, "maximum": 110.0, "n": 23},
+    "alpha_deg": [0.0, 5.0, 10.0, 15.0, 20.0, 25.0, 30.0, 35.0, 40.0, 45.0, 50.0, 55.0, 60.0, 65.0, 70.0, 75.0, 80.0, 85.0, 90.0, 95.0, 100.0, 105.0, 110.0],
+    "values": [0.035, 0.066, 0.13, 0.247, 0.382, 0.51, 0.655, 0.786, 0.911, 1.011, 1.128, 1.245, 1.352, 1.405, 1.451, 1.493, 1.523, 1.542, 1.57, 1.585, 1.6, 1.583, 1.567],
+    "outside_the_table": "Negative alpha: table entered with |alpha| (CLBAS and CMBAS are the two exceptions, see Table 1). |alpha| > 110 deg: the 110-deg value is held.",
+    "readings": {
+     "A_vs_B_differences": [],
+     "final_differs_from_both_readings": [],
+     "machine_glyph_check": {"digits_checked": 83, "digits_machine_agrees": 83, "digits_machine_disagrees": []}
+    },
+    "figure_check": {
+     "spot_check_three": [
+      {
+       "alpha_deg": 25.0,
+       "table": 0.51,
+       "figure": 0.5135643485056173,
+       "difference": 0.0035643485056172652,
+       "tolerance": 0.016655833303788448,
+       "agrees": true
+      },
+      {
+       "alpha_deg": 55.0,
+       "table": 1.245,
+       "figure": 1.2422283794613074,
+       "difference": -0.0027716205386927317,
+       "tolerance": 0.01494458569113167,
+       "agrees": true
+      },
+      {
+       "alpha_deg": 85.0,
+       "table": 1.542,
+       "figure": 1.5409195916607688,
+       "difference": -0.0010804083392312869,
+       "tolerance": 0.00950526292232972,
+       "agrees": true
+      }
+     ],
+     "curves": [
+      {
+       "figure": 7,
+       "pdf_page": 45,
+       "printed_page": 29,
+       "line_style": "solid",
+       "breakpoints_measured": 23,
+       "breakpoints_total": 23,
+       "breakpoints_agree_within_tolerance": 23
+      }
+     ]
+    },
+    "doubt": [
+     {
+      "cell": "alpha=50",
+      "candidates": [1.128, 1.129],
+      "chosen": 1.128,
+      "status": "resolved",
+      "note": "Last digit 8 or 9. At pixel level the glyph has a closed lower loop (8); machine: 8 (0.83; 9 is not its second choice). Figure 7 cannot separate the two (0.004 per pixel)."
+     }
+    ]
+   },
+   "CYB": {
+    "mnemonic": "CYB",
+    "name_as_printed_in_table_9": "CYB",
+    "parameter_name_in_table_2": "Cy_beta",
+    "name_in_table_1_equations": "Cy_beta(|alpha|)",
+    "identifier_line_as_printed": "CYB PER DEG 1 5 5 23",
+    "units_as_printed_in_file": "PER DEG",
+    "units": "per degree",
+    "units_in_table_2": "1/deg",
+    "coefficient": "Cy",
+    "multiplies": "beta [deg]",
+    "pdf_page": 41,
+    "printed_page": 25,
+    "file_line_numbers": "23-29",
+    "from_figure": false,
+    "figure": 8,
+    "used_by_configurations": ["A", "B", "C", "D"],
+    "independent_variable": {"name": "ALPHA", "as_printed": "ALPHA DEGREES 0.,5.,110.,23", "units": "degrees", "minimum": 0, "increment": 5, "maximum": 110.0, "n": 23},
+    "alpha_deg": [0.0, 5.0, 10.0, 15.0, 20.0, 25.0, 30.0, 35.0, 40.0, 45.0, 50.0, 55.0, 60.0, 65.0, 70.0, 75.0, 80.0, 85.0, 90.0, 95.0, 100.0, 105.0, 110.0],
+    "values": [-0.011, -0.011, -0.011, -0.011, -0.011, -0.011, -0.011, -0.0092, -0.0079, -0.0065, -0.005, -0.0036, -0.0023, -0.0008, 0.0006, 0.002, 0.003, 0.003, 0.003, 0.003, 0.003, 0.003, 0.003],
+    "outside_the_table": "Negative alpha: table entered with |alpha| (CLBAS and CMBAS are the two exceptions, see Table 1). |alpha| > 110 deg: the 110-deg value is held.",
+    "readings": {
+     "A_vs_B_differences": [],
+     "final_differs_from_both_readings": [],
+     "machine_glyph_check": {"digits_checked": 85, "digits_machine_agrees": 85, "digits_machine_disagrees": []}
+    },
+    "figure_check": {
+     "spot_check_three": [
+      {
+       "alpha_deg": 25.0,
+       "table": -0.011,
+       "figure": -0.010986749664282633,
+       "difference": 1.3250335717366474e-05,
+       "tolerance": 7.801710561383964e-05,
+       "agrees": true
+      },
+      {
+       "alpha_deg": 55.0,
+       "table": -0.0036,
+       "figure": -0.003757327880698334,
+       "difference": -0.0001573278806983342,
+       "tolerance": 0.00016338467155506918,
+       "agrees": true
+      },
+      {
+       "alpha_deg": 85.0,
+       "table": 0.003,
+       "figure": 0.0029782344047511937,
+       "difference": -2.1765595248806387e-05,
+       "tolerance": 7.801710561383964e-05,
+       "agrees": true
+      }
+     ],
+     "curves": [
+      {
+       "figure": 8,
+       "pdf_page": 45,
+       "printed_page": 29,
+       "line_style": "solid",
+       "breakpoints_measured": 23,
+       "breakpoints_total": 23,
+       "breakpoints_agree_within_tolerance": 23
+      }
+     ]
+    },
+    "doubt": []
+   },
+   "CYDR": {
+    "mnemonic": "CYDR",
+    "name_as_printed_in_table_9": "CYDR",
+    "parameter_name_in_table_2": "Cy_delta_r",
+    "name_in_table_1_equations": "Cy_delta_r(|alpha|)",
+    "identifier_line_as_printed": "CYDR PER DEG 1 5 2 10",
+    "units_as_printed_in_file": "PER DEG",
+    "units": "per degree",
+    "units_in_table_2": "1/deg",
+    "coefficient": "Cy",
+    "multiplies": "delta_r [deg]",
+    "pdf_page": 41,
+    "printed_page": 25,
+    "file_line_numbers": "30-33",
+    "from_figure": false,
+    "figure": 9,
+    "used_by_configurations": ["A", "B", "C", "D"],
+    "independent_variable": {"name": "ALPHA2", "as_printed": "ALPHA2 DEGREES 0.,5.,45.,10", "units": "degrees", "minimum": 0, "increment": 5, "maximum": 45.0, "n": 10},
+    "alpha_deg": [0.0, 5.0, 10.0, 15.0, 20.0, 25.0, 30.0, 35.0, 40.0, 45.0],
+    "values": [0.00151, 0.00142, 0.00134, 0.0013, 0.00124, 0.00098, 0.00073, 0.00048, 0.00024, 0.0],
+    "outside_the_table": "Negative alpha: table entered with |alpha|. |alpha| >= 45 deg: the 45-deg value is held (Table 1).",
+    "readings": {
+     "A_vs_B_differences": [],
+     "final_differs_from_both_readings": [],
+     "machine_glyph_check": {"digits_checked": 47, "digits_machine_agrees": 47, "digits_machine_disagrees": []}
+    },
+    "figure_check": {
+     "spot_check_three": [
+      {
+       "alpha_deg": 10.0,
+       "table": 0.00134,
+       "figure": 0.001342237302778655,
+       "difference": 2.237302778654998e-06,
+       "tolerance": 1.021848565256e-05,
+       "agrees": true
+      },
+      {
+       "alpha_deg": 20.0,
+       "table": 0.00124,
+       "figure": 0.001248580613398923,
+       "difference": 8.58061339892302e-06,
+       "tolerance": 1.567598429901371e-05,
+       "agrees": true
+      },
+      {
+       "alpha_deg": 35.0,
+       "table": 0.00048,
+       "figure": 0.0004779574873074496,
+       "difference": -2.04251269255042e-06,
+       "tolerance": 1.5372789929766277e-05,
+       "agrees": true
+      }
+     ],
+     "curves": [
+      {
+       "figure": 9,
+       "pdf_page": 46,
+       "printed_page": 30,
+       "line_style": "solid",
+       "breakpoints_measured": 10,
+       "breakpoints_total": 10,
+       "breakpoints_agree_within_tolerance": 10
+      }
+     ]
+    },
+    "doubt": []
+   },
+   "CRB1": {
+    "mnemonic": "CRB1",
+    "name_as_printed_in_table_9": "CRB1",
+    "parameter_name_in_table_2": "Cl_beta_1",
+    "name_in_table_1_equations": "Cl_beta_i(|alpha|), i=1",
+    "identifier_line_as_printed": "CRB1 PER DEG 1 5 5 23",
+    "units_as_printed_in_file": "PER DEG",
+    "units": "per degree",
+    "units_in_table_2": "1/deg",
+    "coefficient": "Cl",
+    "multiplies": "beta [deg]",
+    "pdf_page": 41,
+    "printed_page": 25,
+    "file_line_numbers": "34-40",
+    "from_figure": false,
+    "figure": 10,
+    "table_4_index": {"index": "i", "value": 1},
+    "used_by_configurations": ["A", "B", "D"],
+    "independent_variable": {"name": "ALPHA", "as_printed": "ALPHA DEGREES 0.,5.,110.,23", "units": "degrees", "minimum": 0, "increment": 5, "maximum": 110.0, "n": 23},
+    "alpha_deg": [0.0, 5.0, 10.0, 15.0, 20.0, 25.0, 30.0, 35.0, 40.0, 45.0, 50.0, 55.0, 60.0, 65.0, 70.0, 75.0, 80.0, 85.0, 90.0, 95.0, 100.0, 105.0, 110.0],
+    "values": [-0.00132, -0.00175, -0.00236, -0.00219, -0.00118, -6e-05, 0.00025, -0.0001, -0.00108, -0.0018, -0.00222, -0.00241, -0.00255, -0.00268, -0.00279, -0.00291, -0.003, -0.003, -0.003, -0.003, -0.003, -0.003, -0.003],
+    "outside_the_table": "Negative alpha: table entered with |alpha| (CLBAS and CMBAS are the two exceptions, see Table 1). |alpha| > 110 deg: the 110-deg value is held.",
+    "readings": {
+     "A_vs_B_differences": [],
+     "final_differs_from_both_readings": [],
+     "machine_glyph_check": {"digits_checked": 114, "digits_machine_agrees": 114, "digits_machine_disagrees": []}
+    },
+    "figure_check": {
+     "spot_check_three": [
+      {
+       "alpha_deg": 25.0,
+       "table": -6e-05,
+       "figure": -2.832859187842552e-05,
+       "difference": 3.167140812157448e-05,
+       "tolerance": 7.332152773895305e-05,
+       "agrees": true
+      },
+      {
+       "alpha_deg": 55.0,
+       "table": -0.00241,
+       "figure": -0.002401313823191657,
+       "difference": 8.686176808342643e-06,
+       "tolerance": 2.372625109863306e-05,
+       "agrees": true
+      },
+      {
+       "alpha_deg": 85.0,
+       "table": -0.003,
+       "figure": -0.0030097493490573403,
+       "difference": -9.749349057340193e-06,
+       "tolerance": 1.3593882752761258e-05,
+       "agrees": true
+      }
+     ],
+     "note": "Figure 10 lies on the table everywhere except 25-35 deg, where it plots a higher peak (see doubt).",
+     "curves": [
+      {
+       "figure": 10,
+       "pdf_page": 46,
+       "printed_page": 30,
+       "line_style": "solid",
+       "breakpoints_measured": 23,
+       "breakpoints_total": 23,
+       "breakpoints_agree_within_tolerance": 21
+      }
+     ]
+    },
+    "doubt": [
+     {
+      "cell": "alpha=25, 30, 35",
+      "candidates": [[-6e-05, 0.00025, -0.0001], [-3e-05, 0.00036, 0.0]],
+      "chosen": [-6e-05, 0.00025, -0.0001],
+      "status": "open",
+      "note": "NOT a reading doubt: the three printed values are clear in both readings and the machine check. But Figure 10 plots a different curve here: by pixel measurement about -0.00003 at 25, +0.00036 +-0.00003 at 30 (table +0.00025, 16 px lower) and about 0.0000 +-0.00007 at 35 (table -0.00010). Everywhere else Figure 10 lies on the table. The listing's own header says 'CRB1 & CRB2 CHANGED 11/20/78', so figure and listing may be different revisions. The listing (Table 9) is taken as the value. The sign change of Cl_beta near 30 deg is in both."
+     }
+    ]
+   },
+   "CRB2": {
+    "mnemonic": "CRB2",
+    "name_as_printed_in_table_9": "CRB2",
+    "parameter_name_in_table_2": "Cl_beta_2",
+    "name_in_table_1_equations": "Cl_beta_i(|alpha|), i=2",
+    "identifier_line_as_printed": "CRB2 PER DEG 1 5 5 23",
+    "units_as_printed_in_file": "PER DEG",
+    "units": "per degree",
+    "units_in_table_2": "1/deg",
+    "coefficient": "Cl",
+    "multiplies": "beta [deg]",
+    "pdf_page": 41,
+    "printed_page": 25,
+    "file_line_numbers": "41-47",
+    "from_figure": false,
+    "figure": 10,
+    "table_4_index": {"index": "i", "value": 2},
+    "used_by_configurations": ["C"],
+    "independent_variable": {"name": "ALPHA", "as_printed": "ALPHA DEGREES 0.,5.,110.,23", "units": "degrees", "minimum": 0, "increment": 5, "maximum": 110.0, "n": 23},
+    "alpha_deg": [0.0, 5.0, 10.0, 15.0, 20.0, 25.0, 30.0, 35.0, 40.0, 45.0, 50.0, 55.0, 60.0, 65.0, 70.0, 75.0, 80.0, 85.0, 90.0, 95.0, 100.0, 105.0, 110.0],
+    "values": [-0.00132, -0.00175, -0.00236, -0.00219, -0.00219, -0.00219, -0.00219, -0.00185, -0.00152, -0.0018, -0.00222, -0.00241, -0.00255, -0.00268, -0.00279, -0.00291, -0.003, -0.003, -0.003, -0.003, -0.003, -0.003, -0.003],
+    "outside_the_table": "Negative alpha: table entered with |alpha| (CLBAS and CMBAS are the two exceptions, see Table 1). |alpha| > 110 deg: the 110-deg value is held.",
+    "readings": {
+     "A_vs_B_differences": [],
+     "final_differs_from_both_readings": [],
+     "machine_glyph_check": {"digits_checked": 115, "digits_machine_agrees": 115, "digits_machine_disagrees": []}
+    },
+    "figure_check": {
+     "spot_check_three": [
+      {
+       "alpha_deg": 25.0,
+       "table": -0.00219,
+       "figure": -0.002196222261661963,
+       "difference": -6.222261661963102e-06,
+       "tolerance": 1.3593882752761258e-05,
+       "agrees": true
+      },
+      {
+       "alpha_deg": 55.0,
+       "table": -0.00241,
+       "figure": -0.002401313823191657,
+       "difference": 8.686176808342643e-06,
+       "tolerance": 2.372625109863306e-05,
+       "agrees": true
+      },
+      {
+       "alpha_deg": 85.0,
+       "table": -0.003,
+       "figure": -0.0030097493490573403,
+       "difference": -9.749349057340193e-06,
+       "tolerance": 1.3593882752761258e-05,
+       "agrees": true
+      }
+     ],
+     "note": "Dashed overlay on Figure 10 (the dashes look hand-inked on the machine plot of CRB1); it follows the table within 2 px.",
+     "curves": [
+      {
+       "figure": 10,
+       "pdf_page": 46,
+       "printed_page": 30,
+       "line_style": "dashed",
+       "breakpoints_measured": 23,
+       "breakpoints_total": 23,
+       "breakpoints_agree_within_tolerance": 23
+      }
+     ]
+    },
+    "doubt": []
+   },
+   "CRP1": {
+    "mnemonic": "CRP1",
+    "name_as_printed_in_table_9": "CRP1",
+    "parameter_name_in_table_2": "Cl_p_1",
+    "name_in_table_1_equations": "Cl_p_j(|alpha|), j=1",
+    "identifier_line_as_printed": "CRP1 PER RAD 1 5 2 10",
+    "units_as_printed_in_file": "PER RAD",
+    "units": "per radian",
+    "units_in_table_2": "1/rad",
+    "coefficient": "Cl",
+    "multiplies": "p*b/(2*VT)  [p in rad/sec]",
+    "pdf_page": 41,
+    "printed_page": 25,
+    "file_line_numbers": "48-51",
+    "from_figure": false,
+    "figure": 11,
+    "table_4_index": {"index": "j", "value": 1},
+    "used_by_configurations": ["A", "C", "D"],
+    "independent_variable": {"name": "ALPHA2", "as_printed": "ALPHA2 DEGREES 0.,5.,45.,10", "units": "degrees", "minimum": 0, "increment": 5, "maximum": 45.0, "n": 10},
+    "alpha_deg": [0.0, 5.0, 10.0, 15.0, 20.0, 25.0, 30.0, 35.0, 40.0, 45.0],
+    "values": [-0.304, -0.3, -0.255, -0.102, -0.1, -0.28, -0.304, -0.25, -0.164, -0.1],
+    "outside_the_table": "Negative alpha: table entered with |alpha|. |alpha| >= 45 deg: the 45-deg value is held (Table 1).",
+    "readings": {
+     "A_vs_B_differences": [],
+     "final_differs_from_both_readings": [],
+     "machine_glyph_check": {"digits_checked": 30, "digits_machine_agrees": 30, "digits_machine_disagrees": []}
+    },
+    "figure_check": {
+     "spot_check_three": [
+      {
+       "alpha_deg": 10.0,
+       "table": -0.255,
+       "figure": -0.25576067636680755,
+       "difference": -0.0007606763668075445,
+       "tolerance": 0.006433677312091266,
+       "agrees": true
+      },
+      {
+       "alpha_deg": 20.0,
+       "table": -0.1,
+       "figure": -0.1000463241813987,
+       "difference": -4.63241813986881e-05,
+       "tolerance": 0.007407527627690904,
+       "agrees": true
+      },
+      {
+       "alpha_deg": 35.0,
+       "table": -0.25,
+       "figure": -0.24848026698622738,
+       "difference": 0.0015197330137726173,
+       "tolerance": 0.004017085788195864,
+       "agrees": true
+      }
+     ],
+     "curves": [
+      {
+       "figure": 11,
+       "pdf_page": 47,
+       "printed_page": 31,
+       "line_style": "solid",
+       "breakpoints_measured": 10,
+       "breakpoints_total": 10,
+       "breakpoints_agree_within_tolerance": 10
+      }
+     ]
+    },
+    "doubt": []
+   },
+   "CRP2": {
+    "mnemonic": "CRP2",
+    "name_as_printed_in_table_9": "CRP2",
+    "parameter_name_in_table_2": "Cl_p_2",
+    "name_in_table_1_equations": "Cl_p_j(|alpha|), j=2",
+    "identifier_line_as_printed": "CRP2 PER RAD 1 5 2 10",
+    "units_as_printed_in_file": "PER RAD",
+    "units": "per radian",
+    "units_in_table_2": "1/rad",
+    "coefficient": "Cl",
+    "multiplies": "p*b/(2*VT)  [p in rad/sec]",
+    "pdf_page": 41,
+    "printed_page": 25,
+    "file_line_numbers": "52-55",
+    "from_figure": false,
+    "figure": 11,
+    "table_4_index": {"index": "j", "value": 2},
+    "used_by_configurations": ["B"],
+    "independent_variable": {"name": "ALPHA2", "as_printed": "ALPHA2 DEGREES 0.,5.,45.,10", "units": "degrees", "minimum": 0, "increment": 5, "maximum": 45.0, "n": 10},
+    "alpha_deg": [0.0, 5.0, 10.0, 15.0, 20.0, 25.0, 30.0, 35.0, 40.0, 45.0],
+    "values": [-0.304, -0.3, -0.26, -0.26, -0.26, -0.26, -0.26, -0.25, -0.164, -0.1],
+    "outside_the_table": "Negative alpha: table entered with |alpha|. |alpha| >= 45 deg: the 45-deg value is held (Table 1).",
+    "readings": {
+     "A_vs_B_differences": [],
+     "final_differs_from_both_readings": [],
+     "machine_glyph_check": {"digits_checked": 30, "digits_machine_agrees": 30, "digits_machine_disagrees": []}
+    },
+    "figure_check": {
+     "spot_check_three": [
+      {
+       "alpha_deg": 10.0,
+       "table": -0.26,
+       "figure": -0.25505030586771144,
+       "difference": 0.0049496941322885735,
+       "tolerance": 0.002357933398655737,
+       "agrees": false
+      },
+      {
+       "alpha_deg": 30.0,
+       "table": -0.26,
+       "figure": -0.2535537282688057,
+       "difference": 0.006446271731194331,
+       "tolerance": 0.0012758774924339165,
+       "agrees": false,
+       "substituted_for_alpha_deg": 20.0
+      },
+      {
+       "alpha_deg": 35.0,
+       "table": -0.25,
+       "figure": -0.24967017789829118,
+       "difference": 0.00032982210170881543,
+       "tolerance": 0.004017085788195864,
+       "agrees": true
+      }
+     ],
+     "note": "Dashed overlay on Figure 11 (looks hand-inked). It is drawn as one straight line from CRP1's corner at 10 deg (-0.255) to the 35-deg point (-0.250), i.e. at about -0.254, where the table says -0.260 from 10 to 30 deg: 0.005-0.007 (11-14 px) apart. The table digits are clear ('-.260' five times, then '-.250'); the listing is taken as the value and the dashed line as a sketch.",
+     "curves": [
+      {
+       "figure": 11,
+       "pdf_page": 47,
+       "printed_page": 31,
+       "line_style": "dashed",
+       "breakpoints_measured": 7,
+       "breakpoints_total": 10,
+       "breakpoints_agree_within_tolerance": 5
+      }
+     ]
+    },
+    "doubt": []
+   },
+   "CRR": {
+    "mnemonic": "CRR",
+    "name_as_printed_in_table_9": "CRR",
+    "parameter_name_in_table_2": "Cl_r",
+    "name_in_table_1_equations": "Cl_r(|alpha|)",
+    "identifier_line_as_printed": "CRR PER RAD 1 5 2 10",
+    "units_as_printed_in_file": "PER RAD",
+    "units": "per radian",
+    "units_in_table_2": "1/rad",
+    "coefficient": "Cl",
+    "multiplies": "r*b/(2*VT)  [r in rad/sec]",
+    "pdf_page": [41, 42],
+    "printed_page": [25, 26],
+    "file_line_numbers": "56-59",
+    "from_figure": false,
+    "figure": 12,
+    "used_by_configurations": ["A", "B", "C", "D"],
+    "independent_variable": {"name": "ALPHA2", "as_printed": "ALPHA2 DEGREES 0.,5.,45.,10", "units": "degrees", "minimum": 0, "increment": 5, "maximum": 45.0, "n": 10},
+    "alpha_deg": [0.0, 5.0, 10.0, 15.0, 20.0, 25.0, 30.0, 35.0, 40.0, 45.0],
+    "values": [0.046, 0.076, 0.108, 0.17, 0.318, 0.387, 0.341, 0.204, 0.086, 0.05],
+    "outside_the_table": "Negative alpha: table entered with |alpha|. |alpha| >= 45 deg: the 45-deg value is held (Table 1).",
+    "readings": {
+     "A_vs_B_differences": [],
+     "final_differs_from_both_readings": [],
+     "machine_glyph_check": {"digits_checked": 30, "digits_machine_agrees": 30, "digits_machine_disagrees": []}
+    },
+    "figure_check": {
+     "spot_check_three": [
+      {
+       "alpha_deg": 10.0,
+       "table": 0.108,
+       "figure": 0.10897742715753411,
+       "difference": 0.0009774271575341137,
+       "tolerance": 0.003153853367054409,
+       "agrees": true
+      },
+      {
+       "alpha_deg": 20.0,
+       "table": 0.318,
+       "figure": 0.3177187648253886,
+       "difference": -0.0002812351746114272,
+       "tolerance": 0.006252154962525329,
+       "agrees": true
+      },
+      {
+       "alpha_deg": 35.0,
+       "table": 0.204,
+       "figure": 0.20150430740279002,
+       "difference": -0.0024956925972099697,
+       "tolerance": 0.005855860572406957,
+       "agrees": true
+      }
+     ],
+     "curves": [
+      {
+       "figure": 12,
+       "pdf_page": 47,
+       "printed_page": 31,
+       "line_style": "solid",
+       "breakpoints_measured": 10,
+       "breakpoints_total": 10,
+       "breakpoints_agree_within_tolerance": 10
+      }
+     ]
+    },
+    "doubt": []
+   },
+   "CRDA": {
+    "mnemonic": "CRDA",
+    "name_as_printed_in_table_9": "CRDA",
+    "parameter_name_in_table_2": "Cl_delta_a",
+    "name_in_table_1_equations": "Cl_delta_a(|alpha|)",
+    "identifier_line_as_printed": "CRDA PER DEG 1 5 2 10",
+    "units_as_printed_in_file": "PER DEG",
+    "units": "per degree",
+    "units_in_table_2": "1/deg",
+    "coefficient": "Cl",
+    "multiplies": "delta_a [deg]",
+    "pdf_page": 42,
+    "printed_page": 26,
+    "file_line_numbers": "60-63",
+    "from_figure": false,
+    "figure": 13,
+    "used_by_configurations": ["A", "B", "C", "D"],
+    "independent_variable": {"name": "ALPHA2", "as_printed": "ALPHA2 DEGREES 0.,5.,45.,10", "units": "degrees", "minimum": 0, "increment": 5, "maximum": 45.0, "n": 10},
+    "alpha_deg": [0.0, 5.0, 10.0, 15.0, 20.0, 25.0, 30.0, 35.0, 40.0, 45.0],
+    "values": [0.000448, 0.000459, 0.000431, 0.000405, 0.000379, 0.000354, 0.000312, 0.00021, 0.000105, 0.0],
+    "outside_the_table": "Negative alpha: table entered with |alpha|. |alpha| >= 45 deg: the 45-deg value is held (Table 1).",
+    "readings": {
+     "A_vs_B_differences": [],
+     "final_differs_from_both_readings": [],
+     "machine_glyph_check": {"digits_checked": 60, "digits_machine_agrees": 60, "digits_machine_disagrees": []}
+    },
+    "figure_check": {
+     "spot_check_three": [
+      {
+       "alpha_deg": 10.0,
+       "table": 0.000431,
+       "figure": 0.00043153321814882746,
+       "difference": 5.332181488274424e-07,
+       "tolerance": 2.408501528974391e-06,
+       "agrees": true
+      },
+      {
+       "alpha_deg": 20.0,
+       "table": 0.000379,
+       "figure": 0.00038070414377047696,
+       "difference": 1.7041437704769648e-06,
+       "tolerance": 2.3476385792950085e-06,
+       "agrees": true
+      },
+      {
+       "alpha_deg": 35.0,
+       "table": 0.00021,
+       "figure": 0.00021140815618120505,
+       "difference": 1.4081561812050376e-06,
+       "tolerance": 4.751725091630624e-06,
+       "agrees": true
+      }
+     ],
+     "curves": [
+      {
+       "figure": 13,
+       "pdf_page": 48,
+       "printed_page": 32,
+       "line_style": "solid",
+       "breakpoints_measured": 10,
+       "breakpoints_total": 10,
+       "breakpoints_agree_within_tolerance": 10
+      }
+     ]
+    },
+    "doubt": []
+   },
+   "CRDSP": {
+    "mnemonic": "CRDSP",
+    "name_as_printed_in_table_9": "CRDSP",
+    "parameter_name_in_table_2": "Cl_delta_sp",
+    "name_in_table_1_equations": "Cl_delta_sp(|alpha|)",
+    "identifier_line_as_printed": "CRDSP PER DEG 1 5 2 10",
+    "units_as_printed_in_file": "PER DEG",
+    "units": "per degree",
+    "units_in_table_2": "1/deg",
+    "coefficient": "Cl",
+    "multiplies": "delta_sp [deg]",
+    "pdf_page": 42,
+    "printed_page": 26,
+    "file_line_numbers": "64-67",
+    "from_figure": false,
+    "figure": 14,
+    "used_by_configurations": ["A", "B", "C", "D"],
+    "independent_variable": {"name": "ALPHA2", "as_printed": "ALPHA2 DEGREES 0.,5.,45.,10", "units": "degrees", "minimum": 0, "increment": 5, "maximum": 45.0, "n": 10},
+    "alpha_deg": [0.0, 5.0, 10.0, 15.0, 20.0, 25.0, 30.0, 35.0, 40.0, 45.0],
+    "values": [0.00013, 0.00014, 9.3e-05, 6.6e-05, 5.4e-05, 4e-05, 3e-05, 2e-05, 1e-05, 0.0],
+    "outside_the_table": "Negative alpha: table entered with |alpha|. |alpha| >= 45 deg: the 45-deg value is held (Table 1).",
+    "readings": {
+     "A_vs_B_differences": [],
+     "final_differs_from_both_readings": [],
+     "machine_glyph_check": {"digits_checked": 60, "digits_machine_agrees": 60, "digits_machine_disagrees": []}
+    },
+    "figure_check": {
+     "spot_check_three": [
+      {
+       "alpha_deg": 10.0,
+       "table": 9.3e-05,
+       "figure": 9.437902490333208e-05,
+       "difference": 1.3790249033320836e-06,
+       "tolerance": 2.204032591825397e-06,
+       "agrees": true
+      },
+      {
+       "alpha_deg": 20.0,
+       "table": 5.4e-05,
+       "figure": 5.4139538863132865e-05,
+       "difference": 1.395388631328666e-07,
+       "tolerance": 1.2041408052222154e-06,
+       "agrees": true
+      },
+      {
+       "alpha_deg": 35.0,
+       "table": 2e-05,
+       "figure": 1.9493328417266917e-05,
+       "difference": -5.066715827330843e-07,
+       "tolerance": 1.0829418007854664e-06,
+       "agrees": true
+      }
+     ],
+     "curves": [
+      {
+       "figure": 14,
+       "pdf_page": 48,
+       "printed_page": 32,
+       "line_style": "solid",
+       "breakpoints_measured": 10,
+       "breakpoints_total": 10,
+       "breakpoints_agree_within_tolerance": 10
+      }
+     ]
+    },
+    "doubt": []
+   },
+   "CRDR": {
+    "mnemonic": "CRDR",
+    "name_as_printed_in_table_9": "CRDR",
+    "parameter_name_in_table_2": "Cl_delta_r",
+    "name_in_table_1_equations": "Cl_delta_r(|alpha|)",
+    "identifier_line_as_printed": "CRDR PER DEG 1 5 2 10",
+    "units_as_printed_in_file": "PER DEG",
+    "units": "per degree",
+    "units_in_table_2": "1/deg",
+    "coefficient": "Cl",
+    "multiplies": "delta_r [deg]",
+    "pdf_page": 42,
+    "printed_page": 26,
+    "file_line_numbers": "68-71",
+    "from_figure": false,
+    "figure": 15,
+    "used_by_configurations": ["A", "B", "C", "D"],
+    "independent_variable": {"name": "ALPHA2", "as_printed": "ALPHA2 DEGREES 0.,5.,45.,10", "units": "degrees", "minimum": 0, "increment": 5, "maximum": 45.0, "n": 10},
+    "alpha_deg": [0.0, 5.0, 10.0, 15.0, 20.0, 25.0, 30.0, 35.0, 40.0, 45.0],
+    "values": [0.000199, 0.000165, 0.000135, 0.000116, 9.2e-05, 6.9e-05, 5.2e-05, 3.5e-05, 1.7e-05, 0.0],
+    "outside_the_table": "Negative alpha: table entered with |alpha|. |alpha| >= 45 deg: the 45-deg value is held (Table 1).",
+    "readings": {
+     "A_vs_B_differences": [],
+     "final_differs_from_both_readings": [],
+     "machine_glyph_check": {"digits_checked": 60, "digits_machine_agrees": 60, "digits_machine_disagrees": []}
+    },
+    "figure_check": {
+     "spot_check_three": [
+      {
+       "alpha_deg": 10.0,
+       "table": 0.000135,
+       "figure": 0.00013484152745835582,
+       "difference": -1.5847254164418176e-07,
+       "tolerance": 1.725118240428613e-06,
+       "agrees": true
+      },
+      {
+       "alpha_deg": 20.0,
+       "table": 9.2e-05,
+       "figure": 9.247598011311671e-05,
+       "difference": 4.759801131167088e-07,
+       "tolerance": 1.5374716415232184e-06,
+       "agrees": true
+      },
+      {
+       "alpha_deg": 35.0,
+       "table": 3.5e-05,
+       "figure": 3.520179446914483e-05,
+       "difference": 2.0179446914483635e-07,
+       "tolerance": 1.3498250426178235e-06,
+       "agrees": true
+      }
+     ],
+     "curves": [
+      {
+       "figure": 15,
+       "pdf_page": 49,
+       "printed_page": 33,
+       "line_style": "solid",
+       "breakpoints_measured": 10,
+       "breakpoints_total": 10,
+       "breakpoints_agree_within_tolerance": 10
+      }
+     ]
+    },
+    "doubt": []
+   },
+   "CMBAS": {
+    "mnemonic": "CMBAS",
+    "name_as_printed_in_table_9": "CMBAS",
+    "parameter_name_in_table_2": "Cm_BASIC",
+    "name_in_table_1_equations": "Cm_BASIC(|alpha|)",
+    "identifier_line_as_printed": "CMBAS 1 5 5 23",
+    "units_as_printed_in_file": "(blank)",
+    "units": "none",
+    "units_in_table_2": "-",
+    "coefficient": "Cm",
+    "multiplies": "SGA (= +1 for alpha >= 0, -1 for alpha < 0)",
+    "pdf_page": 42,
+    "printed_page": 26,
+    "file_line_numbers": "72-78",
+    "from_figure": false,
+    "figure": 16,
+    "used_by_configurations": ["A", "B", "C", "D"],
+    "independent_variable": {"name": "ALPHA", "as_printed": "ALPHA DEGREES 0.,5.,110.,23", "units": "degrees", "minimum": 0, "increment": 5, "maximum": 110.0, "n": 23},
+    "alpha_deg": [0.0, 5.0, 10.0, 15.0, 20.0, 25.0, 30.0, 35.0, 40.0, 45.0, 50.0, 55.0, 60.0, 65.0, 70.0, 75.0, 80.0, 85.0, 90.0, 95.0, 100.0, 105.0, 110.0],
+    "values": [0.0, -0.013, -0.027, -0.033, -0.05, -0.068, -0.093, -0.144, -0.196, -0.242, -0.263, -0.285, -0.318, -0.381, -0.43, -0.475, -0.501, -0.532, -0.571, -0.616, -0.658, -0.695, -0.729],
+    "outside_the_table": "alpha < 0: -CMBAS(|alpha|) (anti-symmetric: the factor SGA). |alpha| >= 110 deg: 110-deg value held.",
+    "readings": {
+     "A_vs_B_differences": [],
+     "final_differs_from_both_readings": [],
+     "machine_glyph_check": {"digits_checked": 69, "digits_machine_agrees": 69, "digits_machine_disagrees": []}
+    },
+    "figure_check": {
+     "spot_check_three": [
+      {
+       "alpha_deg": 25.0,
+       "table": -0.068,
+       "figure": -0.06759264504798128,
+       "difference": 0.0004073549520187264,
+       "tolerance": 0.003141939781018851,
+       "agrees": true
+      },
+      {
+       "alpha_deg": 55.0,
+       "table": -0.285,
+       "figure": -0.2860179952338286,
+       "difference": -0.001017995233828617,
+       "tolerance": 0.003643002301989662,
+       "agrees": true
+      },
+      {
+       "alpha_deg": 85.0,
+       "table": -0.532,
+       "figure": -0.5300246688151,
+       "difference": 0.001975331184900009,
+       "tolerance": 0.004018799192717761,
+       "agrees": true
+      }
+     ],
+     "curves": [
+      {
+       "figure": 16,
+       "pdf_page": 49,
+       "printed_page": 33,
+       "line_style": "solid",
+       "breakpoints_measured": 22,
+       "breakpoints_total": 23,
+       "breakpoints_agree_within_tolerance": 21
+      }
+     ]
+    },
+    "doubt": []
+   },
+   "DCM1": {
+    "mnemonic": "DCM1",
+    "name_as_printed_in_table_9": "DCM1",
+    "parameter_name_in_table_2": "Delta Cm_1",
+    "name_in_table_1_equations": "Delta_Cm_k(|alpha|, beta*), k=1",
+    "identifier_line_as_printed": "DCM1 2 514 70",
+    "units_as_printed_in_file": "(blank)",
+    "units": "none",
+    "units_in_table_2": "-",
+    "coefficient": "Cm",
+    "multiplies": "1 (increment in Cm due to sideslip)",
+    "pdf_page": 42,
+    "printed_page": 26,
+    "file_line_numbers": "79-95",
+    "from_figure": false,
+    "figure": 17,
+    "table_4_index": {"index": "k", "value": 1},
+    "used_by_configurations": ["A", "B", "C"],
+    "independent_variables": [
+     {
+      "name": "ALPHA2",
+      "as_printed": "ALPHA2 DEGREES 0.,5.,45.,10",
+      "units": "degrees",
+      "minimum": 0,
+      "increment": 5,
+      "maximum": 45,
+      "n": 10,
+      "breakpoints": [0.0, 5.0, 10.0, 15.0, 20.0, 25.0, 30.0, 35.0, 40.0, 45.0]
+     },
+     {
+      "name": "BETA",
+      "as_printed": "BETA DEGREES 0.,5.,30., 7",
+      "units": "degrees",
+      "minimum": 0,
+      "increment": 5,
+      "maximum": 30,
+      "n": 7,
+      "breakpoints": [0.0, 5.0, 10.0, 15.0, 20.0, 25.0, 30.0]
+     }
+    ],
+    "order_in_file": "alpha is incremented first, then beta (Table 8): two printed lines of five alpha values for each beta",
+    "values_by_beta": [
+     {
+      "beta_deg": 0.0,
+      "alpha_deg": [0.0, 5.0, 10.0, 15.0, 20.0, 25.0, 30.0, 35.0, 40.0, 45.0],
+      "values": [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+     },
+     {
+      "beta_deg": 5.0,
+      "alpha_deg": [0.0, 5.0, 10.0, 15.0, 20.0, 25.0, 30.0, 35.0, 40.0, 45.0],
+      "values": [-0.008, -0.008, -0.008, -0.0138, -0.0099, 0.0018, 0.0005, 0.0, 0.0, 0.0]
+     },
+     {
+      "beta_deg": 10.0,
+      "alpha_deg": [0.0, 5.0, 10.0, 15.0, 20.0, 25.0, 30.0, 35.0, 40.0, 45.0],
+      "values": [-0.017, -0.017, -0.017, -0.0235, -0.0306, -0.0204, -0.016, 0.0, 0.0, 0.0]
+     },
+     {
+      "beta_deg": 15.0,
+      "alpha_deg": [0.0, 5.0, 10.0, 15.0, 20.0, 25.0, 30.0, 35.0, 40.0, 45.0],
+      "values": [-0.0312, -0.0312, -0.0312, -0.045, -0.058, -0.0465, -0.0428, -0.0025, 0.0, 0.0]
+     },
+     {
+      "beta_deg": 20.0,
+      "alpha_deg": [0.0, 5.0, 10.0, 15.0, 20.0, 25.0, 30.0, 35.0, 40.0, 45.0],
+      "values": [-0.0455, -0.0455, -0.0455, -0.0705, -0.08, -0.0768, -0.0755, -0.0087, 0.0, 0.0]
+     },
+     {
+      "beta_deg": 25.0,
+      "alpha_deg": [0.0, 5.0, 10.0, 15.0, 20.0, 25.0, 30.0, 35.0, 40.0, 45.0],
+      "values": [-0.0565, -0.0565, -0.0565, -0.0888, -0.1, -0.0953, -0.0944, -0.0106, 0.0, 0.0]
+     },
+     {
+      "beta_deg": 30.0,
+      "alpha_deg": [0.0, 5.0, 10.0, 15.0, 20.0, 25.0, 30.0, 35.0, 40.0, 45.0],
+      "values": [-0.0674, -0.0674, -0.0674, -0.1071, -0.12, -0.1138, -0.1133, -0.0125, 0.0, 0.0]
+     }
+    ],
+    "outside_the_table": "Entered with |alpha| and beta* = min(|beta|, 30 deg). |alpha| >= 45 deg: the 45-deg column is held (it is zero).",
+    "readings": {
+     "A_vs_B_differences": [],
+     "final_differs_from_both_readings": [],
+     "machine_glyph_check": {
+      "digits_checked": 280,
+      "digits_machine_agrees": 279,
+      "digits_machine_disagrees": [{"file_line": 87, "token": ".0000", "character_index": 1, "final": "0", "machine": "1", "score_final": 0.596, "score_machine": 0.598}]
+     }
+    },
+    "figure_check": {
+     "spot_check_three": [
+      {
+       "beta_deg": 10.0,
+       "alpha_deg": 20.0,
+       "table": -0.0306,
+       "figure": -0.030590365732095597,
+       "difference": 9.634267904401472e-06,
+       "tolerance": 0.0009507759993917576,
+       "agrees": true,
+       "figure_used": "17(a)"
+      },
+      {
+       "beta_deg": 20.0,
+       "alpha_deg": 15.0,
+       "table": -0.0705,
+       "figure": -0.07009868866612587,
+       "difference": 0.0004013113338741242,
+       "tolerance": 0.0013450671506762485,
+       "agrees": true,
+       "figure_used": "17(a)"
+      },
+      {
+       "beta_deg": 30.0,
+       "alpha_deg": 25.0,
+       "table": -0.1138,
+       "figure": -0.11387540608494826,
+       "difference": -7.540608494825685e-05,
+       "tolerance": 0.0008442108233689223,
+       "agrees": true,
+       "figure_used": "17(a)"
+      }
+     ],
+     "curves": [
+      {
+       "figure": 17,
+       "pdf_page": 50,
+       "printed_page": 34,
+       "line_style": "solid",
+       "breakpoints_measured": 0,
+       "breakpoints_total": 10,
+       "breakpoints_agree_within_tolerance": 0,
+       "curve_for_beta_deg": 0.0
+      },
+      {
+       "figure": 17,
+       "pdf_page": 50,
+       "printed_page": 34,
+       "line_style": "solid",
+       "breakpoints_measured": 5,
+       "breakpoints_total": 10,
+       "breakpoints_agree_within_tolerance": 5,
+       "curve_for_beta_deg": 5.0
+      },
+      {
+       "figure": 17,
+       "pdf_page": 50,
+       "printed_page": 34,
+       "line_style": "solid",
+       "breakpoints_measured": 8,
+       "breakpoints_total": 10,
+       "breakpoints_agree_within_tolerance": 8,
+       "curve_for_beta_deg": 10.0
+      },
+      {
+       "figure": 17,
+       "pdf_page": 50,
+       "printed_page": 34,
+       "line_style": "solid",
+       "breakpoints_measured": 8,
+       "breakpoints_total": 10,
+       "breakpoints_agree_within_tolerance": 8,
+       "curve_for_beta_deg": 15.0
+      },
+      {
+       "figure": 17,
+       "pdf_page": 50,
+       "printed_page": 34,
+       "line_style": "solid",
+       "breakpoints_measured": 8,
+       "breakpoints_total": 10,
+       "breakpoints_agree_within_tolerance": 8,
+       "curve_for_beta_deg": 20.0
+      },
+      {
+       "figure": 17,
+       "pdf_page": 50,
+       "printed_page": 34,
+       "line_style": "solid",
+       "breakpoints_measured": 8,
+       "breakpoints_total": 10,
+       "breakpoints_agree_within_tolerance": 8,
+       "curve_for_beta_deg": 25.0
+      },
+      {
+       "figure": 17,
+       "pdf_page": 50,
+       "printed_page": 34,
+       "line_style": "solid",
+       "breakpoints_measured": 8,
+       "breakpoints_total": 10,
+       "breakpoints_agree_within_tolerance": 8,
+       "curve_for_beta_deg": 30.0
+      },
+      {
+       "figure": "17(b)",
+       "pdf_page": 50,
+       "printed_page": 34,
+       "line_style": "solid",
+       "breakpoints_measured": 6,
+       "breakpoints_total": 7,
+       "breakpoints_agree_within_tolerance": 6
+      },
+      {
+       "figure": "17(b)",
+       "pdf_page": 50,
+       "printed_page": 34,
+       "line_style": "solid",
+       "breakpoints_measured": 6,
+       "breakpoints_total": 7,
+       "breakpoints_agree_within_tolerance": 6
+      },
+      {
+       "figure": "17(b)",
+       "pdf_page": 50,
+       "printed_page": 34,
+       "line_style": "solid",
+       "breakpoints_measured": 6,
+       "breakpoints_total": 7,
+       "breakpoints_agree_within_tolerance": 6
+      },
+      {
+       "figure": "17(b)",
+       "pdf_page": 50,
+       "printed_page": 34,
+       "line_style": "solid",
+       "breakpoints_measured": 6,
+       "breakpoints_total": 7,
+       "breakpoints_agree_within_tolerance": 5
+      },
+      {
+       "figure": "17(b)",
+       "pdf_page": 50,
+       "printed_page": 34,
+       "line_style": "solid",
+       "breakpoints_measured": 6,
+       "breakpoints_total": 7,
+       "breakpoints_agree_within_tolerance": 6
+      },
+      {
+       "figure": "17(b)",
+       "pdf_page": 50,
+       "printed_page": 34,
+       "line_style": "solid",
+       "breakpoints_measured": 6,
+       "breakpoints_total": 7,
+       "breakpoints_agree_within_tolerance": 4
+      },
+      {
+       "figure": "17(b)",
+       "pdf_page": 50,
+       "printed_page": 34,
+       "line_style": "solid",
+       "breakpoints_measured": 6,
+       "breakpoints_total": 7,
+       "breakpoints_agree_within_tolerance": 6
+      },
+      {
+       "figure": "17(b)",
+       "pdf_page": 50,
+       "printed_page": 34,
+       "line_style": "solid",
+       "breakpoints_measured": 4,
+       "breakpoints_total": 7,
+       "breakpoints_agree_within_tolerance": 3
+      },
+      {
+       "figure": "17(b)",
+       "pdf_page": 50,
+       "printed_page": 34,
+       "line_style": "solid",
+       "breakpoints_measured": 0,
+       "breakpoints_total": 7,
+       "breakpoints_agree_within_tolerance": 0
+      },
+      {
+       "figure": "17(b)",
+       "pdf_page": 50,
+       "printed_page": 34,
+       "line_style": "solid",
+       "breakpoints_measured": 0,
+       "breakpoints_total": 7,
+       "breakpoints_agree_within_tolerance": 0
+      }
+     ]
+    },
+    "doubt": [
+     {
+      "cell": "beta=10, alpha=35 (third value on file line 87)",
+      "candidates": [0.0, -0.0],
+      "chosen": 0.0,
+      "status": "resolved",
+      "note": "The decimal point and left half of the first 0 are lost ('?000'). The column position shows a five-character token '.0000', and DCM2 prints .0000 in the same place. The value is zero either way."
+     }
+    ]
+   },
+   "DCM2": {
+    "mnemonic": "DCM2",
+    "name_as_printed_in_table_9": "DCM2",
+    "parameter_name_in_table_2": "Delta Cm_2",
+    "name_in_table_1_equations": "Delta_Cm_k(|alpha|, beta*), k=2",
+    "identifier_line_as_printed": "DCM2 2 514 70",
+    "units_as_printed_in_file": "(blank)",
+    "units": "none",
+    "units_in_table_2": "-",
+    "coefficient": "Cm",
+    "multiplies": "1 (increment in Cm due to sideslip)",
+    "pdf_page": 42,
+    "printed_page": 26,
+    "file_line_numbers": "96-112",
+    "from_figure": false,
+    "figure": null,
+    "table_4_index": {"index": "k", "value": 2},
+    "used_by_configurations": ["D"],
+    "independent_variables": [
+     {
+      "name": "ALPHA2",
+      "as_printed": "ALPHA2 DEGREES 0.,5.,45.,10",
+      "units": "degrees",
+      "minimum": 0,
+      "increment": 5,
+      "maximum": 45,
+      "n": 10,
+      "breakpoints": [0.0, 5.0, 10.0, 15.0, 20.0, 25.0, 30.0, 35.0, 40.0, 45.0]
+     },
+     {
+      "name": "BETA",
+      "as_printed": "BETA DEGREES 0.,5.,30.,7",
+      "units": "degrees",
+      "minimum": 0,
+      "increment": 5,
+      "maximum": 30,
+      "n": 7,
+      "breakpoints": [0.0, 5.0, 10.0, 15.0, 20.0, 25.0, 30.0]
+     }
+    ],
+    "order_in_file": "alpha is incremented first, then beta (Table 8): two printed lines of five alpha values for each beta",
+    "values_by_beta": [
+     {
+      "beta_deg": 0.0,
+      "alpha_deg": [0.0, 5.0, 10.0, 15.0, 20.0, 25.0, 30.0, 35.0, 40.0, 45.0],
+      "values": [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+     },
+     {
+      "beta_deg": 5.0,
+      "alpha_deg": [0.0, 5.0, 10.0, 15.0, 20.0, 25.0, 30.0, 35.0, 40.0, 45.0],
+      "values": [0.008, 0.008, 0.008, 0.0138, 0.0099, -0.0018, -0.0005, 0.0, 0.0, 0.0]
+     },
+     {
+      "beta_deg": 10.0,
+      "alpha_deg": [0.0, 5.0, 10.0, 15.0, 20.0, 25.0, 30.0, 35.0, 40.0, 45.0],
+      "values": [0.017, 0.017, 0.017, 0.0235, 0.0306, 0.0204, 0.016, 0.0, 0.0, 0.0]
+     },
+     {
+      "beta_deg": 15.0,
+      "alpha_deg": [0.0, 5.0, 10.0, 15.0, 20.0, 25.0, 30.0, 35.0, 40.0, 45.0],
+      "values": [0.0312, 0.0312, 0.0312, 0.045, 0.058, 0.0465, 0.0428, 0.0025, 0.0, 0.0]
+     },
+     {
+      "beta_deg": 20.0,
+      "alpha_deg": [0.0, 5.0, 10.0, 15.0, 20.0, 25.0, 30.0, 35.0, 40.0, 45.0],
+      "values": [0.0455, 0.0455, 0.0455, 0.0705, 0.08, 0.0768, 0.0755, 0.0087, 0.0, 0.0]
+     },
+     {
+      "beta_deg": 25.0,
+      "alpha_deg": [0.0, 5.0, 10.0, 15.0, 20.0, 25.0, 30.0, 35.0, 40.0, 45.0],
+      "values": [0.0565, 0.0565, 0.0565, 0.0888, 0.1, 0.0953, 0.0944, 0.0106, 0.0, 0.0]
+     },
+     {
+      "beta_deg": 30.0,
+      "alpha_deg": [0.0, 5.0, 10.0, 15.0, 20.0, 25.0, 30.0, 35.0, 40.0, 45.0],
+      "values": [0.0674, 0.0674, 0.0674, 0.1071, 0.12, 0.1138, 0.1133, 0.0125, 0.0, 0.0]
+     }
+    ],
+    "outside_the_table": "Entered with |alpha| and beta* = min(|beta|, 30 deg). |alpha| >= 45 deg: the 45-deg column is held (it is zero).",
+    "readings": {
+     "A_vs_B_differences": [],
+     "final_differs_from_both_readings": [],
+     "machine_glyph_check": {
+      "digits_checked": 260,
+      "digits_machine_agrees": 257,
+      "digits_machine_disagrees": [
+       {"file_line": 103, "token": ".0170", "character_index": 1, "final": "0", "machine": "4", "score_final": 0.271, "score_machine": 0.466},
+       {"file_line": 103, "token": ".0170", "character_index": 2, "final": "1", "machine": "7", "score_final": 0.246, "score_machine": 0.617},
+       {"file_line": 103, "token": ".0170", "character_index": 3, "final": "7", "machine": "8", "score_final": 0.255, "score_machine": 0.362}
+      ]
+     }
+    },
+    "figure_check": {
+     "note": "No figure of its own: the note under Figure 17 (PDF p.50) says 'Delta Cm_2(alpha, beta) is mirror image of Delta Cm_1(alpha, beta)'. Checked instead: DCM2 = -DCM1 in all 70 printed cells.",
+     "curves": []
+    },
+    "doubt": []
+   },
+   "CMQ": {
+    "mnemonic": "CMQ",
+    "name_as_printed_in_table_9": "CMQ",
+    "parameter_name_in_table_2": "Cm_q",
+    "name_in_table_1_equations": "Cm_q(|alpha|)",
+    "identifier_line_as_printed": "CMQ PER RAD 1 5 2 10",
+    "units_as_printed_in_file": "PER RAD",
+    "units": "per radian",
+    "units_in_table_2": "1/rad",
+    "coefficient": "Cm",
+    "multiplies": "q*c/(2*VT)  [q in rad/sec]",
+    "pdf_page": 43,
+    "printed_page": 27,
+    "file_line_numbers": "113-116",
+    "from_figure": false,
+    "figure": 18,
+    "used_by_configurations": ["A", "B", "C", "D"],
+    "independent_variable": {"name": "ALPHA2", "as_printed": "ALPHA2 DEGREES 0.,5.,45.,10", "units": "degrees", "minimum": 0, "increment": 5, "maximum": 45.0, "n": 10},
+    "alpha_deg": [0.0, 5.0, 10.0, 15.0, 20.0, 25.0, 30.0, 35.0, 40.0, 45.0],
+    "values": [-3.1, -3.41, -3.78, -3.92, -3.8, -3.62, -3.15, -3.15, -3.15, -3.15],
+    "outside_the_table": "Negative alpha: table entered with |alpha|. |alpha| >= 45 deg: the 45-deg value is held (Table 1).",
+    "readings": {
+     "A_vs_B_differences": [],
+     "final_differs_from_both_readings": [],
+     "machine_glyph_check": {"digits_checked": 30, "digits_machine_agrees": 30, "digits_machine_disagrees": []}
+    },
+    "figure_check": {
+     "spot_check_three": [
+      {
+       "alpha_deg": 10.0,
+       "table": -3.78,
+       "figure": -3.785095545862818,
+       "difference": -0.005095545862818351,
+       "tolerance": 0.014367825445279439,
+       "agrees": true
+      },
+      {
+       "alpha_deg": 20.0,
+       "table": -3.8,
+       "figure": -3.7957214903582184,
+       "difference": 0.004278509641781447,
+       "tolerance": 0.00858772983467536,
+       "agrees": true
+      },
+      {
+       "alpha_deg": 35.0,
+       "table": -3.15,
+       "figure": -3.1504226075469766,
+       "difference": -0.00042260754697664993,
+       "tolerance": 0.0031118497825241348,
+       "agrees": true
+      }
+     ],
+     "curves": [
+      {
+       "figure": 18,
+       "pdf_page": 51,
+       "printed_page": 35,
+       "line_style": "solid",
+       "breakpoints_measured": 10,
+       "breakpoints_total": 10,
+       "breakpoints_agree_within_tolerance": 10
+      }
+     ]
+    },
+    "doubt": [
+     {
+      "cell": "alpha=45",
+      "candidates": [-3.15, -3.18],
+      "chosen": -3.15,
+      "status": "resolved",
+      "note": "Last digit smudged. Same glyph shape as the three -3.15 before it; Figure 18 is flat from 30 to 45 deg (reads -3.150 +-0.003 at 45); CMAD/CMQ = 0.419 as elsewhere."
+     }
+    ]
+   },
+   "CMAD": {
+    "mnemonic": "CMAD",
+    "name_as_printed_in_table_9": "CMAD",
+    "parameter_name_in_table_2": "Cm_alpha_dot",
+    "name_in_table_1_equations": "Cm_alpha_dot(|alpha|)",
+    "identifier_line_as_printed": "CMAD PER RAD 1 5 2 10",
+    "units_as_printed_in_file": "PER RAD",
+    "units": "per radian",
+    "units_in_table_2": "1/rad",
+    "coefficient": "Cm",
+    "multiplies": "alpha_dot*c/(2*VT)  [alpha_dot in rad/sec]",
+    "pdf_page": 43,
+    "printed_page": 27,
+    "file_line_numbers": "117-120",
+    "from_figure": false,
+    "figure": 19,
+    "used_by_configurations": ["A", "B", "C", "D"],
+    "independent_variable": {"name": "ALPHA2", "as_printed": "ALPHA2 DEGREES 0.,5.,45.,10", "units": "degrees", "minimum": 0, "increment": 5, "maximum": 45.0, "n": 10},
+    "alpha_deg": [0.0, 5.0, 10.0, 15.0, 20.0, 25.0, 30.0, 35.0, 40.0, 45.0],
+    "values": [-1.3, -1.42, -1.58, -1.63, -1.59, -1.52, -1.32, -1.32, -1.32, -1.32],
+    "outside_the_table": "Negative alpha: table entered with |alpha|. |alpha| >= 45 deg: the 45-deg value is held (Table 1).",
+    "readings": {
+     "A_vs_B_differences": [],
+     "final_differs_from_both_readings": [],
+     "machine_glyph_check": {"digits_checked": 30, "digits_machine_agrees": 30, "digits_machine_disagrees": []}
+    },
+    "figure_check": {
+     "spot_check_three": [
+      {
+       "alpha_deg": 10.0,
+       "table": -1.58,
+       "figure": -1.5779008569974675,
+       "difference": 0.0020991430025325553,
+       "tolerance": 0.007850607147381502,
+       "agrees": true
+      },
+      {
+       "alpha_deg": 20.0,
+       "table": -1.59,
+       "figure": -1.589813867037392,
+       "difference": 0.00018613296260805434,
+       "tolerance": 0.00513801296008333,
+       "agrees": true
+      },
+      {
+       "alpha_deg": 35.0,
+       "table": -1.32,
+       "figure": -1.3201111581351568,
+       "difference": -0.00011115813515671924,
+       "tolerance": 0.003028217481073641,
+       "agrees": true
+      }
+     ],
+     "curves": [
+      {
+       "figure": 19,
+       "pdf_page": 52,
+       "printed_page": 36,
+       "line_style": "solid",
+       "breakpoints_measured": 10,
+       "breakpoints_total": 10,
+       "breakpoints_agree_within_tolerance": 10
+      }
+     ]
+    },
+    "doubt": []
+   },
+   "CMSTAB": {
+    "mnemonic": "CMSTAB",
+    "name_as_printed_in_table_9": "CMSTAB",
+    "parameter_name_in_table_2": "Cm_delta_STAB",
+    "name_in_table_1_equations": "Cm_delta_stab(|alpha|)",
+    "identifier_line_as_printed": "CMSTAB PER DEG 1 5 5 23",
+    "units_as_printed_in_file": "PER DEG",
+    "units": "per degree",
+    "units_in_table_2": "1/deg",
+    "coefficient": "Cm",
+    "multiplies": "delta_stab [deg]  (the bracket is {Cm_delta_stab + K_beta*|beta|})",
+    "pdf_page": 43,
+    "printed_page": 27,
+    "file_line_numbers": "121-127",
+    "from_figure": false,
+    "figure": 20,
+    "used_by_configurations": ["A", "B", "C", "D"],
+    "independent_variable": {"name": "ALPHA", "as_printed": "ALPHA DEGREES 0.,5.,110.,23", "units": "degrees", "minimum": 0, "increment": 5, "maximum": 110.0, "n": 23},
+    "alpha_deg": [0.0, 5.0, 10.0, 15.0, 20.0, 25.0, 30.0, 35.0, 40.0, 45.0, 50.0, 55.0, 60.0, 65.0, 70.0, 75.0, 80.0, 85.0, 90.0, 95.0, 100.0, 105.0, 110.0],
+    "values": [-0.0101, -0.01004, -0.00981, -0.00926, -0.00828, -0.00745, -0.00733, -0.00677, -0.00627, -0.00572, -0.00519, -0.00466, -0.00414, -0.00361, -0.00308, -0.00256, -0.00202, -0.0015, -0.00097, -0.00052, 0.0, 0.0, 0.0],
+    "outside_the_table": "Negative alpha: table entered with |alpha| (CLBAS and CMBAS are the two exceptions, see Table 1). |alpha| > 110 deg: the 110-deg value is held.",
+    "readings": {
+     "A_vs_B_differences": [],
+     "final_differs_from_both_readings": [{"index": 14, "both_readings": -0.00309, "final": -0.00308}],
+     "machine_glyph_check": {
+      "digits_checked": 118,
+      "digits_machine_agrees": 116,
+      "digits_machine_disagrees": [
+       {"file_line": 124, "token": "-.00745", "character_index": 5, "final": "4", "machine": "1", "score_final": 0.592, "score_machine": 0.614},
+       {"file_line": 126, "token": "-.00097", "character_index": 6, "final": "7", "machine": "9", "score_final": 0.625, "score_machine": 0.736}
+      ]
+     }
+    },
+    "figure_check": {
+     "spot_check_three": [
+      {
+       "alpha_deg": 25.0,
+       "table": -0.00745,
+       "figure": -0.0074706241297917515,
+       "difference": -2.0624129791751468e-05,
+       "tolerance": 0.00012857946577453572,
+       "agrees": true
+      },
+      {
+       "alpha_deg": 55.0,
+       "table": -0.00466,
+       "figure": -0.004706020626481112,
+       "difference": -4.6020626481111694e-05,
+       "tolerance": 0.0001102408564524094,
+       "agrees": true
+      },
+      {
+       "alpha_deg": 85.0,
+       "table": -0.0015,
+       "figure": -0.0014446751680259001,
+       "difference": 5.53248319740999e-05,
+       "tolerance": 0.0001102408564524094,
+       "agrees": true
+      }
+     ],
+     "note": "The plotted line lies on the x-axis line from 100 deg (table value 0) and cannot be measured there.",
+     "curves": [
+      {
+       "figure": 20,
+       "pdf_page": 53,
+       "printed_page": 37,
+       "line_style": "solid",
+       "breakpoints_measured": 20,
+       "breakpoints_total": 23,
+       "breakpoints_agree_within_tolerance": 20
+      }
+     ]
+    },
+    "doubt": [
+     {
+      "cell": "alpha=25",
+      "candidates": [-0.00745, -0.00743],
+      "chosen": -0.00745,
+      "status": "resolved",
+      "note": "Last digit has the tall left upright of a 5; machine: 5 (0.69 against 0.58)."
+     },
+     {
+      "cell": "alpha=70",
+      "candidates": [-0.00308, -0.00309],
+      "chosen": -0.00308,
+      "status": "open",
+      "note": "Both human readings typed -.00309; the last glyph has two closed loops (8) and the machine check reads 8 (0.76 against 0.47 for 9). Differs by 1e-5 (0.3%); the figure cannot resolve it."
+     },
+     {
+      "cell": "alpha=90",
+      "candidates": [-0.00097, -0.00099],
+      "chosen": -0.00097,
+      "status": "open",
+      "note": "Both human readings typed 7; the machine check prefers 9 (0.74 against 0.63). At pixel level the glyph has no closed loop, unlike the 9 beside it, so 7 is kept. Differs by 2e-5; the figure cannot resolve it."
+     }
+    ]
+   },
+   "CMDA": {
+    "mnemonic": "CMDA",
+    "name_as_printed_in_table_9": "CMDA",
+    "parameter_name_in_table_2": "Cm_delta_a",
+    "name_in_table_1_equations": "Cm_delta_a(|alpha|)",
+    "identifier_line_as_printed": "CMDA PER DEG 1 5 2 10",
+    "units_as_printed_in_file": "PER DEG",
+    "units": "per degree",
+    "units_in_table_2": "1/deg",
+    "coefficient": "Cm",
+    "multiplies": "|delta_a| [deg]",
+    "pdf_page": 43,
+    "printed_page": 27,
+    "file_line_numbers": "128-131",
+    "from_figure": false,
+    "figure": 21,
+    "used_by_configurations": ["A", "B", "C", "D"],
+    "independent_variable": {"name": "ALPHA2", "as_printed": "ALPHA2 DEGREES 0.,5.,45.,10", "units": "degrees", "minimum": 0, "increment": 5, "maximum": 45.0, "n": 10},
+    "alpha_deg": [0.0, 5.0, 10.0, 15.0, 20.0, 25.0, 30.0, 35.0, 40.0, 45.0],
+    "values": [-0.00105, -0.00092, -0.00079, -0.00068, -0.00066, -0.00066, -0.00066, -0.00066, -0.00066, -0.00066],
+    "outside_the_table": "Negative alpha: table entered with |alpha|. |alpha| >= 45 deg: the 45-deg value is held (Table 1).",
+    "readings": {
+     "A_vs_B_differences": [],
+     "final_differs_from_both_readings": [],
+     "machine_glyph_check": {"digits_checked": 50, "digits_machine_agrees": 50, "digits_machine_disagrees": []}
+    },
+    "figure_check": {
+     "spot_check_three": [
+      {
+       "alpha_deg": 10.0,
+       "table": -0.00079,
+       "figure": -0.0007889697963746244,
+       "difference": 1.0302036253756301e-06,
+       "tolerance": 1.1763078725095086e-05,
+       "agrees": true
+      },
+      {
+       "alpha_deg": 20.0,
+       "table": -0.00066,
+       "figure": -0.0006610388245957178,
+       "difference": -1.0388245957178516e-06,
+       "tolerance": 8.393644308729266e-06,
+       "agrees": true
+      },
+      {
+       "alpha_deg": 35.0,
+       "table": -0.00066,
+       "figure": -0.0006620435092259418,
+       "difference": -2.0435092259417625e-06,
+       "tolerance": 7.781019869390024e-06,
+       "agrees": true
+      }
+     ],
+     "curves": [
+      {
+       "figure": 21,
+       "pdf_page": 53,
+       "printed_page": 37,
+       "line_style": "solid",
+       "breakpoints_measured": 10,
+       "breakpoints_total": 10,
+       "breakpoints_agree_within_tolerance": 10
+      }
+     ]
+    },
+    "doubt": [
+     {
+      "cell": "alpha=35",
+      "candidates": [-0.00066, -0.00046],
+      "chosen": -0.00066,
+      "status": "resolved",
+      "note": "Fourth digit damaged (6 or 4). Figure 21 is flat from 20 to 45 deg and reads -0.000662 +-0.000008 at 35 deg; -.00046 would be a 51-px spike."
+     }
+    ]
+   },
+   "CMDSP": {
+    "mnemonic": "CMDSP",
+    "name_as_printed_in_table_9": "CMDSP",
+    "parameter_name_in_table_2": "Cm_delta_sp",
+    "name_in_table_1_equations": "Cm_delta_sp(|alpha|)",
+    "identifier_line_as_printed": "CMDSP PER DEG 1 5 2 10",
+    "units_as_printed_in_file": "PER DEG",
+    "units": "per degree",
+    "units_in_table_2": "1/deg",
+    "coefficient": "Cm",
+    "multiplies": "|delta_sp| [deg]",
+    "pdf_page": 43,
+    "printed_page": 27,
+    "file_line_numbers": "132-135",
+    "from_figure": false,
+    "figure": 22,
+    "used_by_configurations": ["A", "B", "C", "D"],
+    "independent_variable": {"name": "ALPHA2", "as_printed": "ALPHA2 DEGREES 0.,5.,45.,10", "units": "degrees", "minimum": 0, "increment": 5, "maximum": 45.0, "n": 10},
+    "alpha_deg": [0.0, 5.0, 10.0, 15.0, 20.0, 25.0, 30.0, 35.0, 40.0, 45.0],
+    "values": [0.00013, 7.9e-05, 3.5e-05, 7e-06, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+    "outside_the_table": "Negative alpha: table entered with |alpha|. |alpha| >= 45 deg: the 45-deg value is held (Table 1).",
+    "readings": {
+     "A_vs_B_differences": [],
+     "final_differs_from_both_readings": [],
+     "machine_glyph_check": {"digits_checked": 59, "digits_machine_agrees": 59, "digits_machine_disagrees": []}
+    },
+    "figure_check": {
+     "spot_check_three": [
+      {
+       "alpha_deg": 10.0,
+       "table": 3.5e-05,
+       "figure": 3.586175151644062e-05,
+       "difference": 8.617515164406213e-07,
+       "tolerance": 2.1143244123175995e-06,
+       "agrees": true
+      },
+      {
+       "alpha_deg": 15.0,
+       "table": 7e-06,
+       "figure": 7.565870794082861e-06,
+       "difference": 5.658707940828615e-07,
+       "tolerance": 1.6290557814683794e-06,
+       "agrees": true,
+       "substituted_for_alpha_deg": 20.0
+      },
+      {
+       "alpha_deg": 5.0,
+       "table": 7.9e-05,
+       "figure": 7.873176520839018e-05,
+       "difference": -2.6823479160981113e-07,
+       "tolerance": 2.3266294383141333e-06,
+       "agrees": true,
+       "substituted_for_alpha_deg": 35.0
+      }
+     ],
+     "note": "The plotted line lies on the x-axis line from 20 deg (table value 0) and cannot be measured there.",
+     "curves": [
+      {
+       "figure": 22,
+       "pdf_page": 54,
+       "printed_page": 38,
+       "line_style": "solid",
+       "breakpoints_measured": 4,
+       "breakpoints_total": 10,
+       "breakpoints_agree_within_tolerance": 4
+      }
+     ]
+    },
+    "doubt": []
+   },
+   "CNB1": {
+    "mnemonic": "CNB1",
+    "name_as_printed_in_table_9": "CNB1",
+    "parameter_name_in_table_2": "Cn_beta_1",
+    "name_in_table_1_equations": "Cn_beta_l(|alpha|), l=1",
+    "identifier_line_as_printed": "CNB1 PER DEG 1 5 2 10",
+    "units_as_printed_in_file": "PER DEG",
+    "units": "per degree",
+    "units_in_table_2": "1/deg",
+    "coefficient": "Cn",
+    "multiplies": "beta [deg]",
+    "pdf_page": 43,
+    "printed_page": 27,
+    "file_line_numbers": "136-139",
+    "from_figure": false,
+    "figure": 23,
+    "table_4_index": {"index": "l", "value": 1},
+    "used_by_configurations": ["A", "B", "C"],
+    "independent_variable": {"name": "ALPHA2", "as_printed": "ALPHA2 DEGREES 0.,5.,45.,10", "units": "degrees", "minimum": 0, "increment": 5, "maximum": 45.0, "n": 10},
+    "alpha_deg": [0.0, 5.0, 10.0, 15.0, 20.0, 25.0, 30.0, 35.0, 40.0, 45.0],
+    "values": [0.0022, 0.0022, 0.0021, 0.0013, -0.0006, -0.0033, -0.004, -0.0038, -0.0026, -0.002],
+    "outside_the_table": "Negative alpha: table entered with |alpha|. |alpha| >= 45 deg: the 45-deg value is held (Table 1).",
+    "readings": {
+     "A_vs_B_differences": [],
+     "final_differs_from_both_readings": [],
+     "machine_glyph_check": {"digits_checked": 40, "digits_machine_agrees": 40, "digits_machine_disagrees": []}
+    },
+    "figure_check": {
+     "spot_check_three": [
+      {
+       "alpha_deg": 10.0,
+       "table": 0.0021,
+       "figure": 0.0020991303523910983,
+       "difference": -8.696476089015311e-07,
+       "tolerance": 3.999630030853385e-05,
+       "agrees": true
+      },
+      {
+       "alpha_deg": 20.0,
+       "table": -0.0006,
+       "figure": -0.0006438678891093199,
+       "difference": -4.3867889109319973e-05,
+       "tolerance": 9.796731480128743e-05,
+       "agrees": true
+      },
+      {
+       "alpha_deg": 35.0,
+       "table": -0.0038,
+       "figure": -0.0038091040424970118,
+       "difference": -9.104042497011782e-06,
+       "tolerance": 5.220072441227144e-05,
+       "agrees": true
+      }
+     ],
+     "curves": [
+      {
+       "figure": 23,
+       "pdf_page": 54,
+       "printed_page": 38,
+       "line_style": "solid",
+       "breakpoints_measured": 10,
+       "breakpoints_total": 10,
+       "breakpoints_agree_within_tolerance": 10
+      }
+     ]
+    },
+    "doubt": []
+   },
+   "CNB2": {
+    "mnemonic": "CNB2",
+    "name_as_printed_in_table_9": "CNB2",
+    "parameter_name_in_table_2": "Cn_beta_2",
+    "name_in_table_1_equations": "Cn_beta_l(|alpha|), l=2",
+    "identifier_line_as_printed": "CNB2 PER DEG 1 5 2 10",
+    "units_as_printed_in_file": "PER DEG",
+    "units": "per degree",
+    "units_in_table_2": "1/deg",
+    "coefficient": "Cn",
+    "multiplies": "beta [deg]",
+    "pdf_page": 43,
+    "printed_page": 27,
+    "file_line_numbers": "140-143",
+    "from_figure": false,
+    "figure": 23,
+    "table_4_index": {"index": "l", "value": 2},
+    "used_by_configurations": ["D"],
+    "independent_variable": {"name": "ALPHA2", "as_printed": "ALPHA2 DEGREES 0.,5.,45.,10", "units": "degrees", "minimum": 0, "increment": 5, "maximum": 45.0, "n": 10},
+    "alpha_deg": [0.0, 5.0, 10.0, 15.0, 20.0, 25.0, 30.0, 35.0, 40.0, 45.0],
+    "values": [0.0022, 0.0022, 0.0021, 0.0013, 0.0, -0.0005, -0.0008, -0.0011, -0.0014, -0.0017],
+    "outside_the_table": "Negative alpha: table entered with |alpha|. |alpha| >= 45 deg: the 45-deg value is held (Table 1).",
+    "readings": {
+     "A_vs_B_differences": [],
+     "final_differs_from_both_readings": [],
+     "machine_glyph_check": {"digits_checked": 40, "digits_machine_agrees": 40, "digits_machine_disagrees": []}
+    },
+    "figure_check": {
+     "spot_check_three": [
+      {
+       "alpha_deg": 10.0,
+       "table": 0.0021,
+       "figure": 0.0020991303523910983,
+       "difference": -8.696476089015311e-07,
+       "tolerance": 3.999630030853385e-05,
+       "agrees": true
+      },
+      {
+       "alpha_deg": 20.0,
+       "table": 0.0,
+       "figure": 4.079692375993066e-05,
+       "difference": 4.079692375993066e-05,
+       "tolerance": 5.5251830438205835e-05,
+       "agrees": true
+      },
+      {
+       "alpha_deg": 35.0,
+       "table": -0.0011,
+       "figure": -0.0011375893042978326,
+       "difference": -3.758930429783257e-05,
+       "tolerance": 2.4740770178861852e-05,
+       "agrees": false
+      }
+     ],
+     "note": "Dashed overlay on Figure 23 (looks hand-inked). It follows the table within 2 px to 30 deg and runs 5-9 px low (0.00004-0.00007) from 35 to 45 deg, within the accuracy of a hand-drawn line; table digits clear.",
+     "curves": [
+      {
+       "figure": 23,
+       "pdf_page": 54,
+       "printed_page": 38,
+       "line_style": "dashed",
+       "breakpoints_measured": 10,
+       "breakpoints_total": 10,
+       "breakpoints_agree_within_tolerance": 7
+      }
+     ]
+    },
+    "doubt": []
+   },
+   "CNP": {
+    "mnemonic": "CNP",
+    "name_as_printed_in_table_9": "CNP",
+    "parameter_name_in_table_2": "Cn_p",
+    "name_in_table_1_equations": "Cn_p(|alpha|)",
+    "identifier_line_as_printed": "CNP PER RAD 1 5 2 10",
+    "units_as_printed_in_file": "PER RAD",
+    "units": "per radian",
+    "units_in_table_2": "1/rad",
+    "coefficient": "Cn",
+    "multiplies": "p*b/(2*VT)  [p in rad/sec]",
+    "pdf_page": 43,
+    "printed_page": 27,
+    "file_line_numbers": "144-147",
+    "from_figure": false,
+    "figure": 24,
+    "used_by_configurations": ["A", "B", "C", "D"],
+    "independent_variable": {"name": "ALPHA2", "as_printed": "ALPHA2 DEGREES 0.,5.,45.,10", "units": "degrees", "minimum": 0, "increment": 5, "maximum": 45.0, "n": 10},
+    "alpha_deg": [0.0, 5.0, 10.0, 15.0, 20.0, 25.0, 30.0, 35.0, 40.0, 45.0],
+    "values": [0.005, -0.014, 0.007, 0.023, -0.002, 0.055, 0.122, 0.08, 0.041, 0.0],
+    "outside_the_table": "Negative alpha: table entered with |alpha|. |alpha| >= 45 deg: the 45-deg value is held (Table 1).",
+    "readings": {
+     "A_vs_B_differences": [],
+     "final_differs_from_both_readings": [],
+     "machine_glyph_check": {"digits_checked": 30, "digits_machine_agrees": 30, "digits_machine_disagrees": []}
+    },
+    "figure_check": {
+     "spot_check_three": [
+      {
+       "alpha_deg": 10.0,
+       "table": 0.007,
+       "figure": 0.0066205195174186575,
+       "difference": -0.0003794804825813427,
+       "tolerance": 0.0014442660345584798,
+       "agrees": true
+      },
+      {
+       "alpha_deg": 20.0,
+       "table": -0.002,
+       "figure": -0.0010866586015674448,
+       "difference": 0.0009133413984325552,
+       "tolerance": 0.002570774751590218,
+       "agrees": true
+      },
+      {
+       "alpha_deg": 35.0,
+       "table": 0.08,
+       "figure": 0.08170506062356854,
+       "difference": 0.0017050606235685384,
+       "tolerance": 0.0021013961194936604,
+       "agrees": true
+      }
+     ],
+     "curves": [
+      {
+       "figure": 24,
+       "pdf_page": 55,
+       "printed_page": 39,
+       "line_style": "solid",
+       "breakpoints_measured": 10,
+       "breakpoints_total": 10,
+       "breakpoints_agree_within_tolerance": 10
+      }
+     ]
+    },
+    "doubt": [
+     {
+      "cell": "alpha=0",
+      "candidates": [0.005, 0.003],
+      "chosen": 0.005,
+      "status": "resolved",
+      "note": "Glyph has the left upright of a 5; Figure 24 reads 0.0060 +-0.0014 at 0 deg."
+     },
+     {
+      "cell": "alpha=25",
+      "candidates": [0.055, 0.085],
+      "chosen": 0.055,
+      "status": "resolved",
+      "note": "Second digit degraded (5 or 8). Figure 24 reads 0.053 +-0.003 at 25 deg; 0.085 would be 76 px higher."
+     }
+    ]
+   },
+   "CNR": {
+    "mnemonic": "CNR",
+    "name_as_printed_in_table_9": "CNR",
+    "parameter_name_in_table_2": "Cn_r",
+    "name_in_table_1_equations": "Cn_r(|alpha|)",
+    "identifier_line_as_printed": "CNR PER RAD 1 5 2 10",
+    "units_as_printed_in_file": "PER RAD",
+    "units": "per radian",
+    "units_in_table_2": "1/rad",
+    "coefficient": "Cn",
+    "multiplies": "r*b/(2*VT)  [r in rad/sec]",
+    "pdf_page": 43,
+    "printed_page": 27,
+    "file_line_numbers": "148-151",
+    "from_figure": false,
+    "figure": 25,
+    "used_by_configurations": ["A", "B", "C", "D"],
+    "independent_variable": {"name": "ALPHA2", "as_printed": "ALPHA2 DEGREES 0.,5.,45.,10", "units": "degrees", "minimum": 0, "increment": 5, "maximum": 45.0, "n": 10},
+    "alpha_deg": [0.0, 5.0, 10.0, 15.0, 20.0, 25.0, 30.0, 35.0, 40.0, 45.0],
+    "values": [-0.375, -0.361, -0.361, -0.37, -0.502, -0.66, -0.56, -0.372, -0.19, 0.0],
+    "outside_the_table": "Negative alpha: table entered with |alpha|. |alpha| >= 45 deg: the 45-deg value is held (Table 1).",
+    "readings": {
+     "A_vs_B_differences": [],
+     "final_differs_from_both_readings": [],
+     "machine_glyph_check": {"digits_checked": 30, "digits_machine_agrees": 30, "digits_machine_disagrees": []}
+    },
+    "figure_check": {
+     "spot_check_three": [
+      {
+       "alpha_deg": 10.0,
+       "table": -0.361,
+       "figure": -0.36065881185120974,
+       "difference": 0.00034118814879025017,
+       "tolerance": 0.001855520735564801,
+       "agrees": true
+      },
+      {
+       "alpha_deg": 20.0,
+       "table": -0.502,
+       "figure": -0.49738531655793794,
+       "difference": 0.004614683442062062,
+       "tolerance": 0.0065034708246913585,
+       "agrees": true
+      },
+      {
+       "alpha_deg": 35.0,
+       "table": -0.372,
+       "figure": -0.37470458396164413,
+       "difference": -0.002704583961644136,
+       "tolerance": 0.007439299701696707,
+       "agrees": true
+      }
+     ],
+     "curves": [
+      {
+       "figure": 25,
+       "pdf_page": 55,
+       "printed_page": 39,
+       "line_style": "solid",
+       "breakpoints_measured": 10,
+       "breakpoints_total": 10,
+       "breakpoints_agree_within_tolerance": 10
+      }
+     ]
+    },
+    "doubt": [
+     {
+      "cell": "alpha=0",
+      "candidates": [-0.375, -0.373],
+      "chosen": -0.375,
+      "status": "open",
+      "note": "Faded last digit; all three readings (two human, machine) say 5. Figure 25 reads -0.3746 +-0.002 at 0 deg, which favours -.375 but does not exclude -.373."
+     }
+    ]
+   },
+   "CNDA": {
+    "mnemonic": "CNDA",
+    "name_as_printed_in_table_9": "CNDA",
+    "parameter_name_in_table_2": "Cn_delta_a",
+    "name_in_table_1_equations": "Cn_delta_a(|alpha|)",
+    "identifier_line_as_printed": "CNDA PER DEG 1 5 2 10",
+    "units_as_printed_in_file": "PER DEG",
+    "units": "per degree",
+    "units_in_table_2": "1/deg",
+    "coefficient": "Cn",
+    "multiplies": "delta_a [deg]",
+    "pdf_page": 43,
+    "printed_page": 27,
+    "file_line_numbers": "152-155",
+    "from_figure": false,
+    "figure": 26,
+    "used_by_configurations": ["A", "B", "C", "D"],
+    "independent_variable": {"name": "ALPHA2", "as_printed": "ALPHA2 DEGREES 0.,5.,45.,10", "units": "degrees", "minimum": 0, "increment": 5, "maximum": 45.0, "n": 10},
+    "alpha_deg": [0.0, 5.0, 10.0, 15.0, 20.0, 25.0, 30.0, 35.0, 40.0, 45.0],
+    "values": [-4.7e-05, -4.8e-05, -5.6e-05, -6.7e-05, -6.8e-05, -6.8e-05, -6.9e-05, -7e-05, -7e-05, -7e-05],
+    "outside_the_table": "Negative alpha: table entered with |alpha|. |alpha| >= 45 deg: the 45-deg value is held (Table 1).",
+    "readings": {
+     "A_vs_B_differences": [],
+     "final_differs_from_both_readings": [],
+     "machine_glyph_check": {"digits_checked": 60, "digits_machine_agrees": 60, "digits_machine_disagrees": []}
+    },
+    "figure_check": {
+     "spot_check_three": [
+      {
+       "alpha_deg": 10.0,
+       "table": -5.6e-05,
+       "figure": -5.6040258515586344e-05,
+       "difference": -4.0258515586344824e-08,
+       "tolerance": 4.1214676938787987e-07,
+       "agrees": true
+      },
+      {
+       "alpha_deg": 20.0,
+       "table": -6.8e-05,
+       "figure": -6.796941773660975e-05,
+       "difference": 3.058226339025169e-08,
+       "tolerance": 1.0842619231878337e-07,
+       "agrees": true
+      },
+      {
+       "alpha_deg": 35.0,
+       "table": -7e-05,
+       "figure": -6.990351937594501e-05,
+       "difference": 9.648062405497992e-08,
+       "tolerance": 1.0842619231878337e-07,
+       "agrees": true
+      }
+     ],
+     "curves": [
+      {
+       "figure": 26,
+       "pdf_page": 56,
+       "printed_page": 40,
+       "line_style": "solid",
+       "breakpoints_measured": 10,
+       "breakpoints_total": 10,
+       "breakpoints_agree_within_tolerance": 9
+      }
+     ]
+    },
+    "doubt": []
+   },
+   "CNDSP": {
+    "mnemonic": "CNDSP",
+    "name_as_printed_in_table_9": "CNDSP",
+    "parameter_name_in_table_2": "Cn_delta_sp",
+    "name_in_table_1_equations": "Cn_delta_sp(|alpha|)",
+    "identifier_line_as_printed": "CNDSP PER DEG 1 5 2 10",
+    "units_as_printed_in_file": "PER DEG",
+    "units": "per degree",
+    "units_in_table_2": "1/deg",
+    "coefficient": "Cn",
+    "multiplies": "delta_sp [deg]",
+    "pdf_page": 43,
+    "printed_page": 27,
+    "file_line_numbers": "156-159",
+    "from_figure": false,
+    "figure": 27,
+    "used_by_configurations": ["A", "B", "C", "D"],
+    "independent_variable": {"name": "ALPHA2", "as_printed": "ALPHA2 DEGREES 0.,5.,45.,10", "units": "degrees", "minimum": 0, "increment": 5, "maximum": 45.0, "n": 10},
+    "alpha_deg": [0.0, 5.0, 10.0, 15.0, 20.0, 25.0, 30.0, 35.0, 40.0, 45.0],
+    "values": [5.33e-05, 4.33e-05, 2.88e-05, 1.32e-05, 9e-06, 4.4e-06, 9e-07, 0.0, 0.0, 0.0],
+    "outside_the_table": "Negative alpha: table entered with |alpha|. |alpha| >= 45 deg: the 45-deg value is held (Table 1).",
+    "readings": {
+     "A_vs_B_differences": [],
+     "final_differs_from_both_readings": [],
+     "machine_glyph_check": {
+      "digits_checked": 70,
+      "digits_machine_agrees": 68,
+      "digits_machine_disagrees": [
+       {"file_line": 158, "token": ".0000533", "character_index": 7, "final": "3", "machine": "2", "score_final": 0.632, "score_machine": 0.683},
+       {"file_line": 158, "token": ".0000433", "character_index": 5, "final": "4", "machine": "1", "score_final": 0.545, "score_machine": 0.55}
+      ]
+     }
+    },
+    "figure_check": {
+     "spot_check_three": [
+      {
+       "alpha_deg": 10.0,
+       "table": 2.88e-05,
+       "figure": 2.9008922019962974e-05,
+       "difference": 2.08922019962975e-07,
+       "tolerance": 6.31229039761443e-07,
+       "agrees": true
+      },
+      {
+       "alpha_deg": 20.0,
+       "table": 9e-06,
+       "figure": 9.03798894172111e-06,
+       "difference": 3.798894172110954e-08,
+       "tolerance": 2.9644643106579107e-07,
+       "agrees": true
+      },
+      {
+       "alpha_deg": 30.0,
+       "table": 9e-07,
+       "figure": 1.0559117656673907e-06,
+       "difference": 1.5591176566739078e-07,
+       "tolerance": 2.629681701962259e-07,
+       "agrees": true,
+       "substituted_for_alpha_deg": 35.0
+      }
+     ],
+     "curves": [
+      {
+       "figure": 27,
+       "pdf_page": 57,
+       "printed_page": 41,
+       "line_style": "solid",
+       "breakpoints_measured": 7,
+       "breakpoints_total": 10,
+       "breakpoints_agree_within_tolerance": 7
+      }
+     ]
+    },
+    "doubt": [
+     {
+      "cell": "alpha=0",
+      "candidates": [5.33e-05, 5.32e-05],
+      "chosen": 5.33e-05,
+      "status": "open",
+      "note": "Last digit faded: both human readings 3, machine 2 (0.68 against 0.63). Figure 27 reads 0.0000535 +-0.0000005 at 0 deg: it rules out .0000522/.0000523 (previous worker's other candidates) but cannot separate 533 from 532. Differs by 0.2%."
+     }
+    ]
+   },
+   "CNDR": {
+    "mnemonic": "CNDR",
+    "name_as_printed_in_table_9": "CNDR",
+    "parameter_name_in_table_2": "Cn_delta_r",
+    "name_in_table_1_equations": "Cn_delta_r(|alpha|)",
+    "identifier_line_as_printed": "CNDR PER DEG 1 5 2 10",
+    "units_as_printed_in_file": "PER DEG",
+    "units": "per degree",
+    "units_in_table_2": "1/deg",
+    "coefficient": "Cn",
+    "multiplies": "delta_r [deg]",
+    "pdf_page": 43,
+    "printed_page": 27,
+    "file_line_numbers": "160-163",
+    "from_figure": false,
+    "figure": 28,
+    "used_by_configurations": ["A", "B", "C", "D"],
+    "independent_variable": {"name": "ALPHA2", "as_printed": "ALPHA2 DEGREES 0.,5.,45.,10", "units": "degrees", "minimum": 0, "increment": 5, "maximum": 45.0, "n": 10},
+    "alpha_deg": [0.0, 5.0, 10.0, 15.0, 20.0, 25.0, 30.0, 35.0, 40.0, 45.0],
+    "values": [-0.0009, -0.00086, -0.00078, -0.00073, -0.00065, -0.0005, -0.00032, -0.00023, -0.00014, 0.0],
+    "outside_the_table": "Negative alpha: table entered with |alpha|. |alpha| >= 45 deg: the 45-deg value is held (Table 1).",
+    "readings": {
+     "A_vs_B_differences": [],
+     "final_differs_from_both_readings": [],
+     "machine_glyph_check": {"digits_checked": 50, "digits_machine_agrees": 50, "digits_machine_disagrees": []}
+    },
+    "figure_check": {
+     "spot_check_three": [
+      {
+       "alpha_deg": 10.0,
+       "table": -0.00078,
+       "figure": -0.000780086433516706,
+       "difference": -8.643351670598477e-08,
+       "tolerance": 4.005644535297414e-06,
+       "agrees": true
+      },
+      {
+       "alpha_deg": 20.0,
+       "table": -0.00065,
+       "figure": -0.000645209367311988,
+       "difference": 4.790632688011966e-06,
+       "tolerance": 6.141418753451493e-06,
+       "agrees": true
+      },
+      {
+       "alpha_deg": 35.0,
+       "table": -0.00023,
+       "figure": -0.00022830378356526282,
+       "difference": 1.6962164347371898e-06,
+       "tolerance": 4.310755137890855e-06,
+       "agrees": true
+      }
+     ],
+     "curves": [
+      {
+       "figure": 28,
+       "pdf_page": 57,
+       "printed_page": 41,
+       "line_style": "solid",
+       "breakpoints_measured": 10,
+       "breakpoints_total": 10,
+       "breakpoints_agree_within_tolerance": 10
+      }
+     ]
+    },
+    "doubt": []
+   }
+  },
+  "functions_that_exist_only_as_a_figure": [],
+  "note_on_figures_5_to_28": "Every one of Figures 5-28 plots a function that is listed in Table 9 (Figure 10 holds CRB1 and CRB2, Figure 11 CRP1 and CRP2, Figure 17 DCM1 in two views, Figure 23 CNB1 and CNB2). Nothing had to be digitised from a figure; the figures were used only to check the listing.",
+  "file_as_printed": [
+   "S.O. 1081 EXTENDED AOA DATA; CRB1 & CRB2 CHANGED 11/20/78",
+   "CLBAS 1 5 5 23",
+   "ALPHA DEGREES 0.,5.,110.,23",
+   ".1220 .4146 .6834 .9053 .9396",
+   "1.010 1.067 1.049 1.024 .969",
+   ".927 .872 .798 .677 .546",
+   ".418 .289 .157 .025 -.116",
+   "-.257 -.402 -.547",
+   "CLSTAB PER DEG 1 5 5 23",
+   "ALPHA DEGREES 0.,5.,110.,23",
+   ".00699 .00694 .00676 .00637 .00571",
+   ".00513 .00508 .00486 .00463 .00438",
+   ".00416 .00393 .00371 .00348 .00324",
+   ".00300 .00300 .00300 .00300 .00300",
+   ".00300 .00300 .00300",
+   "CDBAS 1 5 5 23",
+   "ALPHA DEGREES 0.,5.,110.,23",
+   ".035 .066 .130 .247 .382",
+   ".510 .655 .786 .911 1.011",
+   "1.128 1.245 1.352 1.405 1.451",
+   "1.493 1.523 1.542 1.570 1.585",
+   "1.600 1.583 1.567",
+   "CYB PER DEG 1 5 5 23",
+   "ALPHA DEGREES 0.,5.,110.,23",
+   "-.011 -.011 -.011 -.011 -.011",
+   "-.011 -.011 -.0092 -.0079 -.0065",
+   "-.0050 -.0036 -.0023 -.0008 .0006",
+   ".0020 .0030 .0030 .0030 .0030",
+   ".0030 .0030 .0030",
+   "CYDR PER DEG 1 5 2 10",
+   "ALPHA2 DEGREES 0.,5.,45.,10",
+   ".00151 .00142 .00134 .00130 .00124",
+   ".00098 .00073 .00048 .00024 0.0",
+   "CRB1 PER DEG 1 5 5 23",
+   "ALPHA DEGREES 0.,5.,110.,23",
+   "-.00132 -.00175 -.00236 -.00219 -.00118",
+   "-.00006 .00025 -.00010 -.00108 -.0018",
+   "-.00222 -.00241 -.00255 -.00268 -.00279",
+   "-.00291 -.00300 -.00300 -.00300 -.00300",
+   "-.00300 -.00300 -.00300",
+   "CRB2 PER DEG 1 5 5 23",
+   "ALPHA DEGREES 0.,5.,110.,23",
+   "-.00132 -.00175 -.00236 -.00219 -.00219",
+   "-.00219 -.00219 -.00185 -.00152 -.00180",
+   "-.00222 -.00241 -.00255 -.00268 -.00279",
+   "-.00291 -.00300 -.00300 -.00300 -.00300",
+   "-.00300 -.00300 -.00300",
+   "CRP1 PER RAD 1 5 2 10",
+   "ALPHA2 DEGREES 0.,5.,45.,10",
+   "-.304 -.300 -.255 -.102 -.100",
+   "-.280 -.304 -.250 -.164 -.100",
+   "CRP2 PER RAD 1 5 2 10",
+   "ALPHA2 DEGREES 0.,5.,45.,10",
+   "-.304 -.300 -.260 -.260 -.260",
+   "-.260 -.260 -.250 -.164 -.100",
+   "CRR PER RAD 1 5 2 10",
+   "ALPHA2 DEGREES 0.,5.,45.,10",
+   ".046 .076 .108 .170 .318",
+   ".387 .341 .204 .086 .050",
+   "CRDA PER DEG 1 5 2 10",
+   "ALPHA2 DEGREES 0.,5.,45.,10",
+   ".000448 .000459 .000431 .000405 .000379",
+   ".000354 .000312 .000210 .000105 .000000",
+   "CRDSP PER DEG 1 5 2 10",
+   "ALPHA2 DEGREES 0.,5.,45.,10",
+   ".000130 .000140 .000093 .000066 .000054",
+   ".000040 .000030 .000020 .000010 .000000",
+   "CRDR PER DEG 1 5 2 10",
+   "ALPHA2 DEGREES 0.,5.,45.,10",
+   ".000199 .000165 .000135 .000116 .000092",
+   ".000069 .000052 .000035 .000017 .000000",
+   "CMBAS 1 5 5 23",
+   "ALPHA DEGREES 0.,5.,110.,23",
+   ".000 -.013 -.027 -.033 -.050",
+   "-.068 -.093 -.144 -.196 -.242",
+   "-.263 -.285 -.318 -.381 -.430",
+   "-.475 -.501 -.532 -.571 -.616",
+   "-.658 -.695 -.729",
+   "DCM1 2 514 70",
+   "ALPHA2 DEGREES 0.,5.,45.,10",
+   "BETA DEGREES 0.,5.,30., 7",
+   ".0000 .0000 .0000 .0000 .0000",
+   ".0000 .0000 .0000 .0000 .0000",
+   "-.0080 -.0080 -.0080 -.0138 -.0099",
+   ".0018 .0005 .0000 .0000 .0000",
+   "-.0170 -.0170 -.0170 -.0235 -.0306",
+   "-.0204 -.0160 .0000 .0000 .0000",
+   "-.0312 -.0312 -.0312 -.0450 -.0580",
+   "-.0465 -.0428 -.0025 .0000 .0000",
+   "-.0455 -.0455 -.0455 -.0705 -.0800",
+   "-.0768 -.0755 -.0087 .0000 .0000",
+   "-.0565 -.0565 -.0565 -.0888 -.1000",
+   "-.0953 -.0944 -.0106 .0000 .0000",
+   "-.0674 -.0674 -.0674 -.1071 -.1200",
+   "-.1138 -.1133 -.0125 .0000 .0000",
+   "DCM2 2 514 70",
+   "ALPHA2 DEGREES 0.,5.,45.,10",
+   "BETA DEGREES 0.,5.,30.,7",
+   "0.0 0.0 0.0 0.0 0.0",
+   "0.0 0.0 0.0 0.0 0.0",
+   ".0080 .0080 .0080 .0138 .0099",
+   "-.0018 -.0005 .0000 .0000 .0000",
+   ".0170 .0170 .0170 .0235 .0306",
+   ".0204 .0160 .0000 .0000 .0000",
+   ".0312 .0312 .0312 .0450 .0580",
+   ".0465 .0428 .0025 .0000 .0000",
+   ".0455 .0455 .0455 .0705 .0800",
+   ".0768 .0755 .0087 .0000 .0000",
+   ".0565 .0565 .0565 .0888 .1000",
+   ".0953 .0944 .0106 .0000 .0000",
+   ".0674 .0674 .0674 .1071 .1200",
+   ".1138 .1133 .0125 .0000 .0000",
+   "CMQ PER RAD 1 5 2 10",
+   "ALPHA2 DEGREES 0.,5.,45.,10",
+   "-3.10 -3.41 -3.78 -3.92 -3.80",
+   "-3.62 -3.15 -3.15 -3.15 -3.15",
+   "CMAD PER RAD 1 5 2 10",
+   "ALPHA2 DEGREES 0.,5.,45.,10",
+   "-1.30 -1.42 -1.58 -1.63 -1.59",
+   "-1.52 -1.32 -1.32 -1.32 -1.32",
+   "CMSTAB PER DEG 1 5 5 23",
+   "ALPHA DEGREES 0.,5.,110.,23",
+   "-.01010 -.01004 -.00981 -.00926 -.00828",
+   "-.00745 -.00733 -.00677 -.00627 -.00572",
+   "-.00519 -.00466 -.00414 -.00361 -.00308",
+   "-.00256 -.00202 -.00150 -.00097 -.00052",
+   "0.00000 0.00000 0.00000",
+   "CMDA PER DEG 1 5 2 10",
+   "ALPHA2 DEGREES 0.,5.,45.,10",
+   "-.00105 -.00092 -.00079 -.00068 -.00066",
+   "-.00066 -.00066 -.00066 -.00066 -.00066",
+   "CMDSP PER DEG 1 5 2 10",
+   "ALPHA2 DEGREES 0.,5.,45.,10",
+   ".000130 .000079 .000035 .000007 .00000",
+   ".000000 .000000 .000000 .000000 .000000",
+   "CNB1 PER DEG 1 5 2 10",
+   "ALPHA2 DEGREES 0.,5.,45.,10",
+   ".0022 .0022 .0021 .0013 -.0006",
+   "-.0033 -.0040 -.0038 -.0026 -.0020",
+   "CNB2 PER DEG 1 5 2 10",
+   "ALPHA2 DEGREES 0.,5.,45.,10",
+   ".0022 .0022 .0021 .0013 .0000",
+   "-.0005 -.0008 -.0011 -.0014 -.0017",
+   "CNP PER RAD 1 5 2 10",
+   "ALPHA2 DEGREES 0.,5.,45.,10",
+   ".005 -.014 .007 .023 -.002",
+   ".055 .122 .080 .041 .000",
+   "CNR PER RAD 1 5 2 10",
+   "ALPHA2 DEGREES 0.,5.,45.,10",
+   "-.375 -.361 -.361 -.370 -.502",
+   "-.660 -.560 -.372 -.190 .000",
+   "CNDA PER DEG 1 5 2 10",
+   "ALPHA2 DEGREES 0.,5.,45.,10",
+   "-.000047 -.000048 -.000056 -.000067 -.000068",
+   "-.000068 -.000069 -.000070 -.000070 -.000070",
+   "CNDSP PER DEG 1 5 2 10",
+   "ALPHA2 DEGREES 0.,5.,45.,10",
+   ".0000533 .0000433 .0000288 .0000132 .0000090",
+   ".0000044 .0000009 .0000000 .0000000 .0000000",
+   "CNDR PER DEG 1 5 2 10",
+   "ALPHA2 DEGREES 0.,5.,45.,10",
+   "-.00090 -.00086 -.00078 -.00073 -.00065",
+   "-.00050 -.00032 -.00023 -.00014 .00000"
+  ],
+  "file_as_printed_note": "Final text, one string per printed line, tokens separated by single spaces (the listing's column spacing is not kept). Lines 12 and 125 carry the two third-look corrections.",
+  "sanity_checks": [
+   {"check": "DCM2 == -DCM1 in all 70 cells (so every DCM number is printed twice)", "passes": true},
+   {"check": "Delta Cm is zero at beta = 0 for every alpha, and zero at alpha = 40 and 45 for every beta", "passes": true},
+   {
+    "check": "CMAD/CMQ is a constant ratio at all 10 alphas (the two tables confirm each other's digits)",
+    "ratios": [0.4194, 0.4164, 0.418, 0.4158, 0.4184, 0.4199, 0.419, 0.419, 0.419, 0.419],
+    "passes": true
+   },
+   {
+    "check": "-CMSTAB/CLSTAB (tail arm in chords) is steady at 1.44-1.46 from 0 to 30 deg, then falls away smoothly at higher alpha",
+    "ratios_0_to_110": [1.445, 1.447, 1.451, 1.454, 1.45, 1.452, 1.443, 1.393, 1.354, 1.306, 1.248, 1.186, 1.116, 1.037, 0.951, 0.853, 0.673, 0.5, 0.323, 0.173, -0.0, -0.0, -0.0],
+    "passes": true
+   },
+   {"check": "CRB1 == CRB2 outside 20-45 deg", "passes": true},
+   {"check": "CRP1 == CRP2 at 0, 5 and 35-45 deg", "passes": true},
+   {"check": "CNB1 == CNB2 for alpha <= 15 deg", "passes": true},
+   {"check": "CYB as read equals the CYB file reprinted in clean type as the example in Table 8 (PDF p.40)", "passes": true},
+   {
+    "check": "Tables to 110 deg that are held constant at high alpha really are constant there (CLSTAB .003 from 75, CYB .003 from 80, CRB -.003 from 80, CMSTAB 0 from 100)",
+    "passes": true
+   },
+   {
+    "check": "One sign throughout (zero allowed) for: CLSTAB +, CDBAS +, CYDR +, CRDA +, CRDSP +, CRDR +, CRR +, CRP1 -, CRP2 -, CMQ -, CMAD -, CMSTAB -, CMDA -, CMDSP +, CNDA -, CNDSP +, CNDR -, CNR -, CRB2 -",
+    "passes": true,
+    "exceptions": []
+   },
+   {
+    "check": "Controls that fade out reach exactly zero at 45 deg: CYDR, CRDA, CRDSP, CRDR, CNDR, CNP, CNR, CNDSP; and CMDSP from 20 deg",
+    "passes": true
+   },
+   {
+    "check": "Smoothness in alpha: the sharpest corner of every one-variable function (second difference / range). The corners are real features of the model (the CRP1 notch at 15-20 deg, the CNP and CNR peaks at 25-30 deg, the CMQ/CMAD step at 30 deg): the figure check finds the plotted lines turning at the same places.",
+    "passes": null,
+    "sharpest_corners": [
+     {"mnemonic": "CRP1", "largest_kink_at_alpha_deg": 20.0, "second_difference_over_range": 0.892},
+     {"mnemonic": "CNP", "largest_kink_at_alpha_deg": 30.0, "second_difference_over_range": 0.801},
+     {"mnemonic": "CMAD", "largest_kink_at_alpha_deg": 30.0, "second_difference_over_range": 0.606},
+     {"mnemonic": "CMQ", "largest_kink_at_alpha_deg": 30.0, "second_difference_over_range": 0.573},
+     {"mnemonic": "CRB2", "largest_kink_at_alpha_deg": 10.0, "second_difference_over_range": 0.464},
+     {"mnemonic": "CNDA", "largest_kink_at_alpha_deg": 15.0, "second_difference_over_range": 0.435},
+     {"mnemonic": "CRDSP", "largest_kink_at_alpha_deg": 5.0, "second_difference_over_range": 0.407},
+     {"mnemonic": "CNR", "largest_kink_at_alpha_deg": 25.0, "second_difference_over_range": 0.391},
+     {"mnemonic": "CRP2", "largest_kink_at_alpha_deg": 35.0, "second_difference_over_range": 0.373},
+     {"mnemonic": "CRR", "largest_kink_at_alpha_deg": 25.0, "second_difference_over_range": 0.337},
+     {"mnemonic": "CNB1", "largest_kink_at_alpha_deg": 25.0, "second_difference_over_range": 0.323},
+     {"mnemonic": "CRB1", "largest_kink_at_alpha_deg": 15.0, "second_difference_over_range": 0.258},
+     {"mnemonic": "CMDA", "largest_kink_at_alpha_deg": 15.0, "second_difference_over_range": 0.231},
+     {"mnemonic": "CNDSP", "largest_kink_at_alpha_deg": 15.0, "second_difference_over_range": 0.214},
+     {"mnemonic": "CNB2", "largest_kink_at_alpha_deg": 20.0, "second_difference_over_range": 0.205},
+     {"mnemonic": "CMDSP", "largest_kink_at_alpha_deg": 15.0, "second_difference_over_range": 0.162},
+     {"mnemonic": "CLSTAB", "largest_kink_at_alpha_deg": 25.0, "second_difference_over_range": 0.133},
+     {"mnemonic": "CYDR", "largest_kink_at_alpha_deg": 20.0, "second_difference_over_range": 0.132},
+     {"mnemonic": "CRDA", "largest_kink_at_alpha_deg": 30.0, "second_difference_over_range": 0.131},
+     {"mnemonic": "CYB", "largest_kink_at_alpha_deg": 30.0, "second_difference_over_range": 0.129},
+     {"mnemonic": "CLBAS", "largest_kink_at_alpha_deg": 15.0, "second_difference_over_range": 0.116},
+     {"mnemonic": "CNDR", "largest_kink_at_alpha_deg": 30.0, "second_difference_over_range": 0.1},
+     {"mnemonic": "CMSTAB", "largest_kink_at_alpha_deg": 25.0, "second_difference_over_range": 0.07},
+     {"mnemonic": "CRDR", "largest_kink_at_alpha_deg": 10.0, "second_difference_over_range": 0.055},
+     {"mnemonic": "CMBAS", "largest_kink_at_alpha_deg": 60.0, "second_difference_over_range": 0.041},
+     {"mnemonic": "CDBAS", "largest_kink_at_alpha_deg": 60.0, "second_difference_over_range": 0.035}
+    ]
+   },
+   {
+    "check": "Symmetry in sideslip is built into Table 1 rather than tabulated: Cy, Cl, Cn terms are (derivative x beta), odd in beta; Delta Cm is entered with |beta| (even in beta); K_beta enters with |beta|; Cm_delta_a and Cm_delta_sp with |delta|",
+    "passes": null
+   }
+  ],
+  "doubt": [
+   {
+    "function": null,
+    "cell": "header line, the number after 'S.O.'",
+    "candidates": ["1081", "1981"],
+    "chosen": "1081",
+    "status": "open",
+    "note": "second digit is a 0 or a 9 (lower left of the glyph is missing); not data. The rest of the line, including 'CRB1 & CRB2 CHANGED 11/20/78', is clear."
+   },
+   {
+    "function": "CLBAS",
+    "cell": "alpha=20",
+    "candidates": [0.9396, 0.9596],
+    "chosen": 0.9396,
+    "status": "resolved",
+    "note": "Faded second digit (3 or 5). Glyph: no left upright in its upper half, so 3 (machine: 3, 0.60 against 0.50). Figure 5 reads 0.940 +-0.012 at 20 deg by pixel measurement; 0.9596 would sit 5 px above the plotted line."
+   },
+   {
+    "function": "CLSTAB",
+    "cell": "alpha=30",
+    "candidates": [0.00508, 0.00503],
+    "chosen": 0.00508,
+    "status": "resolved",
+    "note": "Both human readings typed .00503. The glyph has no top bar (every 3 on the page has one) and both sides of an upper loop; the machine check reads 8; Figure 6 plots 0.00510 +-0.00002 at 30 deg and the .00503 corner lies 13 px off the ink. (The ratio -CMSTAB/CLSTAB does not decide it: 1.443 with .00508, 1.457 with .00503, against 1.445-1.454 at 0-25 deg.)"
+   },
+   {
+    "function": "CDBAS",
+    "cell": "alpha=50",
+    "candidates": [1.128, 1.129],
+    "chosen": 1.128,
+    "status": "resolved",
+    "note": "Last digit 8 or 9. At pixel level the glyph has a closed lower loop (8); machine: 8 (0.83; 9 is not its second choice). Figure 7 cannot separate the two (0.004 per pixel)."
+   },
+   {
+    "function": "CRB1",
+    "cell": "alpha=25, 30, 35",
+    "candidates": [[-6e-05, 0.00025, -0.0001], [-3e-05, 0.00036, 0.0]],
+    "chosen": [-6e-05, 0.00025, -0.0001],
+    "status": "open",
+    "note": "NOT a reading doubt: the three printed values are clear in both readings and the machine check. But Figure 10 plots a different curve here: by pixel measurement about -0.00003 at 25, +0.00036 +-0.00003 at 30 (table +0.00025, 16 px lower) and about 0.0000 +-0.00007 at 35 (table -0.00010). Everywhere else Figure 10 lies on the table. The listing's own header says 'CRB1 & CRB2 CHANGED 11/20/78', so figure and listing may be different revisions. The listing (Table 9) is taken as the value. The sign change of Cl_beta near 30 deg is in both."
+   },
+   {
+    "function": "DCM1",
+    "cell": "beta=10, alpha=35 (third value on file line 87)",
+    "candidates": [0.0, -0.0],
+    "chosen": 0.0,
+    "status": "resolved",
+    "note": "The decimal point and left half of the first 0 are lost ('?000'). The column position shows a five-character token '.0000', and DCM2 prints .0000 in the same place. The value is zero either way."
+   },
+   {
+    "function": "CMQ",
+    "cell": "alpha=45",
+    "candidates": [-3.15, -3.18],
+    "chosen": -3.15,
+    "status": "resolved",
+    "note": "Last digit smudged. Same glyph shape as the three -3.15 before it; Figure 18 is flat from 30 to 45 deg (reads -3.150 +-0.003 at 45); CMAD/CMQ = 0.419 as elsewhere."
+   },
+   {
+    "function": "CMSTAB",
+    "cell": "alpha=25",
+    "candidates": [-0.00745, -0.00743],
+    "chosen": -0.00745,
+    "status": "resolved",
+    "note": "Last digit has the tall left upright of a 5; machine: 5 (0.69 against 0.58)."
+   },
+   {
+    "function": "CMSTAB",
+    "cell": "alpha=70",
+    "candidates": [-0.00308, -0.00309],
+    "chosen": -0.00308,
+    "status": "open",
+    "note": "Both human readings typed -.00309; the last glyph has two closed loops (8) and the machine check reads 8 (0.76 against 0.47 for 9). Differs by 1e-5 (0.3%); the figure cannot resolve it."
+   },
+   {
+    "function": "CMSTAB",
+    "cell": "alpha=90",
+    "candidates": [-0.00097, -0.00099],
+    "chosen": -0.00097,
+    "status": "open",
+    "note": "Both human readings typed 7; the machine check prefers 9 (0.74 against 0.63). At pixel level the glyph has no closed loop, unlike the 9 beside it, so 7 is kept. Differs by 2e-5; the figure cannot resolve it."
+   },
+   {
+    "function": "CMDA",
+    "cell": "alpha=35",
+    "candidates": [-0.00066, -0.00046],
+    "chosen": -0.00066,
+    "status": "resolved",
+    "note": "Fourth digit damaged (6 or 4). Figure 21 is flat from 20 to 45 deg and reads -0.000662 +-0.000008 at 35 deg; -.00046 would be a 51-px spike."
+   },
+   {
+    "function": "CNP",
+    "cell": "alpha=0",
+    "candidates": [0.005, 0.003],
+    "chosen": 0.005,
+    "status": "resolved",
+    "note": "Glyph has the left upright of a 5; Figure 24 reads 0.0060 +-0.0014 at 0 deg."
+   },
+   {
+    "function": "CNP",
+    "cell": "alpha=25",
+    "candidates": [0.055, 0.085],
+    "chosen": 0.055,
+    "status": "resolved",
+    "note": "Second digit degraded (5 or 8). Figure 24 reads 0.053 +-0.003 at 25 deg; 0.085 would be 76 px higher."
+   },
+   {
+    "function": "CNR",
+    "cell": "alpha=0",
+    "candidates": [-0.375, -0.373],
+    "chosen": -0.375,
+    "status": "open",
+    "note": "Faded last digit; all three readings (two human, machine) say 5. Figure 25 reads -0.3746 +-0.002 at 0 deg, which favours -.375 but does not exclude -.373."
+   },
+   {
+    "function": "CNDSP",
+    "cell": "alpha=0",
+    "candidates": [5.33e-05, 5.32e-05],
+    "chosen": 5.33e-05,
+    "status": "open",
+    "note": "Last digit faded: both human readings 3, machine 2 (0.68 against 0.63). Figure 27 reads 0.0000535 +-0.0000005 at 0 deg: it rules out .0000522/.0000523 (previous worker's other candidates) but cannot separate 533 from 532. Differs by 0.2%."
+   }
+  ]
+ },
+ "figures_5_to_28": [
+  {
+   "figure": 5,
+   "pdf_page": 44,
+   "printed_page": 28,
+   "functions": ["CLBAS"],
+   "value_per_pixel": 0.003939777683973546,
+   "x_units_per_pixel": 0.15564202334630353
+  },
+  {
+   "figure": 6,
+   "pdf_page": 44,
+   "printed_page": 28,
+   "functions": ["CLSTAB"],
+   "value_per_pixel": 3.942181340341656e-06,
+   "x_units_per_pixel": 0.1554174067495559
+  },
+  {
+   "figure": 7,
+   "pdf_page": 45,
+   "printed_page": 29,
+   "functions": ["CDBAS"],
+   "value_per_pixel": 0.003897007654836464,
+   "x_units_per_pixel": 0.15278996541578482
+  },
+  {
+   "figure": 8,
+   "pdf_page": 45,
+   "printed_page": 29,
+   "functions": ["CYB"],
+   "value_per_pixel": 3.900855280691982e-05,
+   "x_units_per_pixel": 0.1524420820379099
+  },
+  {
+   "figure": 9,
+   "pdf_page": 46,
+   "printed_page": 30,
+   "functions": ["CYDR"],
+   "value_per_pixel": 3.896465349290287e-06,
+   "x_units_per_pixel": 0.07579859231185704
+  },
+  {
+   "figure": 10,
+   "pdf_page": 46,
+   "printed_page": 30,
+   "functions": ["CRB1", "CRB2"],
+   "value_per_pixel": 6.796941376380629e-06,
+   "x_units_per_pixel": 0.1333206361298924
+  },
+  {
+   "figure": 11,
+   "pdf_page": 47,
+   "printed_page": 31,
+   "functions": ["CRP1", "CRP2"],
+   "value_per_pixel": 0.00045759609517998786,
+   "x_units_per_pixel": 0.09017132551848511
+  },
+  {
+   "figure": 12,
+   "pdf_page": 47,
+   "printed_page": 31,
+   "functions": ["CRR"],
+   "value_per_pixel": 0.00046009703864815116,
+   "x_units_per_pixel": 0.09006690684508492
+  },
+  {
+   "figure": 13,
+   "pdf_page": 48,
+   "printed_page": 32,
+   "functions": ["CRDA"],
+   "value_per_pixel": 7.782101167315173e-07,
+   "x_units_per_pixel": 0.07607868709922831
+  },
+  {
+   "figure": 14,
+   "pdf_page": 48,
+   "printed_page": 32,
+   "functions": ["CRDSP"],
+   "value_per_pixel": 3.899721448467966e-07,
+   "x_units_per_pixel": 0.07574937777296831
+  },
+  {
+   "figure": 15,
+   "pdf_page": 49,
+   "printed_page": 33,
+   "functions": ["CRDR"],
+   "value_per_pixel": 3.934426229508198e-07,
+   "x_units_per_pixel": 0.0781860828772478
+  },
+  {
+   "figure": 16,
+   "pdf_page": 49,
+   "printed_page": 33,
+   "functions": ["CMBAS"],
+   "value_per_pixel": 0.0007880597014925374,
+   "x_units_per_pixel": 0.15658203780337765
+  },
+  {
+   "figure": 17,
+   "pdf_page": 50,
+   "printed_page": 34,
+   "functions": ["DCM1"],
+   "value_per_pixel": 0.00033951740026676375,
+   "x_units_per_pixel": 0.0666032350142721
+  },
+  {
+   "figure": "17(b)",
+   "pdf_page": 50,
+   "printed_page": 34,
+   "functions": ["DCM1"],
+   "value_per_pixel": 0.00034005343696866643,
+   "x_units_per_pixel": 0.0332444238277475
+  },
+  {
+   "figure": 18,
+   "pdf_page": 51,
+   "printed_page": 35,
+   "functions": ["CMQ"],
+   "value_per_pixel": 0.0015559248912620674,
+   "x_units_per_pixel": 0.07605388961321159
+  },
+  {
+   "figure": 19,
+   "pdf_page": 52,
+   "printed_page": 36,
+   "functions": ["CMAD"],
+   "value_per_pixel": 0.0015141087405368206,
+   "x_units_per_pixel": 0.07534983853606025
+  },
+  {
+   "figure": 20,
+   "pdf_page": 53,
+   "printed_page": 37,
+   "functions": ["CMSTAB"],
+   "value_per_pixel": 3.892132332499305e-05,
+   "x_units_per_pixel": 0.15282174435105328
+  },
+  {
+   "figure": 21,
+   "pdf_page": 53,
+   "printed_page": 37,
+   "functions": ["CMDA"],
+   "value_per_pixel": 3.890509934695012e-06,
+   "x_units_per_pixel": 0.07657805491740506
+  },
+  {
+   "figure": 22,
+   "pdf_page": 54,
+   "printed_page": 38,
+   "functions": ["CMDSP"],
+   "value_per_pixel": 3.8991783874112236e-07,
+   "x_units_per_pixel": 0.07582322357019063
+  },
+  {
+   "figure": 23,
+   "pdf_page": 54,
+   "printed_page": 38,
+   "functions": ["CNB1", "CNB2"],
+   "value_per_pixel": 7.793726050529326e-06,
+   "x_units_per_pixel": 0.07627765064835998
+  },
+  {
+   "figure": 24,
+   "pdf_page": 55,
+   "printed_page": 39,
+   "functions": ["CNP"],
+   "value_per_pixel": 0.0003935679748116496,
+   "x_units_per_pixel": 0.07822977201609294
+  },
+  {
+   "figure": 25,
+   "pdf_page": 55,
+   "printed_page": 39,
+   "functions": ["CNR"],
+   "value_per_pixel": 0.0007873860362315983,
+   "x_units_per_pixel": 0.07798573975044559
+  },
+  {
+   "figure": 26,
+   "pdf_page": 56,
+   "printed_page": 40,
+   "functions": ["CNDA"],
+   "value_per_pixel": 3.9027067305936906e-08,
+   "x_units_per_pixel": 0.07593014426727408
+  },
+  {
+   "figure": 27,
+   "pdf_page": 57,
+   "printed_page": 41,
+   "functions": ["CNDSP"],
+   "value_per_pixel": 7.822321553289557e-08,
+   "x_units_per_pixel": 0.0760869565217391
+  },
+  {
+   "figure": 28,
+   "pdf_page": 57,
+   "printed_page": 41,
+   "functions": ["CNDR"],
+   "value_per_pixel": 7.823798572749472e-07,
+   "x_units_per_pixel": 0.07627765064836001
+  }
+ ],
+ "validation": {
+  "section": "G. VALIDATION",
+  "pdf_pages": [58, 66],
+  "printed_pages": [42, 50],
+  "basis": {
+   "pdf_page": 58,
+   "printed_page": 42,
+   "quotes": [
+    "No F-4J flight test traces of high AOA are available to compare against dynamics from the foregoing mathematical model.",
+    "The only high-AOA flight traces available are from the F-4E stall/post-stall flight test (Ref. 8). McDonnell Aircraft Co. indicates that all hard-wing models (no leading-edge slats) of the F-4 have approximately the same stall/departure characteristics.",
+    "The Air Force (Ref. 8) noted the longer nose F-4E to have somewhat less wing rock tendency than the C and D models. The F-4J is more similar to the C and D and therefore might also have more pronounced wing rock."
+   ],
+   "f4e_test_aircraft_vs_f4j_model": {
+    "columns": ["", "F-4E (Ref. 8)", "F-4J"],
+    "rows": [
+     ["centerline stores", "empty tank", "empty tank"],
+     ["wing stores", "pylons 1,2,8,9", "pylons 2,8"],
+     ["W (lb)", 40000, 37000],
+     ["c.g. (% MAC)", 28.1, 29.3],
+     ["Ix (slug-ft^2)", 27500, 23850],
+     ["Iy (slug-ft^2)", 157000, 127400],
+     ["Iz (slug-ft^2)", 180600, 146000],
+     ["Ixz (slug-ft^2)", 5500, 2210]
+    ],
+    "note": "The F-4E test aircraft had a spin chute, a beefed-up aft fuselage and offsetting nose ballast."
+   }
+  },
+  "wing_rock": {
+   "angle_of_attack_band_deg": [19, 22],
+   "pdf_page": 59,
+   "printed_page": 43,
+   "quote": "Reference 8 indicates that the clean aircraft exhibited lateral/directional stability breakdown in the form of a slightly divergent dutch roll (wing rock) in the vicinity of 19-22 deg AOA.",
+   "model": "This also indicates that at zero sideslip the dutch roll slowly becomes divergent at about 19 deg AOA. (Fig. 29, the model's linearised roots)"
+  },
+  "nose_slice": {
+   "angle_of_attack_band_deg": [22, 25.5],
+   "pdf_page": 59,
+   "printed_page": 43,
+   "quote": "As AOA was further increased the motion progressed from primarily roll to yaw (nose slice) in the region of 22-25.5 deg AOA.",
+   "explanation_quote": "The aero data plot, Fig. 23, shows that Cn_beta passes through zero at about 20 deg AOA, while at this same point Cl_beta (Fig. 10) is still relatively large. One would expect, then, that the dutch roll motion would be primarily rolling motion (wing rock). By 25 deg AOA Cl_beta is very small, while Cn_beta is very large negative. Thus, one would expect the dutch roll mode to be primarily one of yaw motion (nose slice).",
+   "check_against_table_9": "CNB1 crosses zero at 18.4 deg (linear between +.0013 at 15 and -.0006 at 20); CRB1 is -.00118 at 20 and -.00006 at 25; CNB1 is -.0033 at 25 and -.0040 at 30."
+  },
+  "figure_29": {
+   "title": "Figure 29. F-4J 6 DOF Linearized Equation; Lateral/Longitudinal Root Migration with alpha and beta",
+   "pdf_page": 60,
+   "printed_page": 44,
+   "content": "root loci of the short period and dutch roll for alpha_0 = 20 to 26 deg and beta_0 = 0, 1.5 and 5.5 deg; at beta_0 = 0 the dutch roll pair meets the real axis at alpha = 26 deg (two real unstable roots marked 26). Not digitised."
+  },
+  "wing_rock_time_history": {
+   "pdf_page": 59,
+   "printed_page": 43,
+   "flight": {
+    "figure": "Figure 30. Controls Fixed Wing Rock Time History (Ref. 8)",
+    "pdf_page": 61,
+    "printed_page": 45,
+    "quote": "Figure 30 is an F-4E time trace from Ref. 8 at 21 deg AOA and with all augmentation off. (It also has trailing-edge flaps at half deflection but they have a relatively small influence on lateral/directional stability.) The traces show the dutch roll to be a constant-amplitude, limit-cycle-like oscillation."
+   },
+   "simulation": {
+    "figure": "Figure 31. F-4J Open-Loop Nonlinear Airframe Response to Pulse Aileron; alpha_0 = 21 deg, beta_0 = 0 deg",
+    "pdf_page": 62,
+    "printed_page": 46
+   },
+   "peak_to_peak_table": {
+    "columns": ["", "Flight Test", "Simulation"],
+    "rows": [
+     ["alpha", "21 deg", "21 deg"],
+     ["beta", "11 deg", "6.3 deg"],
+     ["phi", "30 deg", "21 deg"],
+     ["p", "60 deg/sec", "24 deg/sec"],
+     ["r", "2.5 deg/sec", "1.4 deg/sec"],
+     ["period", "3 sec", "6 sec"],
+     ["maneuver", "wind-up turn", "straight/level"]
+    ]
+   },
+   "quote_after": {
+    "pdf_page": 63,
+    "printed_page": 47,
+    "text": "The absolute magnitude of motions depends upon the initial excitation and is not particularly close. However, the ratios of the motions are quite close and again tend to validate the aero model. The period of the oscillation is quite different because of the higher energy (dynamic pressure) of the flight test maneuver."
+   }
+  },
+  "frequency_doubling": {
+   "pdf_page": 63,
+   "printed_page": 47,
+   "quote": "This 'frequency doubling' can only be caused by the pitching moment due to sideslip, Cm_beta, which is quite strong and negative for the F-4 aircraft.",
+   "figures": [
+    "Figure 32. Pull-Up and Steady Wing Rock (From Ref. 8), PDF p.64 (printed 48): F-4E traces of beta, phi, delta_r, delta_stk, theta, alpha; alpha climbs from about 17 to about 25 deg while the wing rock grows; yaw SAS on.",
+    "Figure 33. F-4J Wing Rock with Pitch and Yaw SAS On and alpha_0 = 23 deg, PDF p.65 (printed 49)"
+   ],
+   "model_link": "This is the Delta_Cm_k(alpha, |beta|) table (DCM1): nose-down with sideslip of either sign, hence twice per dutch-roll cycle."
+  },
+  "departure_in_wind_up_turn": {
+   "figure": "Figure 34. Departure During Left Wind-Up Turn",
+   "pdf_page": 66,
+   "printed_page": 50,
+   "text_pdf_page": 63,
+   "text_printed_page": 47,
+   "quote": "A final comparison between flight and simulation is shown in Fig. 34. Both aircraft depart from a wind-up turn to the left.",
+   "what_the_figure_shows": "Two rows of small aircraft silhouettes at 0.5-second intervals ('Time -> 0.5 sec Intervals'), one labelled 'F-4E FLIGHT TEST' and one 'F-4J SIMULATION', each about 16 silhouettes (roughly 8 seconds), the attitude rolling and yawing away at the right-hand end.",
+   "speed": null,
+   "altitude": null,
+   "angle_of_attack_at_departure": null,
+   "how_the_turn_was_flown": null,
+   "not_given": "Figure 34 and its text give NO speed, Mach number, altitude, load factor, angle of attack, control inputs or time of departure. The only numbers are the 0.5-second spacing. The appendix's one stated flight condition is the reference altitude of 15,000 ft (Table 5); the wing-rock comparison notes the flight-test manoeuvre was a wind-up turn at 'higher energy (dynamic pressure)' than the straight-and-level simulation."
+  },
+  "conclusion": {
+   "pdf_page": 63,
+   "printed_page": 47,
+   "quote": "On the basis of the above it was considered that the aero model exhibits characteristics adequately representative of the F-4 aircraft for use in analysis and simulation of stall/departure."
+  }
+ },
+ "comparison_with_NASA_CR_2144_F4C": {
+  "given_for_the_F4C": "wing area 530 ft^2, span 38.67 ft, chord 16.04 ft, c.g. 28.9% chord (figures supplied with the task; CR-2144 itself was not re-read)",
+  "this_report": {"S_ft2": 530, "b_ft": 38.67, "c_ft": 16.04, "Xcg_percent_c": 29.3, "Xref_percent_c": 31},
+  "result": "Wing area, span and chord are identical. The c.g. differs slightly (29.3% against 28.9%), and this model's aerodynamic moments are referred to 31% c, not to the c.g.: a builder must apply Table 1's transfer terms or re-reference the data."
+ },
+ "listing_versus_figure_disagreements": [
+  {
+   "function": "CRB1",
+   "alpha_deg": [25, 30, 35],
+   "listing": [-6e-05, 0.00025, -0.0001],
+   "figure_10_measured": [-3e-05, 0.00036, 0.0],
+   "figure_uncertainty": [7e-05, 3e-05, 7e-05],
+   "importance": "high",
+   "note": "the listing header says 'CRB1 & CRB2 CHANGED 11/20/78'; the figure may show the other revision"
+  },
+  {
+   "function": "CRP2",
+   "alpha_deg": [10, 15, 20, 25, 30],
+   "listing": -0.26,
+   "figure_11_dashed_line": "about -0.254",
+   "importance": "low",
+   "note": "dashed overlay drawn as a straight line between the 10- and 35-deg points"
+  },
+  {
+   "function": "CNB2",
+   "alpha_deg": [35, 40, 45],
+   "listing": [-0.0011, -0.0014, -0.0017],
+   "figure_23_dashed_line": [-0.00114, -0.00144, -0.00177],
+   "importance": "low",
+   "note": "within hand-drawing accuracy"
+  }
+ ],
+ "doubt_summary": {
+  "open_in_table_9": [
+   {
+    "function": "CRB1",
+    "cell": "alpha=25, 30, 35",
+    "candidates": [[-6e-05, 0.00025, -0.0001], [-3e-05, 0.00036, 0.0]],
+    "chosen": [-6e-05, 0.00025, -0.0001]
+   },
+   {"function": "CMSTAB", "cell": "alpha=70", "candidates": [-0.00308, -0.00309], "chosen": -0.00308},
+   {"function": "CMSTAB", "cell": "alpha=90", "candidates": [-0.00097, -0.00099], "chosen": -0.00097},
+   {"function": "CNR", "cell": "alpha=0", "candidates": [-0.375, -0.373], "chosen": -0.375},
+   {"function": "CNDSP", "cell": "alpha=0", "candidates": [5.33e-05, 5.32e-05], "chosen": 5.33e-05}
+  ],
+  "open_elsewhere": [
+   {"where": "Figure 4", "cell": "yaw-rate washout numerator", "candidates": [-344, -34.4], "chosen": -344},
+   {"where": "Figure 4", "cell": "units of a'y", "candidates": ["ft/sec (as printed)", "ft/sec^2"], "chosen": "ft/sec (as printed)"},
+   {
+    "where": "Figure 4",
+    "cell": "signs at the roll-rate-command junction",
+    "candidates": ["p_c - 15.2 p", "not determinable"],
+    "chosen": "not printed"
+   },
+   {"where": "Table 6 / Figure 4", "cell": "spoiler travel", "candidates": [43, 45], "chosen": 43}
+  ],
+  "matters_most": [
+   "CRB1 at 25-35 deg: the listing and Figure 10 disagree (Cl_beta peak +0.00025 or +0.00036 per deg at 30 deg). It sets how strongly dihedral effect reverses just where the nose slice happens.",
+   "Figure 4 yaw-rate gain: -344 as printed or -34.4.",
+   "The four open single-digit cells (CMSTAB 70 and 90 deg, CNR 0 deg, CNDSP 0 deg) are last-digit doubts of 0.2-2% and do not matter to a flight model."
+  ]
+ }
+}
