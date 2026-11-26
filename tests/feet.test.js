@@ -2,7 +2,8 @@
 // controls: the ailerons are always the pilot's tilt; the nosewheel turns the airplane as the tilt asks, less
 // with speed; the rudder is the copilot's alone and holds the nose against any swing nobody asked for.
 // Flown on JSBSim's `c172p`, whose engine pulls it left at full power. The "done" lines were written before
-// any of this was built; the two that were wrong are reported here, not asserted, and are in the pull request.
+// any of this was built. Two were wrong as written and are in the pull request: one measured the rudder at a single
+// moment (replaced here by taking each control out in turn), the other is reported, not asserted.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
@@ -28,7 +29,7 @@ const NO_RUDDER = { trim: C172P.assists.trim, steer: { wheel } };
  * Returns what happened while a wheel was on the ground, and what `pilot` noted in `c`.
  */
 function roll(pilot, { pitch = 0, throttle = 1, seconds = 80, until = null, assists = C172P.assists } = {}) {
-  const f = Flight.start(module, C172P, { assists }), wheels = [0, 1, 2].map((k) => f.stateNames.indexOf(`gear/unit[${k}]/WOW`));
+  const f = Flight.start(module, roll.aircraft, { assists }), wheels = [0, 1, 2].map((k) => f.stateNames.indexOf(`gear/unit[${k}]/WOW`));
   const c = {}, box = { w: Infinity, e: -Infinity, s: Infinity, n: -Infinity };
   let off = 0, bank = 0;
   for (let k = 0; k < seconds / DT; k++) {
@@ -50,6 +51,7 @@ function roll(pilot, { pitch = 0, throttle = 1, seconds = 80, until = null, assi
   f.dispose();
   return { ...c, offMost: off, bankMost: bank, circleFt: ((box.e - box.w) + (box.n - box.s)) / 2 / FT };
 }
+roll.aircraft = C172P;   // one test flies a copy whose roll stick drives no aileron
 /** A pilot who keeps the centreline until `kt`, then holds `stick` for `seconds`, then lets go. Notes in `c` where the hold began and how it went. */
 const holds = (kt, stick, seconds) => (c) => {
   if (c.began === undefined && c.kt >= kt) Object.assign(c, { began: c.t, heading0: c.heading, wheel0: null, bankHeld: 0 });
@@ -88,13 +90,30 @@ test('the same tilt at 60 knots: the nose eases right between 1 and 4 degrees, t
   const still = TEN_DEGREES * 10;
   const slow = roll(holds(10, TEN_DEGREES, 3), { until: after(3) }), r = roll(holds(60, TEN_DEGREES, 3), { until: after(3) }), none = roll(holds(60, 0, 3), { until: after(3) });
   console.log(`  the nose eases right ${swing(r).toFixed(1)} degrees; the nosewheel is at ${(r.wheel0 / still * 100).toFixed(0)}%; bank ${r.bankHeld.toFixed(1)}; left aileron ${r.mid.aileron.toFixed(2)} degrees down (${slow.mid.aileron.toFixed(2)} at 10 knots)`);
-  // The line that was wrong (docs/milestones/3.md, PR 2): "the rudder is doing it: the rudder is deflected right". It is not: this
-  // Cessna's nosewheel and its banked wheels turn it as fast as the tilt asks, and the copilot's rudder only keeps the turn gentle.
-  console.log(`  reported, not a line any more: the rudder is ${r.mid.rudder.toFixed(1)} degrees right in the turn, and ${none.mid.rudder.toFixed(1)} with no tilt at all`);
+  // The plan's line here read "the rudder is doing it: the rudder is deflected right". Read at one moment in mid-turn it is not:
+  // the rudder goes right to start the turn and then eases back, to hold the turn at what the tilt asked. Who does the turning
+  // is measured properly in the next test, by taking each control out in turn.
+  console.log(`  reported: in mid-turn the rudder is ${r.mid.rudder.toFixed(1)} degrees right, and ${none.mid.rudder.toFixed(1)} with no tilt at all`);
   assert.ok(swing(r) >= 1 && swing(r) <= 4, `${swing(r)} degrees`);
   assert.ok(r.wheel0 / still <= 0.2, `the nosewheel at ${r.wheel0} of ${still} degrees`);
   assert.ok(Math.abs(r.mid.aileron - slow.mid.aileron) < 0.05, 'the ailerons follow the tilt the same at any speed');
   assert.ok(r.bankHeld < 3, `bank ${r.bankHeld}`);
+});
+
+test('who turns it: at 60 knots the rudder (with the nosewheel held straight and the ailerons left out, the tilt still brings the nose right 1 degree or more); at 10 knots the nosewheel (held straight, the nose comes right less than a tenth as far)', () => {
+  // The tilt reaching only the copilot's feet: the roll stick drives no aileron, and the nosewheel is held straight (sign 0).
+  const straight = { ...C172P.assists, steer: { ...C172P.assists.steer, wheel: { ...wheel, sign: 0 } } };
+  const FEET_ONLY = { ...C172P, controls: { ...C172P.controls, roll: { to: [] } } };
+  const feetOnly = (kt) => {
+    const f = (stick) => { const saved = roll.aircraft; roll.aircraft = FEET_ONLY; try { return roll(holds(kt, stick, 3), { until: after(3), assists: straight }); } finally { roll.aircraft = saved; } };
+    return swing(f(TEN_DEGREES)) - swing(f(0));
+  };
+  const all = (kt) => swing(roll(holds(kt, TEN_DEGREES, 3), { until: after(3) })) - swing(roll(holds(kt, 0, 3), { until: after(3) }));
+  const noWheel = (kt) => swing(roll(holds(kt, TEN_DEGREES, 3), { until: after(3), assists: straight })) - swing(roll(holds(kt, 0, 3), { until: after(3), assists: straight }));
+  const fast = { all: all(60), rudderAlone: feetOnly(60) }, slow = { all: all(10), noWheel: noWheel(10) };
+  console.log(`  at 60 knots: all three controls ${fast.all.toFixed(1)} degrees, the rudder alone ${fast.rudderAlone.toFixed(1)}; at 10 knots: all three ${slow.all.toFixed(1)}, with the nosewheel held straight ${slow.noWheel.toFixed(1)}`);
+  assert.ok(fast.rudderAlone >= 1, `the rudder alone brings the nose right ${fast.rudderAlone} degrees at 60 knots`);
+  assert.ok(Math.abs(slow.noWheel) < 0.1 * slow.all, `with the nosewheel straight at 10 knots: ${slow.noWheel} of ${slow.all} degrees`);
 });
 
 test('picking up a wing at 60 knots, 30% right stick for one second: the nose swings 1.5 degrees or less (2.6 before)', () => {
