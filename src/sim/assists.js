@@ -1,5 +1,6 @@
 // The game's assists: what a helpful copilot does with the controls so the airplane is easy to fly from a
-// tilted phone. New in FSG, milestone 1 (docs/milestones/1.md, "Automatic feet and nosewheel steering" and
+// tilted phone. In the owner's words (CLAUDE.md, "Controls and assists"): the pilot is the player, this file
+// is the copilot, and an airplane's own systems (its FCS, in its aircraft file) are not. New in FSG, milestone 1 (docs/milestones/1.md, "Automatic feet and nosewheel steering" and
 // "Phone at neutral = a trimmed speed").
 //
 // They act only through the controls a pilot has: pitch and roll trim, the rudder, the nosewheel steering and
