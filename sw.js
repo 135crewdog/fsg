@@ -7,7 +7,7 @@
 // skips waiting on its own; the app offers the update and posts
 // "skip-waiting" when the pilot accepts.
 
-const VERSION = '0.0.14';   // the same value as APP_VERSION in src/version.js
+const VERSION = '0.0.15';   // the same value as APP_VERSION in src/version.js
 const CACHE = `fsg-${VERSION}`;
 const FILES = [
   './',
@@ -26,6 +26,8 @@ const FILES = [
   './src/instruments.js',
   './src/readouts.js',
   './src/input/look.js',
+  './src/input/pilot.js',
+  './src/input/tilt.js',
   './src/render/aircraft.js',
   './src/render/between.js',
   './src/render/camera.js',
@@ -48,6 +50,7 @@ const FILES = [
   './src/sim/world.js',
   './src/sim/worker-handler.js',
   './src/sim/worker.js',
+  './src/ui/throttle.js',
   // Three.js, and the loader for the airplane's model with the two files it imports.
   './vendor/three/build/three.module.js',
   './vendor/three/build/three.core.js',

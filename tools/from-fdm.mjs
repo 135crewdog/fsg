@@ -55,6 +55,10 @@ export const FILES = [
   adapted('wings', 'src/input/look.js'),
   // The HUD, its readouts and their tests, from Wings' main at 0.0.62 (milestone 2, pull request 6).
   ...['src/hud.js', 'src/readouts.js', 'tests/hud.test.js'].map((f) => adapted('wings', f, f, WINGS_0_0_62)),
+  // Tilt, the throttle and their tests, from the same commit (milestone 2, pull request 7).
+  adapted('wings', 'src/input/tilt.js', 'src/input/tilt.js', WINGS_0_0_62),
+  adapted('wings', 'src/ui/throttle.js', 'src/ui/throttle.js', WINGS_0_0_62),
+  adapted('wings', 'tests/controls.test.js', 'tests/tilt.test.js', WINGS_0_0_62),
   adapted('FDM', 'tests/page.chromium.mjs', 'tests/browser/app.chromium.mjs'),
   adapted('FDM', 'web/page.ts', 'src/fdm.js'),   // how the page starts the Worker, and the fallback marker
 

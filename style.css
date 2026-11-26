@@ -33,6 +33,43 @@ button:active { opacity: 0.6; }
   font-size: 13px; font-weight: 700; letter-spacing: -1px; pointer-events: auto;
 }
 
+/* the throttle: the left edge (Wings', after Rage's): a knob in a narrow groove */
+.throttle {
+  position: absolute; left: calc(env(safe-area-inset-left, 0px) + 10px); width: 44px;
+  top: calc(env(safe-area-inset-top, 0px) + 28px); bottom: calc(env(safe-area-inset-bottom, 0px) + 40px);
+  pointer-events: auto; touch-action: none;
+}
+/* the groove: 14 px, rounded ends, in the buttons' see-through dark. It runs
+   exactly the knob's travel, so the knob's middle reaches each end and the
+   knob covers the end at idle and at full throttle. */
+.throttle .track {
+  position: absolute; left: 50%; top: 16px; bottom: 16px; width: 14px; margin-left: -7px; border-radius: 7px;
+  background: rgba(0, 0, 0, 0.3); overflow: hidden;
+}
+/* above MIL, for an airplane with an afterburner: see-through yellow and black caution stripes (the script places its foot) */
+.throttle .ab {
+  position: absolute; left: 0; right: 0; top: 0;
+  background: repeating-linear-gradient(-45deg, rgba(255, 204, 0, 0.6) 0 4px, rgba(0, 0, 0, 0.5) 4px 8px);
+}
+/* the knob's travel: a knob's radius in from each end of the throttle, so the knob stays inside its touch area */
+.throttle .rail { position: absolute; left: 0; right: 0; top: 16px; bottom: 16px; }
+.throttle .thumb {
+  position: absolute; left: 50%; width: 30px; height: 30px; margin: -15px 0 0 -15px; border-radius: 15px;
+  background: rgba(255, 255, 255, 0.9); box-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+}
+.throttle.burner .thumb { background: #ff9f0a; }
+
+/* the buttons: bottom right (Wings'). Only the ones the airplane has are shown. */
+#toggles {
+  position: absolute; right: calc(env(safe-area-inset-right, 0px) + 14px); bottom: calc(env(safe-area-inset-bottom, 0px) + 28px);
+  display: flex; flex-direction: column; gap: 10px; pointer-events: auto;
+}
+#toggles button {
+  width: 104px; height: 44px; border-radius: 10px; font-size: 14px; font-weight: 600;
+  background: rgba(0, 0, 0, 0.3); color: rgba(255, 255, 255, 0.85);
+}
+#toggles button[aria-pressed="true"] { background: rgba(255, 255, 255, 0.9); color: #1c1c1e; }
+
 /* the debug overlay (after Rage's ?debug=1): small, bottom left, clear of the screens' cards */
 #dev {
   position: absolute; left: calc(env(safe-area-inset-left, 0px) + 10px); bottom: calc(env(safe-area-inset-bottom, 0px) + 10px);
@@ -65,7 +102,7 @@ button:active { opacity: 0.6; }
 .card h2 { margin: 0; font-size: 22px; }
 .btn:disabled { opacity: 0.4; }
 .card p { margin: 0; }
-.card .about { font-size: 13px; color: #aeaeb2; }
+.card .sub, .card .about { font-size: 13px; color: #aeaeb2; }
 .btn { width: 100%; padding: 11px 16px; border-radius: 12px; font-size: 17px; font-weight: 600; background: rgba(255, 255, 255, 0.16); }
 .btn.primary, .btn.update { background: #007aff; }
 /* a setting: its name on the left, an on/off switch on the right, as in iOS Settings */

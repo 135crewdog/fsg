@@ -1,8 +1,8 @@
 <!doctype html>
 <!-- After 135crewdog/wings, index.html, commit 6d689b7 (first copied at 557a8d0):
      cut down to the picture, the pause button, the start, pause and crashed
-     screens, the HUD, the debug overlay and the rotate screen. The controls are
-     still to come. -->
+     screens, the HUD, the throttle and buttons, the motion-access screen, the
+     debug overlay and the rotate screen. -->
 <html lang="en">
 <head>
   <meta charset="utf-8">
@@ -25,12 +25,23 @@
   <div id="controls" hidden>
     <canvas id="hud"></canvas>
     <div id="safe"></div>
+    <div id="throttle" class="throttle" role="slider" aria-label="Throttle" aria-orientation="vertical" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+      <div class="track"><div class="ab"></div></div>
+      <div class="rail"><div class="thumb"></div></div>
+    </div>
     <button id="pause" aria-label="Pause">II</button>
+    <div id="toggles">
+      <button id="gear"></button>
+      <button id="flaps"></button>
+      <button id="speedbrake"></button>
+      <button id="brake"></button>
+    </div>
   </div>
 
   <section id="screen-start" class="screen">
     <div class="card">
       <h1>FSG</h1>
+      <p class="sub">Hold the device like a steering wheel.</p>
       <button id="fly" class="btn primary" disabled>Fly</button>
       <button id="settings" class="btn">Settings</button>
       <button class="btn update" hidden>New version, tap to update</button>
@@ -42,6 +53,11 @@
     <div class="card" aria-label="Paused">
       <button id="resume" class="btn primary">Resume</button>
       <button id="restart" class="btn">Restart</button>
+      <button id="recenter" class="btn">Recenter</button>
+      <div class="row">
+        <span id="override-label">Crash override</span>
+        <button id="override" class="switch" role="switch" aria-checked="true" aria-labelledby="override-label"></button>
+      </div>
       <div class="row">
         <span id="hud-label">HUD</span>
         <button id="hud-switch" class="switch" role="switch" aria-checked="true" aria-labelledby="hud-label"></button>
@@ -62,6 +78,13 @@
       <p id="crash-why" class="about"></p>
       <button id="crash-restart" class="btn primary">Restart</button>
       <button class="btn update" hidden>New version, tap to update</button>
+    </div>
+  </section>
+
+  <section id="screen-denied" class="screen" hidden>
+    <div class="card">
+      <h2>Motion access denied</h2>
+      <p>Reopen FSG, tap Fly and allow motion. If it doesn't ask, allow motion in your browser's settings.</p>
     </div>
   </section>
 

@@ -7,6 +7,10 @@ import { APP_VERSION } from './version.js';
 import { startGame } from './fdm.js';
 import { startFlight } from './flight.js';
 import { createHud } from './hud.js';
+import { buttonText, buttonsFor, controlsFrom } from './input/pilot.js';
+import { createTilt } from './input/tilt.js';
+import { createThrottle } from './ui/throttle.js';
+import { PARKED } from './sim/game.js';
 import { readouts } from './readouts.js';
 import { C172P } from './sim/aircraft/c172p.js';
 
@@ -39,6 +43,44 @@ const flight = startFlight($('view'), AIRCRAFT, undefined, {
 // app opens, so that Fly has nothing to wait for; held, the Worker rests. `jsbsim` is what the debug
 // overlay says about it: null while it starts, then which build (and why, for the fallback), or the error.
 let game = null, jsbsim = null;
+
+// ---- the pilot's controls (after Wings) ----
+// The throttle and the buttons live here; the stick comes from tilt. They go to the Worker as each sensor
+// reading and each touch arrives, not once a frame, so a slow screen adds no delay to the hands.
+const pilot = { throttle: 0, gear: true, flaps: true, speedbrake: false, brake: true };
+const send = () => { if (mode === 'flying' && game) game.controls(controlsFrom(pilot, tilt.stick)).catch(() => {}); };
+const recenterButton = $('recenter');
+let recenterTimer = null;
+const tilt = createTilt({
+  // Recenter happened: the button says so for a second.
+  onNeutral() {
+    recenterButton.textContent = 'Recentered ✓';
+    clearTimeout(recenterTimer);
+    recenterTimer = setTimeout(() => { recenterButton.textContent = 'Recenter'; }, 1200);
+  },
+  onStick: send,
+});
+const throttle = createThrottle($('throttle'), (value) => { pilot.throttle = value; send(); }, { mil: AIRCRAFT.mil ?? null });
+// A button shows only if the airplane has the thing: the Cessna has flaps and brakes.
+const buttons = buttonsFor(AIRCRAFT);
+for (const el of $('toggles').children) el.hidden = !buttons.some(([control]) => control === el.id);
+const showButtons = () => {
+  for (const button of buttons) {
+    $(button[0]).textContent = buttonText(button, pilot[button[0]]);
+    $(button[0]).setAttribute('aria-pressed', String(pilot[button[0]]));
+  }
+};
+for (const [control] of buttons) $(control).addEventListener('click', () => { pilot[control] = !pilot[control]; showButtons(); send(); });
+// As every flight starts: throttle closed, gear and flaps down, brakes on.
+const parkControls = () => {
+  Object.assign(pilot, { gear: PARKED.gear, flaps: PARKED.flaps, speedbrake: PARKED.speedbrake, brake: PARKED.brake });
+  throttle.set(PARKED.throttle);
+  showButtons();
+};
+parkControls();
+// The last touchdown, for the debug overlay: how hard, how fast, how much g.
+let touchdown = null;
+
 const openGame = () => {
   game = null;
   jsbsim = null;
@@ -47,6 +89,7 @@ const openGame = () => {
   return startGame(AIRCRAFT, {
     onState(message) {
       flight.state(message);
+      for (const event of message.events ?? []) if (event.type === 'touchdown') touchdown = event;
       if (message.ended && mode === 'flying') crashed(message.ended);
     },
     // The Worker has failed: whatever was going on is over. Restart opens a fresh one.
@@ -55,6 +98,8 @@ const openGame = () => {
     game = opened;
     jsbsim = { build: opened.build, why: opened.why, version: opened.version, says: opened.says };
     flight.began(opened.first);
+    touchdown = null;
+    if (!overrideOn) game.override(false).catch(() => {});   // a new Worker starts with the override on
     showDev();
   }, (error) => {
     jsbsim = { error: String(error?.message ?? error) };
@@ -76,6 +121,7 @@ let offline = 'not yet';   // yes once the service worker has every file cached
 let stopped = null;        // the error's own words, when the flight model or its Worker has failed: read here, not on the screen
 // Opened from the home screen, or in a browser tab? iOS says with navigator.standalone.
 const installed = () => navigator.standalone === true || window.matchMedia('(display-mode: standalone)').matches;
+const fixed = (x, n = 1) => (Number.isFinite(x) ? x.toFixed(n) : '-');
 const whole = (x) => (Math.round(x) || 0).toLocaleString('en-US');   // never "-0"
 function showDev() {
   if (!devOn) return;
@@ -95,6 +141,9 @@ function showDev() {
       `picture ${s.behindMs.toFixed(0)} ms behind (99 in 100 within ${s.behindWithinMs}, most ${s.behindMostMs.toFixed(0)})`,
       `${whole(s.northFt)} ft N, ${whole(s.eastFt)} ft E, ${whole(s.aboveGroundFt - AIRCRAFT.standingFt)} ft up, heading ${String(Math.round(s.headingDeg) % 360).padStart(3, '0')}, ${s.knots.toFixed(0)} kt` +
         (s.propellerRpm === null ? '' : `, ${whole(s.propellerRpm)} RPM`),
+      `sensor β ${fixed(tilt.raw.beta)} γ ${fixed(tilt.raw.gamma)} screen ${tilt.raw.screen}   tilt ${fixed(tilt.raw.pitch)}/${fixed(tilt.raw.roll)}`,
+      `stick ${fixed(tilt.stick.pitch, 2)} back, ${fixed(tilt.stick.roll, 2)} right   throttle ${fixed(pilot.throttle, 2)}`,
+      touchdown ? `last touchdown: ${whole(touchdown.sinkFpm)} ft/min, ${whole(touchdown.knots)} kt, ${fixed(touchdown.g)} g` : 'last touchdown: none yet',
     );
   }
   $('dev').textContent = lines.join('\n');
@@ -117,6 +166,22 @@ let savedDev = null;
 try { savedDev = localStorage.getItem(DEV_KEY); } catch { /* storage may be blocked */ }
 setDev(savedDev === 'on');
 devSwitch.addEventListener('click', () => setDev(devSwitch.getAttribute('aria-checked') !== 'true'));
+
+// The crash override: on, nothing ends a flight but the pilot. It is on until the pilot turns it off, and the
+// choice is kept between visits.
+const OVERRIDE_KEY = 'fsg.crashOverride';
+const overrideSwitch = $('override');
+let overrideOn = true;
+const setOverride = (on) => {
+  overrideOn = on;
+  overrideSwitch.setAttribute('aria-checked', String(on));
+  game?.override(on).catch(() => {});
+  try { localStorage.setItem(OVERRIDE_KEY, on ? 'on' : 'off'); } catch { /* storage may be blocked; the choice still holds for this visit */ }
+};
+let savedOverride = null;
+try { savedOverride = localStorage.getItem(OVERRIDE_KEY); } catch { /* storage may be blocked */ }
+setOverride(savedOverride !== 'off');
+overrideSwitch.addEventListener('click', () => setOverride(overrideSwitch.getAttribute('aria-checked') !== 'true'));
 
 // The HUD's switch: on until the pilot turns it off, kept between visits. Off, only its airspeed and altitude
 // show, in their places.
@@ -144,6 +209,9 @@ window.fsg = Object.freeze({
   get mode() { return mode; },
   get jsbsim() { return jsbsim; },   // null while JSBSim starts; then { build, why, version, says }, or { error }
   get picture() { return flight.status(); },   // what is on screen and how the flight is running
+  get stick() { return { ...tilt.stick }; },
+  get pilot() { return { ...pilot }; },
+  get touchdown() { return touchdown; },
 });
 
 // ---- flying, pausing, restarting (after Wings) ----
@@ -170,14 +238,16 @@ const takeOff = () => {
   stopped = null;
   show(null);
   game.hold(false).catch(() => {});   // a Worker that has failed says so itself (onFailure)
+  send();   // the controls as they stand now
   flight.fly();
   devClock();
 };
 // The pause screen before the first flight (opened with Settings on the start
-// screen): its top button is Fly, and Restart waits for a flight.
+// screen): its top button is Fly, and Restart and Recenter wait for a flight.
 const menu = (beforeFlight) => {
   $('resume').textContent = beforeFlight ? 'Fly' : 'Resume';
   $('restart').hidden = beforeFlight;
+  recenterButton.hidden = beforeFlight;
 };
 const pause = () => {
   if (restarting) interrupted = true;
@@ -214,8 +284,14 @@ function crashed(ended) {
 // The first flight, from Fly on the start screen or on the pause screen opened with Settings.
 const fly = () => {
   if (mode !== 'start' || !game || $('fly').disabled) return;
+  // Asking for motion access must be the first thing in the tap, or iOS refuses it.
+  const allowed = tilt.request();
   keepAwake();
-  takeOff();
+  allowed.then((yes) => {
+    if (!yes) { letSleep(); show('denied'); return; }
+    tilt.recenter();
+    takeOff();
+  });
 };
 $('fly').addEventListener('click', fly);
 $('settings').addEventListener('click', () => { menu(true); show('pause'); checkForUpdate(); });
@@ -226,6 +302,7 @@ $('resume').addEventListener('click', () => {
   keepAwake();
   takeOff();
 });
+recenterButton.addEventListener('click', () => tilt.recenter());
 // Restart: a new flight, parked on the numbers, and straight into it. After a Worker has failed, a fresh Worker first.
 for (const id of ['restart', 'crash-restart']) {
   $(id).addEventListener('click', async () => {
@@ -235,8 +312,10 @@ for (const id of ['restart', 'crash-restart']) {
     keepAwake();
     try {
       if (!game || game.failed) await openGame();
-      else flight.began(await game.fly({ held: true }));
+      else { flight.began(await game.fly({ held: true, crashOverride: overrideOn })); touchdown = null; }
       if (!game) return;   // it did not start: the crashed screen says so
+      parkControls();
+      tilt.recenter();
       // The new flight is there, held. While it was being made the app may have been hidden, lost focus, or
       // the phone been turned upright; pause() could only note it then, with no flight running. So look
       // again: if so, the new flight waits on the pause screen, held, for Resume.

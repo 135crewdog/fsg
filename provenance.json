@@ -101,6 +101,24 @@
       "original": "4c8f9c3c3bf41653b827d411f023114938c471865da3a451de63c9d8e03b93d4",
       "commit": "6d689b789fedb783d7ad6ae8cc990904a12fe32e"
     },
+    "src/input/tilt.js": {
+      "from": "wings:src/input/tilt.js",
+      "how": "adapted",
+      "original": "825fcc0e89c73aa516d4f16424454317a0bc542bca0639d22ed5868cb64aa853",
+      "commit": "6d689b789fedb783d7ad6ae8cc990904a12fe32e"
+    },
+    "src/ui/throttle.js": {
+      "from": "wings:src/ui/throttle.js",
+      "how": "adapted",
+      "original": "46ef5a479bfac3296e4c5b2a167ac12cca124b5fc54235360b93ce671b6749cf",
+      "commit": "6d689b789fedb783d7ad6ae8cc990904a12fe32e"
+    },
+    "tests/tilt.test.js": {
+      "from": "wings:tests/controls.test.js",
+      "how": "adapted",
+      "original": "57afdbb7fcdc2677238bc0a6a930bfadc17ef679ef6c1724bdc95089cada7d7b",
+      "commit": "6d689b789fedb783d7ad6ae8cc990904a12fe32e"
+    },
     "tests/browser/app.chromium.mjs": {
       "from": "FDM:tests/page.chromium.mjs",
       "how": "adapted",
