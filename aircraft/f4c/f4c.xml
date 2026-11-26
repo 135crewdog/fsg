@@ -1,0 +1,488 @@
+<?xml version="1.0"?>
+<!--
+  The McDonnell F-4C Phantom II, for JSBSim v1.3.3. FSG's own aircraft file: new in FSG, milestone 3
+  (docs/milestones/3.md, pull request 3). Nothing here is copied from another F-4 model. JSBSim's own files
+  (aircraft/f16/f16.xml, aircraft/c172p/c172p.xml) were read for the format only.
+
+  So far (pull request 3): weight, balance and inertias; the wheels and the airframe's contact points; two
+  J79-GE-15 engines with their afterburners and the throttle system that lights them. There is no
+  aerodynamics yet: it stands and runs its engines, and that is all. Aerodynamics, flight controls, flaps
+  and speedbrakes come in pull requests 5 to 7.
+
+  Where each number comes from. Every number below names one of these.
+    CR-2144   NASA CR-2144, Heffley and Jewell, "Aircraft Handling Qualities Data", 1972, section IV (the
+              F-4C): table IV-2 (geometry, weight, inertias, thrust line) and figure IV-2.
+              https://ntrs.nasa.gov/citations/19730003312
+    T.O.      T.O. 1F-4C-1, the F-4C flight manual (1 October 1970), section I.
+    Wings     135crewdog/wings, src/sim/cards/f4c.js, commit 6d689b7: where the owner's model
+              (models/f4c.glb) has its wheels, its lowest points and its engine exits, measured from the
+              model in feet from its origin, which is the centre of gravity.
+    Reasoned  an engineering choice with no source; the comment says what would settle it.
+
+  Axes. JSBSim's structural frame, in inches: x aft, y to the right, z up. Its origin is the centre of
+  gravity as loaded, which is the model's origin, so a point "19.75 ft ahead, 6.4 ft below" is
+  x = -237, z = -76.8. The aerodynamic reference point and the visual reference point are there too.
+-->
+<fdm_config name="F-4C Phantom II" version="2.0" release="ALPHA"
+ xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+ xsi:noNamespaceSchemaLocation="http://jsbsim.sourceforge.net/JSBSim.xsd">
+
+ <fileheader>
+  <author> FSG (135crewdog/fsg), written by Claude Code </author>
+  <filecreationdate> 2026-11-26 </filecreationdate>
+  <version> milestone 3, pull request 3 </version>
+  <description> McDonnell F-4C Phantom II: mass, gear and engines. No aerodynamics yet. </description>
+  <reference refID="NASA CR-2144" author="R. K. Heffley and W. F. Jewell" title="Aircraft Handling Qualities Data" date="1972"/>
+  <reference refID="T.O. 1F-4C-1" author="USAF" title="Flight Manual, F-4C, F-4D and F-4E" date="1970-10-01"/>
+ </fileheader>
+
+ <!-- CR-2144, table IV-2 and figure IV-2: wing area 530 sq ft, span 38.67 ft, mean chord 16.04 ft. -->
+ <metrics>
+  <wingarea unit="FT2"> 530 </wingarea>
+  <wingspan unit="FT"> 38.67 </wingspan>
+  <chord unit="FT"> 16.04 </chord>
+  <location name="AERORP" unit="IN">
+   <x> 0 </x>
+   <y> 0 </y>
+   <z> 0 </z>
+  </location>
+  <location name="VRP" unit="IN">
+   <x> 0 </x>
+   <y> 0 </y>
+   <z> 0 </z>
+  </location>
+ </metrics>
+
+ <!--
+  CR-2144, table IV-2: 38,924 lb, with roll, pitch and yaw inertias of 25,002, 122,193 and 139,767 slug-ft2
+  and a cross inertia Ixz of 2,177 slug-ft2, in body axes (clean, about 60% internal fuel).
+
+  The weight is made of two parts so that a test can fly another weight by changing the fuel: 30,000 lb
+  here and 8,924 lb in the one tank (see the propulsion section). Both are at the centre of gravity, and a
+  tank with no size has no inertia of its own, so the inertias written here are the loaded ones.
+  tests/f4c.test.js reads the weight, the centre of gravity and all four inertias back from a run.
+
+  The sign of Ixz. CR-2144's is the usual one: positive when the airplane's long axis of mass points nose
+  down, as the F-4's does under its tall fin. JSBSim v1.3.3 (src/models/FGMassBalance.cpp,
+  ReadInertiaMatrix) by default reads <ixz> as the opposite of the usual one: it puts the number as written
+  into the inertia matrix's corner, where the usual convention has minus Ixz. With
+  negated_crossproduct_inertia="false" it reads the usual one, and the property inertia/ixz-slugs_ft2 then
+  reads back +2,177. (JSBSim's own f16.xml takes the other way round: the default, with -982 written.)
+ -->
+ <mass_balance negated_crossproduct_inertia="false">
+  <ixx unit="SLUG*FT2"> 25002 </ixx>
+  <iyy unit="SLUG*FT2"> 122193 </iyy>
+  <izz unit="SLUG*FT2"> 139767 </izz>
+  <ixz unit="SLUG*FT2"> 2177 </ixz>
+  <emptywt unit="LBS"> 30000 </emptywt>
+  <location name="CG" unit="IN">
+   <x> 0 </x>
+   <y> 0 </y>
+   <z> 0 </z>
+  </location>
+ </mass_balance>
+
+ <!--
+  The wheels. Wings: with the airplane standing, the tyres meet the runway 6.4 ft below the centre of
+  gravity: the nose wheel 19.75 ft ahead of it, the main wheels 3.52 ft behind and 8.96 ft out. Standing
+  on those, the nose wheel carries 3.52 / 23.27 = 15.1% of the weight: 5,888 lb, and 16,518 lb on each main.
+
+  JSBSim's location is the tyre's lowest point with the leg unloaded, so each is written lower than where
+  it stands by what that leg gives under its load:
+    main legs  33,000 lb/ft: 16,518 lb is 0.5005 ft (6.01 in), so z = -76.8 - 6.01 = -82.81
+    nose leg   15,000 lb/ft:  5,888 lb is 0.3925 ft (4.71 in), so z = -76.8 - 4.71 = -81.51
+  tests/f4c.test.js stands it and measures each tyre within 1 in of Wings' place, and the airplane level.
+
+  Reasoned, all of it engineering choice with no F-4 source: the stiffness (the airplane bounces on its
+  legs a little over once a second), the damping (about half of critical: 4,100 and 1,650), and the
+  friction (JSBSim's usual tyre numbers, as its F-16 and Cessna have: 0.8 braked, 0.5 sliding sideways,
+  0.02 rolling). A landing that feels wrong on the phone would settle them (milestone 3, pull request 7).
+
+  The nosewheel steers 30 degrees each way. The real jet's nose gear steering turns it about 70 degrees
+  (not checked against the flight manual), which is for parking; 30 is what a pilot can use at a taxi: a
+  turn 80 ft across. Reasoned; pull request 7 taxis it. The main wheels have the brakes, left and right.
+  All three legs retract.
+ -->
+ <ground_reactions>
+  <contact type="BOGEY" name="NOSE_WHEEL">
+   <location unit="IN">
+    <x> -237.0 </x>
+    <y> 0 </y>
+    <z> -81.51 </z>
+   </location>
+   <static_friction> 0.8 </static_friction>
+   <dynamic_friction> 0.5 </dynamic_friction>
+   <rolling_friction> 0.02 </rolling_friction>
+   <spring_coeff unit="LBS/FT"> 15000 </spring_coeff>
+   <damping_coeff unit="LBS/FT/SEC"> 1650 </damping_coeff>
+   <max_steer unit="DEG"> 30 </max_steer>
+   <brake_group> NONE </brake_group>
+   <retractable> 1 </retractable>
+  </contact>
+  <contact type="BOGEY" name="LEFT_MAIN_WHEEL">
+   <location unit="IN">
+    <x> 42.24 </x>
+    <y> -107.52 </y>
+    <z> -82.81 </z>
+   </location>
+   <static_friction> 0.8 </static_friction>
+   <dynamic_friction> 0.5 </dynamic_friction>
+   <rolling_friction> 0.02 </rolling_friction>
+   <spring_coeff unit="LBS/FT"> 33000 </spring_coeff>
+   <damping_coeff unit="LBS/FT/SEC"> 4100 </damping_coeff>
+   <max_steer unit="DEG"> 0 </max_steer>
+   <brake_group> LEFT </brake_group>
+   <retractable> 1 </retractable>
+  </contact>
+  <contact type="BOGEY" name="RIGHT_MAIN_WHEEL">
+   <location unit="IN">
+    <x> 42.24 </x>
+    <y> 107.52 </y>
+    <z> -82.81 </z>
+   </location>
+   <static_friction> 0.8 </static_friction>
+   <dynamic_friction> 0.5 </dynamic_friction>
+   <rolling_friction> 0.02 </rolling_friction>
+   <spring_coeff unit="LBS/FT"> 33000 </spring_coeff>
+   <damping_coeff unit="LBS/FT/SEC"> 4100 </damping_coeff>
+   <max_steer unit="DEG"> 0 </max_steer>
+   <brake_group> RIGHT </brake_group>
+   <retractable> 1 </retractable>
+  </contact>
+
+  <!--
+   The airframe: the points that reach the ground first with the gear up, so that a scrape or a crash
+   registers. Wings (its card's airframe_ft, measured from the model), in feet from the centre of gravity,
+   forward, right and down; ten of its 22 points, the outermost in each direction:
+     the nose             27.84 ahead, 2.61 below (Wings has a pair 0.22 ft either side; one, on the centreline)
+     the belly             5.53 ahead, 6.96 out, 3.35 below: the lowest points of the airframe
+     the tail underside   15.06 behind, 2.14 out, 2.08 below: under the engine exits
+     the wingtips         13.54 behind, 19.2 out, 0.34 below: the tip's rear corner, first down in a nose-up arrival
+     the stabilator tips  28.04 behind, 8.2 out, 0.66 below
+   and the top of the fin, measured from the same model (135crewdog/wings, models/f4c.glb, commit 6d689b7):
+   its flat top is 10.01 ft above the centre of gravity, from 25.9 to 27.9 ft behind it; its middle is used.
+
+   Reasoned: how stiff the airframe is and how it slides. 60,000 lb/ft under the body (the airplane lying
+   on its belly sinks about 3 in), 20,000 at the tips; damping about half of critical; friction 0.4, metal
+   on a paved runway. A belly landing's slide beside a real one would settle the friction.
+  -->
+  <contact type="STRUCTURE" name="NOSE">
+   <location unit="IN">
+    <x> -334.08 </x>
+    <y> 0 </y>
+    <z> -31.32 </z>
+   </location>
+   <static_friction> 0.4 </static_friction>
+   <dynamic_friction> 0.4 </dynamic_friction>
+   <spring_coeff unit="LBS/FT"> 60000 </spring_coeff>
+   <damping_coeff unit="LBS/FT/SEC"> 4000 </damping_coeff>
+  </contact>
+  <contact type="STRUCTURE" name="LEFT_BELLY">
+   <location unit="IN">
+    <x> -66.36 </x>
+    <y> -83.52 </y>
+    <z> -40.2 </z>
+   </location>
+   <static_friction> 0.4 </static_friction>
+   <dynamic_friction> 0.4 </dynamic_friction>
+   <spring_coeff unit="LBS/FT"> 60000 </spring_coeff>
+   <damping_coeff unit="LBS/FT/SEC"> 4000 </damping_coeff>
+  </contact>
+  <contact type="STRUCTURE" name="RIGHT_BELLY">
+   <location unit="IN">
+    <x> -66.36 </x>
+    <y> 83.52 </y>
+    <z> -40.2 </z>
+   </location>
+   <static_friction> 0.4 </static_friction>
+   <dynamic_friction> 0.4 </dynamic_friction>
+   <spring_coeff unit="LBS/FT"> 60000 </spring_coeff>
+   <damping_coeff unit="LBS/FT/SEC"> 4000 </damping_coeff>
+  </contact>
+  <contact type="STRUCTURE" name="LEFT_TAIL_UNDERSIDE">
+   <location unit="IN">
+    <x> 180.72 </x>
+    <y> -25.68 </y>
+    <z> -24.96 </z>
+   </location>
+   <static_friction> 0.4 </static_friction>
+   <dynamic_friction> 0.4 </dynamic_friction>
+   <spring_coeff unit="LBS/FT"> 60000 </spring_coeff>
+   <damping_coeff unit="LBS/FT/SEC"> 4000 </damping_coeff>
+  </contact>
+  <contact type="STRUCTURE" name="RIGHT_TAIL_UNDERSIDE">
+   <location unit="IN">
+    <x> 180.72 </x>
+    <y> 25.68 </y>
+    <z> -24.96 </z>
+   </location>
+   <static_friction> 0.4 </static_friction>
+   <dynamic_friction> 0.4 </dynamic_friction>
+   <spring_coeff unit="LBS/FT"> 60000 </spring_coeff>
+   <damping_coeff unit="LBS/FT/SEC"> 4000 </damping_coeff>
+  </contact>
+  <contact type="STRUCTURE" name="LEFT_WINGTIP">
+   <location unit="IN">
+    <x> 162.48 </x>
+    <y> -230.4 </y>
+    <z> -4.08 </z>
+   </location>
+   <static_friction> 0.4 </static_friction>
+   <dynamic_friction> 0.4 </dynamic_friction>
+   <spring_coeff unit="LBS/FT"> 20000 </spring_coeff>
+   <damping_coeff unit="LBS/FT/SEC"> 1500 </damping_coeff>
+  </contact>
+  <contact type="STRUCTURE" name="RIGHT_WINGTIP">
+   <location unit="IN">
+    <x> 162.48 </x>
+    <y> 230.4 </y>
+    <z> -4.08 </z>
+   </location>
+   <static_friction> 0.4 </static_friction>
+   <dynamic_friction> 0.4 </dynamic_friction>
+   <spring_coeff unit="LBS/FT"> 20000 </spring_coeff>
+   <damping_coeff unit="LBS/FT/SEC"> 1500 </damping_coeff>
+  </contact>
+  <contact type="STRUCTURE" name="LEFT_STABILATOR_TIP">
+   <location unit="IN">
+    <x> 336.48 </x>
+    <y> -98.4 </y>
+    <z> -7.92 </z>
+   </location>
+   <static_friction> 0.4 </static_friction>
+   <dynamic_friction> 0.4 </dynamic_friction>
+   <spring_coeff unit="LBS/FT"> 20000 </spring_coeff>
+   <damping_coeff unit="LBS/FT/SEC"> 1500 </damping_coeff>
+  </contact>
+  <contact type="STRUCTURE" name="RIGHT_STABILATOR_TIP">
+   <location unit="IN">
+    <x> 336.48 </x>
+    <y> 98.4 </y>
+    <z> -7.92 </z>
+   </location>
+   <static_friction> 0.4 </static_friction>
+   <dynamic_friction> 0.4 </dynamic_friction>
+   <spring_coeff unit="LBS/FT"> 20000 </spring_coeff>
+   <damping_coeff unit="LBS/FT/SEC"> 1500 </damping_coeff>
+  </contact>
+  <contact type="STRUCTURE" name="FIN_TOP">
+   <location unit="IN">
+    <x> 322.8 </x>
+    <y> 0 </y>
+    <z> 120.12 </z>
+   </location>
+   <static_friction> 0.4 </static_friction>
+   <dynamic_friction> 0.4 </dynamic_friction>
+   <spring_coeff unit="LBS/FT"> 20000 </spring_coeff>
+   <damping_coeff unit="LBS/FT/SEC"> 1500 </damping_coeff>
+  </contact>
+ </ground_reactions>
+
+ <!--
+  Two General Electric J79-GE-15 engines (Engines/J79-GE-15.xml), left then right.
+
+  Where each one's thrust acts. Fore and aft and sideways it is the model's engine exit (Wings, nozzles_ft:
+  16.16 ft behind the centre of gravity, 2.17 ft out). In direction and height it is CR-2144's thrust line
+  (table IV-2): tilted 5.25 degrees, so the exhaust goes down and aft and the thrust has a small upward
+  part; and passing 0.37 ft above the centre of gravity, so power pushes the nose down a little.
+  A line through a point 16.16 ft behind and h ft above the centre of gravity, rising forward at 5.25
+  degrees, passes above the centre of gravity by 16.16 sin 5.25 + h cos 5.25. For that to be 0.37 ft,
+  h = (0.37 - 1.4787) / 0.9958 = -1.1133 ft: the thrust point is 13.36 in below the centre of gravity.
+  (The model's exits are 0.61 ft below it; the half foot between is CR-2144's line against the model's shape.)
+  tests/f4c.test.js proves it from a run: at MIL, standing still, the engines' pitching moment is nose down
+  and is the thrust times 0.37 ft.
+
+  JSBSim's pitch of a thruster is positive nose up: the thrust then points forward and up.
+
+  One tank at the centre of gravity holds the fuel that makes up CR-2144's weight: 8,924 lb. The game
+  freezes it (propulsion/fuel_freeze), so the weight never changes. A test can set another amount.
+  Its capacity, 13,000 lb, is about the F-4C's internal fuel (from memory: 1,972 US gallons of JP-4; not
+  checked, and nothing depends on it).
+ -->
+ <propulsion>
+  <engine file="J79-GE-15">
+   <feed> 0 </feed>
+   <thruster file="direct">
+    <location unit="IN">
+     <x> 193.92 </x>
+     <y> -26.04 </y>
+     <z> -13.36 </z>
+    </location>
+    <orient unit="DEG">
+     <roll> 0 </roll>
+     <pitch> 5.25 </pitch>
+     <yaw> 0 </yaw>
+    </orient>
+   </thruster>
+  </engine>
+  <engine file="J79-GE-15">
+   <feed> 0 </feed>
+   <thruster file="direct">
+    <location unit="IN">
+     <x> 193.92 </x>
+     <y> 26.04 </y>
+     <z> -13.36 </z>
+    </location>
+    <orient unit="DEG">
+     <roll> 0 </roll>
+     <pitch> 5.25 </pitch>
+     <yaw> 0 </yaw>
+    </orient>
+   </thruster>
+  </engine>
+  <tank type="FUEL">
+   <location unit="IN">
+    <x> 0 </x>
+    <y> 0 </y>
+    <z> 0 </z>
+   </location>
+   <capacity unit="LBS"> 13000 </capacity>
+   <contents unit="LBS"> 8924 </contents>
+  </tank>
+ </propulsion>
+
+ <!--
+  The airplane's own systems (its FCS, in the owner's words): what the real jet does between the cockpit
+  and the airplane. So far the throttles and the gear; the feel system, the stability augmentation and the
+  flight controls come in pull request 6.
+ -->
+ <flight_control name="F-4C">
+
+  <!--
+   Where MIL is on the throttle: the game's throttle runs 0 to 1, and this much of it is idle to MIL.
+   The rest is the afterburner. The game's settings (src/sim/aircraft/f4c.js, `mil`) say the same number,
+   and a test holds the two together.
+  -->
+  <property value="0.8"> fcs/mil-throttle-norm </property>
+
+  <!--
+   The throttles, one channel for each engine. In: fcs/throttle-cmd-norm, 0 to 1. Out, to the engine:
+   fcs/throttle-pos-norm, which JSBSim's turbine reads as 0 to 1 idle to MIL and 1 to 2 the afterburner
+   (its "augmethod 2"; JSBSim's own f16.xml writes it from a channel the same way).
+
+     dry part            the throttle up to MIL, as 0 to 1
+     afterburner asked   the throttle beyond MIL, as 0 to 1
+     afterburner given   what is asked, but only while the engine turns at 97% or more
+
+   The last line is the real engine's: its afterburner lights only at MIL speed. JSBSim v1.3.3's turbine
+   (src/models/propulsion/FGTurbine.cpp, Run) would give afterburner thrust the instant it is asked,
+   whatever the engine's speed, so the wait is here. 97% is JSBSim's own figure for its other afterburner
+   method (the same file: "N2 > 97.0"); the J79's own light-off speed is not in the sources read. Reasoned.
+   fcs/afterburner-norm, 0 to 1, is the afterburner given: what the plumes will read.
+  -->
+  <channel name="Left throttle">
+   <fcs_function name="fcs/throttle-dry-norm">
+    <function>
+     <quotient>
+      <property> fcs/throttle-cmd-norm </property>
+      <property> fcs/mil-throttle-norm </property>
+     </quotient>
+    </function>
+    <clipto>
+     <min> 0 </min>
+     <max> 1 </max>
+    </clipto>
+   </fcs_function>
+   <fcs_function name="fcs/afterburner-asked-norm">
+    <function>
+     <quotient>
+      <difference>
+       <property> fcs/throttle-cmd-norm </property>
+       <property> fcs/mil-throttle-norm </property>
+      </difference>
+      <difference>
+       <value> 1 </value>
+       <property> fcs/mil-throttle-norm </property>
+      </difference>
+     </quotient>
+    </function>
+    <clipto>
+     <min> 0 </min>
+     <max> 1 </max>
+    </clipto>
+   </fcs_function>
+   <switch name="fcs/afterburner-norm">
+    <default value="0"/>
+    <test value="fcs/afterburner-asked-norm">
+     propulsion/engine[0]/n2 ge 97
+    </test>
+   </switch>
+   <summer name="fcs/throttle-to-engine">
+    <input> fcs/throttle-dry-norm </input>
+    <input> fcs/afterburner-norm </input>
+    <output> fcs/throttle-pos-norm </output>
+   </summer>
+  </channel>
+
+  <channel name="Right throttle">
+   <fcs_function name="fcs/throttle-dry-norm[1]">
+    <function>
+     <quotient>
+      <property> fcs/throttle-cmd-norm[1] </property>
+      <property> fcs/mil-throttle-norm </property>
+     </quotient>
+    </function>
+    <clipto>
+     <min> 0 </min>
+     <max> 1 </max>
+    </clipto>
+   </fcs_function>
+   <fcs_function name="fcs/afterburner-asked-norm[1]">
+    <function>
+     <quotient>
+      <difference>
+       <property> fcs/throttle-cmd-norm[1] </property>
+       <property> fcs/mil-throttle-norm </property>
+      </difference>
+      <difference>
+       <value> 1 </value>
+       <property> fcs/mil-throttle-norm </property>
+      </difference>
+     </quotient>
+    </function>
+    <clipto>
+     <min> 0 </min>
+     <max> 1 </max>
+    </clipto>
+   </fcs_function>
+   <switch name="fcs/afterburner-norm[1]">
+    <default value="0"/>
+    <test value="fcs/afterburner-asked-norm[1]">
+     propulsion/engine[1]/n2 ge 97
+    </test>
+   </switch>
+   <summer name="fcs/throttle-to-engine[1]">
+    <input> fcs/throttle-dry-norm[1] </input>
+    <input> fcs/afterburner-norm[1] </input>
+    <output> fcs/throttle-pos-norm[1] </output>
+   </summer>
+  </channel>
+
+  <!--
+   The landing gear: up or down in 4 seconds. Wings' time; the flight manual gives none. The way of
+   writing it is JSBSim's own f16.xml's.
+  -->
+  <channel name="Landing gear">
+   <kinematic name="fcs/gear-control">
+    <input> gear/gear-cmd-norm </input>
+    <traverse>
+     <setting>
+      <position> 0 </position>
+      <time> 0 </time>
+     </setting>
+     <setting>
+      <position> 1 </position>
+      <time> 4 </time>
+     </setting>
+    </traverse>
+    <output> gear/gear-pos-norm </output>
+   </kinematic>
+  </channel>
+
+ </flight_control>
+
+ <!-- Nothing yet: pull request 5. JSBSim will not load a file without the section. -->
+ <aerodynamics>
+ </aerodynamics>
+
+</fdm_config>

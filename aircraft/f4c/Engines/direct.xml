@@ -1,0 +1,8 @@
+<?xml version="1.0"?>
+<!--
+  The F-4C's thruster, for JSBSim v1.3.3: none. The engine's thrust is used as the engine gives it, at the
+  place and in the direction the aircraft file says (aircraft/f4c/f4c.xml). FSG's own file, new in
+  milestone 3; JSBSim's own engine/direct.xml says the same thing in the same one element.
+-->
+<direct name="Direct">
+</direct>

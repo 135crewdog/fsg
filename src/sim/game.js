@@ -342,7 +342,8 @@ export class Flight {
     if (!this.recorded) throw new Error('this flight was not started with record: true');
     const pack = (rows, width) => { const all = new Float64Array(rows.length * width); rows.forEach((row, i) => all.set(row, i * width)); return all; };
     return {
-      model: this.aircraft.model, dt: DT, ground: this.ground, sets: this.startSets,
+      // `own`: the aircraft is FSG's own, in the repo's aircraft/ folder (milestone 3): whoever flies the tape again must look there.
+      model: this.aircraft.model, own: Boolean(this.aircraft.own), dt: DT, ground: this.ground, sets: this.startSets,
       ins: this.inputNames, inputs: pack(this.recorded.inputs, this.inputNames.length), steps: this.recorded.inputs.length,
       states: { columns: this.stateNames, rows: this.recorded.states.length, data: pack(this.recorded.states, this.stateNames.length) },
     };

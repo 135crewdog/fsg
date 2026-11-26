@@ -21,6 +21,12 @@ export const BUILDS = {
   jseh: { name: 'fallback build', module: '../jsbsim/dist-wasm/fdm-jseh.mjs', wasm: '../jsbsim/dist-wasm/fdm-jseh.wasm' },
 };
 export const DATA = '../jsbsim/jsbsim-data/';
+// FSG's own aircraft (milestone 3): an aircraft whose settings say `own: true` has its files in the repo's
+// aircraft/ folder, not in JSBSim's data, which is never edited. Its file paths are from the repo's root.
+// Either way the Worker gets them under /data, where JSBSim's usual layout finds them.
+export const OWN = '../';
+/** Where an aircraft's files are fetched from, relative to this folder. */
+export const homeOf = (aircraft) => (aircraft.own ? OWN : DATA);
 export const DT = 1 / 120;
 
 // Set while the fast build is starting. If the app dies there (Safari 26.0
@@ -71,7 +77,7 @@ async function open(build, aircraft, why, { onState, onFailure }) {
   const request = (body, transfer) => (dead ? Promise.reject(dead) : client.request(body, transfer));
   try {
     const files = new Map();
-    for (const path of aircraft.files) files.set(path, await fetchBytes(DATA + path));
+    for (const path of aircraft.files) files.set(path, await fetchBytes(homeOf(aircraft) + path));
     const pack = buildPack(files);
     const init = await request({ type: 'init', moduleUrl: new URL(BUILDS[build].module, import.meta.url).href, packs: [['/data', pack]] }, [pack.buffer]);
     const fly = (options = {}) => request({ type: 'fly', aircraft: aircraft.model, ...options });
