@@ -14,6 +14,13 @@
 //                    own systems do this (the F-16's flight computer) is left to them, as X-Plane does.
 //   Steering         on the ground the roll stick steers: the nosewheel where a pilot can steer it, and the
 //                    rudder and the wheel brake on the inside of the turn where he cannot (see c172x.js).
+//   The copilot's feet on the ground (milestone 3, docs/milestones/3.md, PR 2; an aircraft's `steer.hold`
+//                    chooses it): two jobs, three controls. The ailerons are always the pilot's tilt. The
+//                    nosewheel turns the airplane as the tilt asks, less and less with speed, on one smooth
+//                    curve. The rudder is the copilot's alone: it never takes the stick directly; it holds the
+//                    nose against any swing the tilt did not ask for (the engine's pull), more and more as the
+//                    nosewheel's share falls. After X-Plane 12's automatic rudder for pilots with no pedals,
+//                    which holds the track on the ground (developer.x-plane.com, "Rudder auto-coordination").
 const clamp = (x, lo, hi) => Math.max(lo, Math.min(hi, x));
 const KT = 1.6878;   // ft/s in a knot
 const G = 32.174;    // ft/s2
@@ -42,6 +49,23 @@ export function wingsFeet(air) {
 /** Wings' steering fade: at this ground speed the nosewheel steering is down to half (15 m/s). */
 export const STEER_HALF_KT = 15 / 0.3048 / KT;
 
+/**
+ * The nosewheel's share of the tilt at a ground speed: 1 standing still, a half at `halfAtKt`, falling on a
+ * smooth curve with no step. `power` 2 is Wings' curve; 3 keeps more of the steering at a taxi and lets go
+ * sooner after. No `halfAtKt`: the aircraft file fades its own steering, and the share is always 1.
+ */
+export const wheelShare = (groundKt, { halfAtKt = 0, power = 2 } = {}) => (halfAtKt ? 1 / (1 + (groundKt / halfAtKt) ** power) : 1);
+
+/**
+ * The turn the tilt asks of the copilot's feet, rad/s, nose right positive. `hold` is the aircraft's
+ * `steer.hold`; `share` the nosewheel's share now; `stick` the roll stick; `wheelRad` the nosewheel's angle
+ * and `groundFps` the speed. Two parts, mixed by the share: the turn the nosewheel's own angle makes at this
+ * speed (a wheel that slips makes less: `follow`), and, as the nosewheel lets go, a gentle turn for the tilt.
+ */
+export function askedTurn(hold, share, stick, wheelRad, groundFps) {
+  return hold.follow * share * (groundFps * Math.tan(wheelRad)) / hold.wheelbaseFt + (1 - share) * hold.turnRadPerSec * stick;
+}
+
 /** Every JSBSim command an aircraft's assists write, by name. */
 export function assistWrites(settings) {
   const names = [];
@@ -65,8 +89,18 @@ export class Assists {
   #settings;
   #feet;
   #air = { beta: 0, alpha: 0, bank: 0, pitch: 0, p: 0, r: 0, vtrueFps: 0, roll: 0 };
+  #dt;
+  /**
+   * How far the nose has swung, unasked, on the ground (rad), forgotten slowly: the copilot's sense of the
+   * heading it is holding. It is moved on by `advance`, once for every physics step and never by `apply`, so
+   * that sending the same controls twice changes nothing. It gathers only as fast as the feet have a say
+   * (the hold's weight): a swing at a taxi, where the nosewheel has the airplane and the feet have none, is
+   * not saved up to be paid back when the speed comes. (Both found by Codex's review of pull request 40.)
+   */
+  #drift = 0;
 
-  constructor(settings, stateAt, inputAt, wheels) {
+  constructor(settings, stateAt, inputAt, wheels, dt = 1 / 120) {
+    this.#dt = dt;
     this.#settings = settings;
     this.#wheels = wheels;
     this.#feet = settings.feet ? settings.feet.law ?? wingsFeet : null;
@@ -74,6 +108,7 @@ export class Assists {
     this.#s = {
       beta: state('aero/beta-rad'), alpha: state('aero/alpha-rad'), bank: state('attitude/phi-rad'), pitch: state('attitude/theta-rad'),
       p: state('velocities/p-rad_sec'), r: state('velocities/r-rad_sec'), vtrue: state('velocities/vtrue-kts'), vc: state('velocities/vc-kts'), vg: state('velocities/vg-fps'),
+      wheel: state('fcs/steer-pos-deg'),
     };
     const { steer = {} } = settings;
     this.#in = {
@@ -90,6 +125,26 @@ export class Assists {
     return (this.#settings.trim?.sets ?? []).map(([name, value]) => [name, value]);
   }
 
+  /** The swing nobody asked for, rad/s: the yaw rate, less the turn the tilt is asking for (`askedTurn`). */
+  #swing(state, stick, share) {
+    const s = this.#s, { steer } = this.#settings;
+    return state[s.r] - askedTurn(steer.hold, share, stick, (steer.wheel.sign * state[s.wheel] * Math.PI) / 180, state[s.vg]);
+  }
+
+  /**
+   * Moves the copilot's memory on by one physics step: call it once before each step, with the state after
+   * the last one and the controls as they are. `apply` only reads what this keeps.
+   */
+  advance(state, controls) {
+    const { steer = {} } = this.#settings, hold = steer.hold;
+    if (!hold || !this.#feet) return;
+    let onGround = false;
+    for (const i of this.#wheels) if (state[i] === 1) { onGround = true; break; }
+    if (!onGround) { this.#drift = 0; return; }
+    const share = wheelShare(state[this.#s.vg] / KT, steer.wheel), weight = (1 - share) ** 2;
+    this.#drift += (weight * this.#swing(state, controls.roll, share) - this.#drift / hold.forgetSeconds) * this.#dt;
+  }
+
   /**
    * Writes the assists' commands into `inputs`, from the state after the last step and the roll stick.
    * The controls' own commands are already there; only the wheel brakes are shared, and the assists never
@@ -102,6 +157,7 @@ export class Assists {
     let onGround = false;
     for (const i of this.#wheels) if (state[i] === 1) { onGround = true; break; }
     const stick = controls.roll, groundKt = state[s.vg] / KT;
+    const share = steer.wheel ? wheelShare(groundKt, steer.wheel) : 0, hold = steer.hold;
 
     if (at.rudder >= 0) {
       let rudder = 0;   // right rudder positive
@@ -109,15 +165,20 @@ export class Assists {
         const air = this.#air;
         air.beta = state[s.beta]; air.alpha = state[s.alpha]; air.bank = state[s.bank]; air.pitch = state[s.pitch];
         air.p = state[s.p]; air.r = state[s.r]; air.vtrueFps = state[s.vtrue] * KT; air.roll = stick;
-        rudder = this.#feet(air) * clamp((state[s.vc] - FEET.fromKt) / (FEET.fullKt - FEET.fromKt), 0, 1);
+        let held = 0;
+        if (hold && onGround) {
+          // The swing nobody asked for: the yaw rate, less the turn the tilt is asking for. The feet's own
+          // law sees only that (it must not push against an asked-for turn), and so does the hold.
+          const swing = this.#swing(state, stick, share);
+          air.r = swing;
+          held = -((1 - share) ** 2) * hold.rate * swing - hold.heading * this.#drift;
+        }
+        rudder = this.#feet(air) * clamp((state[s.vc] - FEET.fromKt) / (FEET.fullKt - FEET.fromKt), 0, 1) + held;
       }
       if (onGround && steer.rudder) rudder += stick;
       inputs[at.rudder] = (feet ?? steer.rudder).sign * clamp(rudder, -1, 1);
     }
-    if (at.wheel >= 0) {
-      const fade = steer.wheel.halfAtKt ? 1 / (1 + (groundKt / steer.wheel.halfAtKt) ** 2) : 1;
-      inputs[at.wheel] = onGround ? steer.wheel.sign * stick * fade : 0;
-    }
+    if (at.wheel >= 0) inputs[at.wheel] = onGround ? steer.wheel.sign * stick * share : 0;
     if (at.left >= 0 && onGround) {
       const ask = steer.brakes.strength * clamp(1 - groundKt / steer.brakes.untilKt, 0, 1);
       inputs[at.left] = Math.max(inputs[at.left], ask * clamp(-stick, 0, 1));

@@ -201,7 +201,8 @@ for (const variant of VARIANTS) {
     const pitchTrim = new Map(trim.sets).get('fcs/pitch-trim-cmd-norm');
     assert.ok(Math.abs(back.elevator - (1 - pitchTrim / 2)) < 0.01 && forward.elevator < 0.05, `the elevator (${back.elevator}, ${forward.elevator})`);
     assert.ok(right.aileron > 0.95 && left.aileron < 0.05, 'the ailerons');
-    assert.ok(right.rudder > 0.95 && left.rudder < 0.05, 'the rudder: on the ground the stick is the pedals');
+    // Milestone 3, PR 2: the rudder is the copilot's alone. Parked, with no swing to hold, the stick does not move it (it was the pedals until 0.0.17).
+    assert.ok(Math.abs(right.rudder - 0.5) < 0.02 && Math.abs(left.rudder - 0.5) < 0.02, `the rudder stays the copilot's: the stick does not move it (${right.rudder}, ${left.rudder})`);
     assert.ok(clean.flaps < 1e-6, `the flaps (${clean.flaps})`);
     flight.dispose();
   });
