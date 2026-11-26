@@ -2,15 +2,28 @@
 // the same scenario runs in native JSBSim (the answer key), in the C++ runner inside each WebAssembly build,
 // and nudged by one last digit eight times in native, which is how far native differs from itself.
 // New in FSG, milestone 1 (docs/milestones/1.md, "The checkride, and matching native").
+import { fileURLToPath } from 'node:url';
 import { STATE_COLUMNS, ensembleScenarios, runNative, runWasmCpp, runWasmTs } from '../../jsbsim/tests/lib/scenario.js';
 
 /** The columns FDM judges, with the airspeed a pilot reads. Wheel and contact flags are added by the runner. */
 export const JUDGED = [...STATE_COLUMNS, 'velocities/vc-kts', 'velocities/v-down-fps'];
 
-/** The tape as a scenario. `outs` are the columns to record; left out, the flight's own state. */
-export function scenarioOf(tape, name, outs) {
+/**
+ * FSG's own aircraft (milestone 3; an aircraft whose settings say `own: true`) are in the repo's aircraft/
+ * folder, not in JSBSim's data. Native JSBSim is told to look there for aircraft, and everywhere else in its
+ * own data as before: the scenario's `paths`, which FDM's runner hands to JSBSim's SetAircraftPath. Inside a
+ * WebAssembly module nothing changes: the test has put the aircraft's files under /data/aircraft already.
+ */
+export const OWN_AIRCRAFT = fileURLToPath(new URL('../../aircraft', import.meta.url));
+
+/**
+ * The tape as a scenario. `outs` are the columns to record; left out, the flight's own state. `where` is who
+ * will fly it: 'native' or 'wasm' (it matters only for FSG's own aircraft, above).
+ */
+export function scenarioOf(tape, name, outs, where = 'wasm') {
   return {
     name, root: '@data', dt: tape.dt, ground: tape.ground, model: tape.model, sets: tape.sets,
+    ...(tape.own && where === 'native' ? { paths: { aircraft: OWN_AIRCRAFT, engine: 'engine', systems: 'systems' } } : null),
     ins: tape.ins, inputs: tape.inputs, steps: tape.steps,
     outs: outs ?? tape.states.columns, outGear: outs !== undefined,
   };
@@ -18,7 +31,7 @@ export function scenarioOf(tape, name, outs) {
 
 /** The tape flown by native JSBSim: once as it is, and eight times nudged by one last digit of its start height. */
 export function flyNative(tape, name) {
-  const sc = scenarioOf(tape, name, JUDGED);
+  const sc = scenarioOf(tape, name, JUDGED, 'native');
   const [native, ...ensemble] = runNative([sc, ...ensembleScenarios(sc)], `tape-${name}`);
   for (const run of [native, ...ensemble]) if (run.meta.stage !== 'done') throw new Error(`native ${name}: ${run.meta.stage}: ${run.meta.message}`);
   return { native: native.trace, ensemble: ensemble.map((run) => run.trace) };
