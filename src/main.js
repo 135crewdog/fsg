@@ -142,7 +142,7 @@ function showDev() {
       `${whole(s.northFt)} ft N, ${whole(s.eastFt)} ft E, ${whole(s.aboveGroundFt - AIRCRAFT.standingFt)} ft up, heading ${String(Math.round(s.headingDeg) % 360).padStart(3, '0')}, ${s.knots.toFixed(0)} kt` +
         (s.propellerRpm === null ? '' : `, ${whole(s.propellerRpm)} RPM`),
       `sensor β ${fixed(tilt.raw.beta)} γ ${fixed(tilt.raw.gamma)} screen ${tilt.raw.screen}   tilt ${fixed(tilt.raw.pitch)}/${fixed(tilt.raw.roll)}`,
-      `stick ${fixed(tilt.stick.pitch, 2)} back, ${fixed(tilt.stick.roll, 2)} right   throttle ${fixed(pilot.throttle, 2)}`,
+      `stick ${fixed(tilt.stick.pitch, 2)} back, ${fixed(tilt.stick.roll, 2)} right   throttle ${fixed(pilot.throttle, 2)}`,   // the stick as held; what is sent has its middle made gentler
       touchdown ? `last touchdown: ${whole(touchdown.sinkFpm)} ft/min, ${whole(touchdown.knots)} kt, ${fixed(touchdown.g)} g` : 'last touchdown: none yet',
     );
   }

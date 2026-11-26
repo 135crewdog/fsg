@@ -6,7 +6,9 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { MAPPING, createTilt, smooth, stickFrom, tiltOf, upInScreen } from '../src/input/tilt.js';
-import { BUTTONS, buttonText, buttonsFor, controlsFrom } from '../src/input/pilot.js';
+import { BUTTONS, GENTLE, buttonText, buttonsFor, controlsFrom, gentle } from '../src/input/pilot.js';
+import { DT, Flight } from '../src/sim/game.js';
+import { VARIANTS, loadVariant } from '../jsbsim/tests/lib/node.js';
 import { positionFromThrottle, throttleFromPosition } from '../src/ui/throttle.js';
 import { C172P } from '../src/sim/aircraft/c172p.js';
 import { F16 } from '../src/sim/aircraft/f16.js';
@@ -120,7 +122,7 @@ test('tilt: whatever the sensor gives, the stick stays a number, and works again
 
 test('what is sent: numbers from -1 to 1 for the stick, 0 to 1 for the throttle, whatever comes in', () => {
   const pilot = { throttle: 0.4, gear: true, flaps: true, speedbrake: false, brake: false };
-  assert.deepEqual(controlsFrom(pilot, { pitch: 0.25, roll: -0.5 }), { pitch: 0.25, roll: -0.5, throttle: 0.4, gear: true, flaps: true, speedbrake: false, brake: false });
+  assert.deepEqual(controlsFrom(pilot, { pitch: 0.25, roll: -0.5 }), { pitch: gentle(0.25), roll: gentle(-0.5), throttle: 0.4, gear: true, flaps: true, speedbrake: false, brake: false });
   for (const bad of [NaN, undefined, null, Infinity, -Infinity, 'x']) {
     const sent = controlsFrom({ ...pilot, throttle: bad }, { pitch: bad, roll: bad });
     for (const control of ['pitch', 'roll', 'throttle']) assert.ok(Number.isFinite(sent[control]) && sent[control] >= -1 && sent[control] <= 1, `${control} from ${bad}: ${sent[control]}`);
@@ -128,6 +130,48 @@ test('what is sent: numbers from -1 to 1 for the stick, 0 to 1 for the throttle,
   assert.deepEqual(controlsFrom(pilot, { pitch: 3, roll: -3 }), { ...pilot, pitch: 1, roll: -1 });
   assert.equal(controlsFrom({ ...pilot, throttle: 7 }, null).throttle, 1);
   assert.deepEqual(controlsFrom(pilot, undefined).pitch, 0, 'no stick at all is a centred one');
+});
+
+test('a gentler middle: half stick sends a quarter, full stick sends all of it, and nothing steps', () => {
+  assert.equal(GENTLE, 2 / 3);
+  assert.equal(gentle(1), 1);
+  assert.equal(gentle(-1), -1);
+  assert.equal(gentle(0), 0);
+  near(gentle(0.5), 0.25, 1e-12, 'half stick');
+  near(gentle(-0.5), -0.25, 1e-12, 'half stick the other way');
+  let last = -1.0001;
+  for (let k = -1000; k <= 1000; k++) {
+    const x = k / 1000, y = gentle(x);
+    assert.ok(y > last && Math.abs(y) <= Math.abs(x) + 1e-12 && Math.abs(y + gentle(-x)) < 1e-12, `at ${x}: it rises all the way, never sends more than is held, and is the same both ways`);
+    assert.ok(y - last < 0.0031, 'no step anywhere, the dead spot included');
+    last = y;
+  }
+  assert.deepEqual([controlsFrom({}, { pitch: 1, roll: -1 }).pitch, controlsFrom({}, { pitch: 1, roll: -1 }).roll, controlsFrom({}, { pitch: 0, roll: 0 }).pitch], [1, -1, 0]);
+});
+
+test('flown in JSBSim at 100 knots: half stick rolls 14 to 18 deg/s and pulls 1.8 to 2.2 g; full stick, 64 to 70 and 3.9 to 4.3', async () => {
+  const module = await loadVariant(VARIANTS[0]);
+  for (const file of C172P.files) module.writeFile(`/data/${file}`, readFileSync(new URL(`../jsbsim/jsbsim-data/${file}`, import.meta.url)));
+  const flown = (held) => {
+    const sent = controlsFrom({}, { pitch: held, roll: held });
+    const rolling = Flight.start(module, C172P, { airborne: { heightFt: 3000, knots: 100 } });
+    rolling.fly({ roll: rolling.trimmed.roll + sent.roll });
+    let rate = 0;
+    for (let k = 0; k < Math.round(3 / DT); k++) { assert.equal(rolling.step(1), 0); rate = Math.max(rate, rolling.value('velocities/p-rad_sec') / D); }
+    rolling.dispose();
+    const pulling = Flight.start(module, C172P, { airborne: { heightFt: 3000, knots: 100 } });
+    pulling.fly({ pitch: pulling.trimmed.pitch + sent.pitch });
+    let g = 0;
+    for (let k = 0; k < Math.round(3 / DT); k++) { assert.equal(pulling.step(1), 0); g = Math.max(g, pulling.value('accelerations/Nz')); }
+    pulling.dispose();
+    return { rate, g };
+  };
+  const half = flown(0.5), full = flown(1);
+  console.log(`  half stick: ${half.rate.toFixed(1)} deg/s, ${half.g.toFixed(2)} g; full stick: ${full.rate.toFixed(1)} deg/s, ${full.g.toFixed(2)} g`);
+  assert.ok(half.rate >= 14 && half.rate <= 18, `half stick rolls ${half.rate.toFixed(1)} deg/s`);
+  assert.ok(half.g >= 1.8 && half.g <= 2.2, `half stick pulls ${half.g.toFixed(2)} g`);
+  assert.ok(full.rate >= 64 && full.rate <= 70, `full stick rolls ${full.rate.toFixed(1)} deg/s`);
+  assert.ok(full.g >= 3.9 && full.g <= 4.3, `full stick pulls ${full.g.toFixed(2)} g`);
 });
 
 test('the throttle: idle at the bottom, full at the top, a straight line between; a place and back is the same place', () => {
