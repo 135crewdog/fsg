@@ -2,3 +2,5 @@ node_modules/
 .DS_Store
 jsbsim/build/
 __pycache__/
+# JSBSim writes this where the tests run (its 737 linearisation script); it is not ours.
+737_lin.sce
