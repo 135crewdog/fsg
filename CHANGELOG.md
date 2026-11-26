@@ -2,6 +2,13 @@
 
 What changed in each version a player can see, newest first.
 
+## 0.0.13
+
+- Caught up with Wings. The Developer switch is now called Debug overlay; if yours was on, it stays on.
+- The rotate screen says less: "Rotate your device. If it won't turn, turn off rotation lock." Nothing on screen says "phone" any more.
+- The flight pauses when anything takes focus from the app, as it already did when you left it. Control Center and its screen-recording menu can't pause it, because iOS tells the app nothing when they come down: tap Pause first. For a recording, start it, close Control Center and tap Resume.
+- If the flight model fails, the screen now says "Something went wrong. Tap Restart. If it happens again, reopen FSG." The error's own words are on the debug overlay.
+
 ## 0.0.12
 
 - Fly. The start screen has a Fly button: tap it and the Cessna's engine is idling on the runway, propeller turning, brakes on. Drag a finger across the picture to look around the airplane; let go and the view comes back. A small pause button, top right, opens the pause screen, with Resume and Restart. The game pauses by itself when the app is hidden or the phone is turned upright. There are no flight controls yet, so it does not move.

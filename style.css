@@ -1,5 +1,5 @@
 /* FSG. The picture, the screens (which carry the name, version and update
-   offer), the developer overlay and the rotate screen. After 135crewdog/wings,
+   offer), the debug overlay and the rotate screen. After 135crewdog/wings,
    style.css, commit 557a8d0, cut down: the flight's controls, the HUD and the
    map are left out until there is something to fly. The platform rules (no scrolling,
    zooming or selecting; everything inside the safe area) are Rage's, by way
@@ -33,7 +33,7 @@ button:active { opacity: 0.6; }
   font-size: 13px; font-weight: 700; letter-spacing: -1px; pointer-events: auto;
 }
 
-/* the developer overlay (after Rage's ?debug=1): small, bottom left, clear of the screens' cards */
+/* the debug overlay (after Rage's ?debug=1): small, bottom left, clear of the screens' cards */
 #dev {
   position: absolute; left: calc(env(safe-area-inset-left, 0px) + 10px); bottom: calc(env(safe-area-inset-bottom, 0px) + 10px);
   margin: 0; padding: 6px 8px; font: 11px/1.3 ui-monospace, SFMono-Regular, Menlo, monospace; color: #fff;

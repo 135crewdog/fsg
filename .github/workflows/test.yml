@@ -1,5 +1,5 @@
 # Runs the tests on every push and pull request.
-# After 135crewdog/wings, .github/workflows/test.yml, commit 557a8d0. Added for FSG: the native answer keys,
+# After 135crewdog/wings, .github/workflows/test.yml, commit 6d689b7 (first copied at 557a8d0). Added for FSG: the native answer keys,
 # which FDM's tests compare the WebAssembly builds with.
 name: Tests
 

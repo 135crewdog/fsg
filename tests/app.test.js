@@ -193,3 +193,40 @@ test('every icon is a square, opaque PNG of the size its page names', () => {
   }
   for (const icon of manifest.icons) assert.equal(icon.type, 'image/png');
 });
+
+// ---- caught up with Wings (docs/milestones/2.md, "Wings catch-up"; Wings commits 1ced0e8, c9ded4f, 4e7745b, 2eb7b98, 6542a06, b0485bc, 3fdad59) ----
+const main = read('src/main.js');
+// What a player reads: the page's own text, the manifest's description, and every string the app's page code writes.
+const pageText = html.replace(/<!--[^]*?-->/g, '').replace(/<script[^]*?<\/script>/g, '').replace(/<[^>]+>/g, ' ');
+const written = ['src/main.js', 'src/flight.js', 'src/fdm.js'].map((f) => code(read(f))).join('\n');
+
+test('the debug overlay: its switch says so, and nothing a player reads says "Developer"', () => {
+  assert.match(html, /<span id="dev-label">Debug overlay<\/span>/);
+  assert.doesNotMatch(pageText, /developer/i);
+  for (const file of ['CLAUDE.md', 'README.md', 'src/main.js', 'src/flight.js', 'src/fdm.js', 'style.css', 'index.html']) assert.doesNotMatch(read(file), /developer overlay/i, file);
+  assert.match(main, /const DEV_KEY = 'fsg\.dev';/, 'the choice is kept where it was, so an overlay that was on stays on');
+});
+
+test('device wording: nothing a player reads says "phone" or "iPhone"', () => {
+  assert.doesNotMatch(pageText, /phone/i, 'index.html');
+  assert.doesNotMatch(manifest.description, /phone/i, 'the manifest');
+  assert.doesNotMatch(written, /phone/i, 'what the app writes on a screen');
+});
+
+test('the rotate screen says it in few words', () => {
+  assert.match(html, /<section id="rotate">\s*<h1>Rotate your device<\/h1>\s*<p>If it won't turn, turn off rotation lock\.<\/p>\s*<\/section>/);
+});
+
+test('losing focus pauses, as leaving the app does', () => {
+  assert.match(code(main), /window\.addEventListener\('blur', pause\);/);
+  assert.match(code(main), /document\.addEventListener\('visibilitychange', \(\) => \{\s*if \(document\.hidden\) pause\(\);/);
+});
+
+test('Dependabot keeps the workflow tools current, and they are at least where Wings has them', () => {
+  const dependabot = read('.github/dependabot.yml').replace(/^#.*\n/gm, '');
+  assert.equal(dependabot, 'version: 2\nupdates:\n  - package-ecosystem: github-actions\n    directory: /\n    schedule:\n      interval: monthly\n    groups:\n      workflow-tools:\n        patterns: ["*"]\n    commit-message:\n      prefix: "Workflow tools"\n');
+  const wings = { checkout: 7, 'setup-node': 7, 'configure-pages': 6, 'upload-pages-artifact': 5, 'deploy-pages': 5 };   // Wings at 3fdad59
+  const used = readdirSync(join(root, '.github/workflows')).flatMap((f) => [...read(`.github/workflows/${f}`).matchAll(/uses: actions\/([\w-]+)@v(\d+)/g)].map((m) => [f, m[1], Number(m[2])]));
+  for (const [name, least] of Object.entries(wings)) assert.ok(used.some(([, n]) => n === name), `${name} is used`);
+  for (const [file, name, version] of used) if (name in wings) assert.ok(version >= wings[name], `${file}: ${name} v${version}, Wings has v${wings[name]}`);
+});

@@ -77,7 +77,7 @@ One home for each kind of thing. Nothing lives in two places.
   Its `REPORT.md`, `RESEARCH.md` and `CLAUDE.md` hold the evidence. Branch `archive/attempt-1` and its integrator and ground patches are not used.
 - **`135crewdog/wings`.** Everything around the flight model:
   - the PWA shell, service worker, update offer and iPhone platform rules
-  - tilt input, throttle, toggles, pause screen, map, HUD, developer overlay
+  - tilt input, throttle, toggles, pause screen, map, HUD, debug overlay
   - chase camera, renderer, terrain tiles and their culling, detail rings and haze
   - water, sky, afterburner plumes
   - `docs/models.md`, `docs/hawaii.md`, `terrain/make-hawaii.py` and the Hawaii tiles
@@ -87,7 +87,12 @@ One home for each kind of thing. Nothing lives in two places.
   Wings' own flight model (`src/sim/`: the airplane "cards", aero, engine and contact code) is replaced by JSBSim and is not copied.
 - Wings in turn came from `135crewdog/wings-v1` and `135crewdog/rage`. Go to them only when Wings points there.
 
-Wings stays live at its own address. It is frozen, and FSG never changes it.
+Wings stays live at its own address, and the owner keeps improving it. FSG never changes it. **Before copying anything from Wings:**
+- Fetch Wings `main`. Read its `CHANGELOG.md` and its commits since the commit FSG last copied that file from.
+- Copy from current `main`, never from an old pin.
+- Adapt FSG's own version of the file rather than overwrite it: FSG's copies have been changed for JSBSim.
+- Record the new commit in the file's header and in `provenance.json`.
+- Every plan that copies from Wings lists the Wings commits since the last pin, and the items of issue #32 (the running list of what to bring over) that it covers.
 
 ## Flying
 
@@ -139,9 +144,9 @@ Game rules (kept from Wings):
 ## Screen and looks
 
 **The screen and the world** follow Wings, copied in on purpose as milestones need them:
-- start screen and pause screen with its switches (crash override, HUD, developer) and the islands map
+- start screen and pause screen with its switches (crash override, HUD, debug overlay) and the islands map
 - chase camera with drag-to-look
-- Rage's green HUD and the developer overlay
+- Rage's green HUD and the debug overlay
 - afterburner plumes, with Rage's water and sky
 - US units only, with no units setting
 
@@ -155,6 +160,7 @@ Game rules (kept from Wings):
 - **The one build is JSBSim's:** C++ to WebAssembly, with the pinned Emscripten, by a script in the repo. Its output is committed. It's re-run only when JSBSim or the C++ host layer changes, and a rebuild must reproduce the committed files byte for byte.
 - **Three.js is the one runtime library,** vendored at a pinned version. Ask before adding any other dependency.
 - **Tests use Node's built-in runner** (`node --test`). They run in GitHub Actions on every push and pull request. Pages deploys `main` only if they pass.
+- **GitHub's workflow tools** (checkout, setup-node, the cache and the Pages steps in `.github/workflows/`) stay on their current versions. Dependabot (`.github/dependabot.yml`, after Wings) opens at most one pull request a month for all of them together. It goes through tests and Codex like any other, and the owner authorizes the merge.
 - **The simulation code** (the Worker, the JSBSim wrapper, assists, game rules) has no DOM or Three.js code, so it runs headless in Node.
 - **Target:** 60 fps on an iPhone 16, with the physics at 120 Hz.
 - **The checkride:** maneuvers flown headless, with results in knots, feet, degrees and g next to the reference numbers (flight manual, NASA data, native JSBSim). Each milestone plan writes the tolerances before the run.
@@ -193,7 +199,8 @@ Game rules (kept from Wings):
 - Draw only while something is moving.
 - Full screen: `display: standalone`, `viewport-fit=cover`. Controls and text stay inside the safe area.
 - No scrolling, zooming or selecting.
-- Pause automatically when the app is hidden; resume only from the pause screen.
+- Pause automatically when the app is hidden or loses focus; resume only from the pause screen.
+- iOS tells a home-screen web app nothing when Control Center or its screen-recording menu covers it: no blur, no visibility change (tested on the owner's phone in Wings, 22 November 2026). There the pilot pauses by hand: Pause, then Control Center. For a recording: start it, close Control Center, tap Resume.
 - The origin `135crewdog.github.io` is shared with the owner's other apps:
   - Prefix every cache with `fsg-` and every storage key with `fsg.`.
   - Only ever delete caches that start with `fsg-`.
@@ -207,7 +214,7 @@ Claude Code plans each milestone in Plan Mode when the one before is done. The l
 
 | # | Milestone | Done when |
 |---|---|---|
-| 0, done | **Setup.** Repo, Actions, Pages, Codex review; the Wings app shell; the JSBSim build copied in from FDM with its tests | A test pull request goes through Codex review, merges and deploys. The shell installs on the owner's iPhone and takes an update. Inside the app, on the phone, the Worker loads `c172x` and reports its step time on the developer overlay |
+| 0, done | **Setup.** Repo, Actions, Pages, Codex review; the Wings app shell; the JSBSim build copied in from FDM with its tests | A test pull request goes through Codex review, merges and deploys. The shell installs on the owner's iPhone and takes an update. Inside the app, on the phone, the Worker loads `c172x` and reports its step time on the debug overlay |
 | 1, done | **JSBSim as the game's core, headless.** Worker clock, controls in, state out, height-patch ground callback, contact points, game rules, assists; the checkride harness | `c172x` and `f16` take off, fly a circuit and land headless, with checkride results matching native JSBSim within the written tolerances |
 | 2, under way | **First flight.** Tilt, throttle, toggles, chase camera, HUD over a flat test field with a runway, on the phone, flying `c172p` | The owner takes off, flies a circuit and lands on his iPhone, and says the controls and the ground feel right |
 | 3 | **The F-4C.** Its JSBSim file built from real data, with its stability augmentation; `models/f4c.glb` with moving surfaces, gear and flaps; plumes | The F-4C passes its checkride against the flight manual and NASA data, and the owner flies it on the test field and approves the feel |

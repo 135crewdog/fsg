@@ -29,7 +29,7 @@ const MOST_MS = 250;   // the picture's delay is counted in whole milliseconds u
  *   state(message)    a state from the Worker; one of an earlier flight is dropped
  *   fly()             time runs: the picture moves, and every frame is drawn
  *   hold()            time stands still (the pause screen): the picture stays as it is
- *   status()          what is on screen and how it is running, for the developer overlay and the browser checks
+ *   status()          what is on screen and how it is running, for the debug overlay and the browser checks
  * }
  */
 export function startFlight(canvas, aircraft = C172P, field = FIELD) {
@@ -51,7 +51,7 @@ export function startFlight(canvas, aircraft = C172P, field = FIELD) {
 
   // ---- the flight being shown ----
   let flight = 0, read = null, surfaces = null, at = null, newest = null, flying = false, loaded = false;
-  // How it is running, over the whole flight: for the developer overlay. The worst of each number is kept
+  // How it is running, over the whole flight: for the debug overlay. The worst of each number is kept
   // from Fly until a new flight begins, across any pause, so a slow stretch cannot be lost from a screenshot.
   // `warm` counts the half seconds since time was last let go: the first second after that is not counted.
   const fresh = () => ({ states: 0, missing: 0, outOfOrder: 0, lastN: 0, steps: 0, seconds: 0, lastSeconds: null, dropped: 0,
@@ -186,7 +186,7 @@ export function startFlight(canvas, aircraft = C172P, field = FIELD) {
       look.release();
       wake();
     },
-    /** For the developer overlay and the browser checks. Angles in degrees, distances in feet. */
+    /** For the debug overlay and the browser checks. Angles in degrees, distances in feet. */
     status() {
       // `frames` counts every frame drawn; `withModel`, those drawn since the airplane's model arrived.
       const out = { loaded, frames, withModel, resting: waiting === null, flying, flight, draws: renderer.info.render.calls, triangles: renderer.info.render.triangles };

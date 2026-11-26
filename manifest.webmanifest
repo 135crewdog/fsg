@@ -2,7 +2,7 @@
   "id": "./",
   "name": "FSG",
   "short_name": "FSG",
-  "description": "A flight sim game flown by tilting the phone.",
+  "description": "A flight sim game flown by tilting the device.",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",

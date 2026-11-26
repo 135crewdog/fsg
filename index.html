@@ -1,7 +1,8 @@
 <!doctype html>
-<!-- After 135crewdog/wings, index.html, commit 557a8d0: cut down to the picture,
-     the pause button, the start, pause and crashed screens, the developer
-     overlay and the rotate screen. The controls and the HUD are still to come. -->
+<!-- After 135crewdog/wings, index.html, commit 6d689b7 (first copied at 557a8d0):
+     cut down to the picture, the pause button, the start, pause and crashed
+     screens, the debug overlay and the rotate screen. The controls and the HUD
+     are still to come. -->
 <html lang="en">
 <head>
   <meta charset="utf-8">
@@ -40,7 +41,7 @@
       <button id="resume" class="btn primary">Resume</button>
       <button id="restart" class="btn">Restart</button>
       <div class="row">
-        <span id="dev-label">Developer</span>
+        <span id="dev-label">Debug overlay</span>
         <button id="dev-switch" class="switch" role="switch" aria-checked="false" aria-labelledby="dev-label"></button>
       </div>
       <button class="btn update" hidden>New version, tap to update</button>
@@ -51,7 +52,7 @@
 
   <section id="screen-crashed" class="screen" hidden>
     <div class="card">
-      <h2>Crashed</h2>
+      <h2 id="crash-title">Crashed</h2>
       <p id="crash-why" class="about"></p>
       <button id="crash-restart" class="btn primary">Restart</button>
       <button class="btn update" hidden>New version, tap to update</button>
@@ -61,8 +62,8 @@
   <pre id="dev" hidden></pre>
 
   <section id="rotate">
-    <h1>Rotate your phone</h1>
-    <p>FSG is flown in landscape. If it won't rotate, turn off Portrait Orientation Lock in Control Center.</p>
+    <h1>Rotate your device</h1>
+    <p>If it won't turn, turn off rotation lock.</p>
   </section>
 
   <script type="module" src="./src/main.js"></script>

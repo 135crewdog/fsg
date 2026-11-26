@@ -1,5 +1,5 @@
-// The app: the flight on screen, the game in its Worker, the screens, the developer overlay, and the update offer.
-// After 135crewdog/wings, src/main.js, commit 557a8d0: the screens, the pause and restart logic, the wake
+// The app: the flight on screen, the game in its Worker, the screens, the debug overlay, and the update offer.
+// After 135crewdog/wings, src/main.js, commit 6d689b7 (first copied at 557a8d0): the screens, the pause and restart logic, the wake
 // lock and the update offer are Wings'. The platform rules and the update logic are Rage's
 // (135crewdog/rage, src/main.js), by way of Wings. FSG's flight is not on the page: it is JSBSim in a Worker
 // (src/fdm.js), which this file starts when the app opens and speaks to with a few messages.
@@ -23,12 +23,13 @@ const AIRCRAFT = C172P;
 let mode = 'start';   // start, flying, paused or crashed
 const flight = startFlight($('view'), AIRCRAFT);
 // The game: JSBSim in its Worker, with the airplane parked on the numbers and held. It is started when the
-// app opens, so that Fly has nothing to wait for; held, the Worker rests. `jsbsim` is what the developer
+// app opens, so that Fly has nothing to wait for; held, the Worker rests. `jsbsim` is what the debug
 // overlay says about it: null while it starts, then which build (and why, for the fallback), or the error.
 let game = null, jsbsim = null;
 const openGame = () => {
   game = null;
   jsbsim = null;
+  stopped = null;
   showDev();
   return startGame(AIRCRAFT, {
     onState(message) {
@@ -44,11 +45,11 @@ const openGame = () => {
     showDev();
   }, (error) => {
     jsbsim = { error: String(error?.message ?? error) };
-    crashed({ reason: `JSBSim did not start: ${jsbsim.error}` });
+    crashed({ reason: 'JSBSim did not start' });
   });
 };
 
-// ---- the developer overlay ----
+// ---- the debug overlay ----
 // A small box of plain facts, for troubleshooting and for screenshots sent to
 // Claude Code. Switched on and off on the pause screen, off until the pilot
 // turns it on, and the choice is kept between visits. It is written when
@@ -59,6 +60,7 @@ const DEV_KEY = 'fsg.dev';
 const devSwitch = $('dev-switch');
 let devOn = false, devTimer = null;
 let offline = 'not yet';   // yes once the service worker has every file cached
+let stopped = null;        // the error's own words, when the flight model or its Worker has failed: read here, not on the screen
 // Opened from the home screen, or in a browser tab? iOS says with navigator.standalone.
 const installed = () => navigator.standalone === true || window.matchMedia('(display-mode: standalone)').matches;
 const whole = (x) => (Math.round(x) || 0).toLocaleString('en-US');   // never "-0"
@@ -70,6 +72,7 @@ function showDev() {
     `offline ready: ${offline}`,
     jsbsim === null ? 'JSBSim: starting' : jsbsim.error ? `JSBSim did not start: ${jsbsim.error}` : jsbsim.says,
   ];
+  if (stopped && !jsbsim?.error) lines.push(`stopped: ${stopped}`);
   const s = flight.status();
   if (s.time !== undefined) {
     lines.push(
@@ -83,7 +86,7 @@ function showDev() {
   }
   $('dev').textContent = lines.join('\n');
 }
-// The overlay's clock: only with Developer on, and only in flight.
+// The overlay's clock: only with the debug overlay on, and only in flight.
 const devClock = () => {
   const wanted = devOn && mode === 'flying';
   if (wanted && devTimer === null) devTimer = setInterval(showDev, 250);
@@ -116,6 +119,7 @@ window.fsg = Object.freeze({
 });
 
 // ---- flying, pausing, restarting (after Wings) ----
+let restarting = false, interrupted = false;   // a Restart being made, and whether the app was left or lost focus meanwhile
 const isPortrait = () => window.innerHeight > window.innerWidth;   // read directly: the media query's answer can be stale
 // The screen is kept awake only in flight. On the start, pause and crashed
 // screens it is let go, so a phone put down with the app open can sleep.
@@ -135,6 +139,7 @@ const letSleep = () => {
 // Time runs: the Worker is let go, and the picture with it.
 const takeOff = () => {
   mode = 'flying';
+  stopped = null;
   show(null);
   game.hold(false).catch(() => {});   // a Worker that has failed says so itself (onFailure)
   flight.fly();
@@ -147,6 +152,7 @@ const menu = (beforeFlight) => {
   $('restart').hidden = beforeFlight;
 };
 const pause = () => {
+  if (restarting) interrupted = true;
   if (mode !== 'flying') return;
   mode = 'paused';
   menu(false);
@@ -158,13 +164,19 @@ const pause = () => {
   showDev();
   checkForUpdate();
 };
-// The flight is over: a hard arrival or water with the crash override off, a broken state, or a Worker that failed.
-const WHY = { 'hard impact': (e) => `Hard impact: ${whole(e.closingFpm)} ft/min`, water: () => 'Water', 'broken state': () => 'The flight model stopped' };
+// The flight is over. A crash (a hard arrival or water, with the crash override off) says which, in a line.
+// Anything else is the flight model or its Worker failing: the screen says so in a few words and what to do
+// (after Wings' motion-access screen, commits c9ded4f, 4e7745b and 2eb7b98: fewer words, no reasons), and the
+// error's own words go to the debug overlay.
+const CRASHES = { 'hard impact': (e) => `Hard impact: ${whole(e.closingFpm)} ft/min`, water: () => 'Water' };
 function crashed(ended) {
   mode = 'crashed';
   letSleep();
   flight.hold();
-  $('crash-why').textContent = WHY[ended.reason]?.(ended) ?? ended.reason;
+  const crash = CRASHES[ended.reason];
+  stopped = crash ? null : ended.reason;
+  $('crash-title').textContent = crash ? 'Crashed' : 'Something went wrong';
+  $('crash-why').textContent = crash ? crash(ended) : 'Tap Restart. If it happens again, reopen FSG.';
   show('crashed');
   devClock();
   showDev();
@@ -187,20 +199,20 @@ $('resume').addEventListener('click', () => {
   takeOff();
 });
 // Restart: a new flight, parked on the numbers, and straight into it. After a Worker has failed, a fresh Worker first.
-let restarting = false;
 for (const id of ['restart', 'crash-restart']) {
   $(id).addEventListener('click', async () => {
     if (restarting || isPortrait() || (mode !== 'paused' && mode !== 'crashed')) return;
     restarting = true;
+    interrupted = false;
     keepAwake();
     try {
       if (!game || game.failed) await openGame();
       else flight.began(await game.fly({ held: true }));
       if (!game) return;   // it did not start: the crashed screen says so
-      // The new flight is there, held. While it was being made the app may have been hidden or the phone
-      // turned upright; pause() could do nothing then, with no flight running. So look again: if so, the
-      // new flight waits on the pause screen, held, for Resume.
-      if (document.hidden || isPortrait()) {
+      // The new flight is there, held. While it was being made the app may have been hidden, lost focus, or
+      // the phone been turned upright; pause() could only note it then, with no flight running. So look
+      // again: if so, the new flight waits on the pause screen, held, for Resume.
+      if (interrupted || document.hidden || isPortrait()) {
         mode = 'paused';
         menu(false);
         letSleep();
@@ -215,10 +227,14 @@ for (const id of ['restart', 'crash-restart']) {
   });
 }
 
-// Leaving the app or turning the phone to portrait pauses the flight. It resumes only from the pause screen.
+// Leaving the app, anything that takes focus from it, or turning the phone to portrait pauses the flight. It
+// resumes only from the pause screen. Control Center and its screen-recording menu can't pause it: iOS tells
+// a home-screen app nothing when they cover it (no blur, no visibility change; tested on the owner's phone in
+// Wings, 22 Nov 2026), so there the pilot pauses by hand.
 document.addEventListener('visibilitychange', () => {
   if (document.hidden) pause(); else checkForUpdate();   // iOS drops the wake lock when the app is hidden; Resume asks again
 });
+window.addEventListener('blur', pause);   // anything that takes focus from the app
 window.addEventListener('resize', () => { if (isPortrait()) pause(); });
 window.addEventListener('orientationchange', pause);
 screen.orientation?.addEventListener('change', pause);
