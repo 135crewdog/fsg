@@ -13,11 +13,13 @@
 //      "damped" or "dies away", the numbers under LINES below;
 //   4. reports the edge of the envelope with no pass or fail (pull request 10 judges it);
 //   5. flies a two-minute tape again in native JSBSim, by milestone 1's lines.
-// What Mach changes, and NASA CR-2144's nine flight conditions, are the second half of pull request 5.
+// What Mach changes, and NASA CR-2144's nine flight conditions, are the second half of pull request 5:
+// tests/f4c-conditions.test.js. Since it, the flights that hold the file to AFWAL's Table 1 are flown slower
+// than Mach 0.3 (they were at Mach 0.57), where nothing of what Mach changes is in the airplane; and the
+// low-speed sanity flights at 300 and 400 knots have Mach in them. Their lines are as they were.
 // Every measured number is printed beside its reference and kept in jsbsim/build/results/checkride-f4c-aero.txt.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
 import { F4C } from '../src/sim/aircraft/f4c.js';
 import { assistWrites } from '../src/sim/assists.js';
 import { DT, Flight } from '../src/sim/game.js';
@@ -28,6 +30,7 @@ import { headTrace } from '../jsbsim/tests/lib/scenario.js';
 import { bytesOf, moduleWith } from './checkride/files.js';
 import * as REFERENCE from './checkride/f4c-reference.js';
 import { JUDGED, flyNative, flyWasm } from './checkride/tape.js';
+import { DATA, LISTING, SIX, SLOW_FPS, constant, dimension, snapshot, startAt, table1 } from './checkride/table1.js';
 
 const { WING_AREA, WING_SPAN, WING_CHORD, WEIGHT, CG_PERCENT_CHORD, AFWAL_REFERENCE_CENTRE, AFWAL_REFERENCE_HEIGHT, STABILATOR_TRAVEL, AILERON_TRAVEL,
   SPOILER_PER_AILERON, RUDDER_TRAVEL, WING_ROCK_ALPHA, NOSE_SLICE_ALPHA, WINGS_NEUTRAL_SPEED, WINGS_ROLL_RATE_250, WINGS_ROLL_RATE_400 } = REFERENCE;
@@ -36,9 +39,6 @@ const S = WING_AREA.value, SPAN = WING_SPAN.value, CHORD = WING_CHORD.value;
 const clamp = (x, lo, hi) => Math.max(lo, Math.min(hi, x));
 const cite = (ref) => `${Array.isArray(ref.value) ? `[${ref.value.join(', ')}]` : ref.value} ${ref.unit} (${ref.source}, ${ref.where})`;
 
-/** The record of the data: AFWAL's tables and equations as read from the scan. */
-const DATA = JSON.parse(readFileSync(new URL('../aircraft/f4c/data/afwal-f4j.json', import.meta.url)));
-const LISTING = DATA.table_9.functions;
 /** The aircraft file, as text, and its aerodynamics section. */
 const file = bytesOf(F4C, F4C.files[0]).toString();
 const aerodynamics = file.slice(file.indexOf('<aerodynamics>'), file.indexOf('</aerodynamics>'));
@@ -46,9 +46,6 @@ const aerodynamics = file.slice(file.indexOf('<aerodynamics>'), file.indexOf('</
 /** The 24 functions the model uses: set 1 of AFWAL's doubled ones (its Table 4, configuration A, the F-4J). */
 const USED = ['CLBAS', 'CLSTAB', 'CDBAS', 'CYB', 'CYDR', 'CRB1', 'CRP1', 'CRR', 'CRDA', 'CRDSP', 'CRDR',
   'CMBAS', 'DCM1', 'CMQ', 'CMAD', 'CMSTAB', 'CMDA', 'CMDSP', 'CNB1', 'CNP', 'CNR', 'CNDA', 'CNDSP', 'CNDR'];
-/** AFWAL's Table 3, by its symbol. */
-const constant = (symbol) => DATA.table_3.rows.find((row) => row.symbol === symbol).value;
-const dimension = (symbol) => DATA.table_5.rows.find((row) => row.symbol === symbol).value;
 
 /**
  * The lines for the low-speed sanity flights, where the task said a word and not a number. Written before
@@ -63,91 +60,6 @@ const dimension = (symbol) => DATA.table_5.rows.find((row) => row.symbol === sym
  *              before, and any swing that starts later than 15 s after the kick is under a quarter of the first.
  */
 const LINES = { speedShare: 0.15, heightSwings: 1.5, pitchLeftAt10s: 0.05, slipSwings: 4, slipLateSeconds: 15, slipLateShare: 0.25 };
-
-// ---- Table 1, worked out in JavaScript from the record ----
-
-/** Straight lines between a table's points, its end values held beyond them: how AFWAL's tables are read (Table 1), and JSBSim's. */
-function along(xs, ys, x) {
-  if (x <= xs[0]) return ys[0];
-  if (x >= xs.at(-1)) return ys.at(-1);
-  let i = 1;
-  while (xs[i] < x) i++;
-  return ys[i - 1] + ((x - xs[i - 1]) / (xs[i] - xs[i - 1])) * (ys[i] - ys[i - 1]);
-}
-/** One of the listing's functions at an angle of attack, degrees, taken without its sign by the caller. */
-const read = (name, alpha) => along(LISTING[name].alpha_deg, LISTING[name].values, alpha);
-/** The pitching-moment increment: in angle of attack along each sideslip's row, then between the rows. */
-function readIncrement(alpha, beta) {
-  const rows = LISTING.DCM1.values_by_beta;
-  return along(rows.map((row) => row.beta_deg), rows.map((row) => along(row.alpha_deg, row.values, alpha)), beta);
-}
-
-/**
- * AFWAL's Table 1: the six coefficients at a state, with the centre of gravity at `cg` percent of the chord.
- * Angles and deflections in degrees, rates in radians a second, the speed in feet a second. `stores` adds
- * AFWAL's stores drag, which the F-4C's file leaves out.
- */
-function table1({ alpha, beta, vt, p, q, r, alphaDot, stabilator, aileron, spoiler, rudder }, cg, { stores = false } = {}) {
-  const a = Math.abs(alpha), sign = alpha >= 0 ? 1 : -1, slip = Math.abs(beta), slipHeld = Math.min(slip, 30);
-  const b2v = SPAN / (2 * vt), c2v = CHORD / (2 * vt);
-  const lift = (alpha >= 0 ? read('CLBAS', a) : 2 * read('CLBAS', 0) - read('CLBAS', a)) + read('CLSTAB', a) * stabilator;
-  const drag = read('CDBAS', a) + (stores ? constant('Delta_CD_STORES') : 0);
-  const side = read('CYB', a) * beta + constant('Cy_delta_a') * aileron + constant('Cy_delta_sp') * spoiler + read('CYDR', a) * rudder;
-  const roll = read('CRB1', a) * beta + b2v * (read('CRP1', a) * p + read('CRR', a) * r) + read('CRDA', a) * aileron + read('CRDSP', a) * spoiler + read('CRDR', a) * rudder;
-  const pitchAtReference = read('CMBAS', a) * sign + readIncrement(a, slipHeld) + c2v * (read('CMQ', a) * q + read('CMAD', a) * alphaDot)
-    + (read('CMSTAB', a) + constant('K_beta^(Cm_delta_stab)') * slip) * stabilator + read('CMDA', a) * Math.abs(aileron) + read('CMDSP', a) * Math.abs(spoiler);
-  const yawAtReference = read('CNB1', a) * beta + b2v * (read('CNP', a) * p + read('CNR', a) * r) + read('CNDA', a) * aileron + read('CNDSP', a) * spoiler + read('CNDR', a) * rudder;
-  // The last lines of the pitch and yaw blocks: from the reference centre to the centre of gravity.
-  const shift = (cg - dimension('Xref')) / 100;
-  const pitchShift = shift * (lift * Math.cos(alpha / DEG) + drag * Math.sin(alpha / DEG)), yawShift = shift * (CHORD / SPAN) * side;
-  return { lift, drag, side, roll, pitch: pitchAtReference + pitchShift, yaw: yawAtReference + yawShift, pitchAtReference, yawAtReference, pitchShift, yawShift };
-}
-const SIX = ['lift', 'drag', 'side', 'roll', 'pitch', 'yaw'];
-
-// ---- JSBSim's side ----
-
-/**
- * A flight started at a state and not yet stepped: the airplane level, 15,000 ft, with the air meeting it at an
- * angle of attack and a sideslip (AFWAL's equation 9: U = V cos alpha cos beta, V sin beta, V sin alpha cos beta),
- * turning at p, q and r, the stick and the rudder where asked. No copilot, so the stick alone moves the
- * stabilator. Everything is part of the start; nothing is set afterwards.
- */
-function startAt(module, { alpha, beta, vt = 600, p = 0, q = 0, r = 0, pitch = 0, roll = 0, rudder = 0 }) {
-  const a = alpha / DEG, b = beta / DEG;
-  return Flight.start(module, F4C, {
-    assists: null, settleSeconds: 0, controls: { gear: false, brake: false, throttle: 0, pitch, roll },
-    sets: [['ic/h-sl-ft', AFWAL_REFERENCE_HEIGHT.value], ['ic/u-fps', vt * Math.cos(a) * Math.cos(b)], ['ic/v-fps', vt * Math.sin(b)], ['ic/w-fps', vt * Math.sin(a) * Math.cos(b)],
-      ['ic/p-rad_sec', p], ['ic/q-rad_sec', q], ['ic/r-rad_sec', r], ['fcs/rudder-cmd-norm', rudder]],
-  });
-}
-
-/**
- * What JSBSim has at this moment: the state Table 1 needs, read back, and the six coefficients it has worked
- * out, taken from its aerodynamic force in the airplane's own axes and its aerodynamic moment about the
- * centre of gravity. Lift, drag and side force are AFWAL's (PDF p.22): drag along the velocity's shadow on the
- * plane of symmetry, lift at right angles to it in that plane, side force along the airplane's y axis.
- */
-function snapshot(flight) {
-  const get = (name) => flight.get(name);
-  const [u, v, w] = ['u', 'v', 'w'].map((axis) => get(`velocities/${axis}-aero-fps`));
-  const state = {
-    alpha: get('aero/alpha-deg'), beta: get('aero/beta-deg'), vt: get('velocities/vt-fps'),
-    p: get('velocities/p-rad_sec'), q: get('velocities/q-rad_sec'), r: get('velocities/r-rad_sec'), alphaDot: get('aero/alphadot-rad_sec'),
-    stabilator: get('fcs/elevator-pos-deg'), rudder: get('fcs/rudder-pos-deg'),
-    // AFWAL's two lateral deflections (its Table 6): left aileron down less right aileron down; right spoiler up less left spoiler up.
-    aileron: get('fcs/left-aileron-pos-deg') - get('fcs/right-aileron-pos-deg'),
-    spoiler: get('fcs/right-spoiler-pos-deg') - get('fcs/left-spoiler-pos-deg'),
-  };
-  // The angles are AFWAL's own (its equation 9), from the airplane's speed through the air along its three axes.
-  assert.ok(Math.abs(state.alpha - Math.atan2(w, u) * DEG) < 1e-9 && Math.abs(state.beta - Math.asin(v / state.vt) * DEG) < 1e-9, 'JSBSim\'s angle of attack and sideslip are AFWAL\'s');
-  const qbar = get('aero/qbar-psf'), [fx, fy, fz] = ['x', 'y', 'z'].map((axis) => get(`forces/fb${axis}-aero-lbs`));
-  const ca = Math.cos(state.alpha / DEG), sa = Math.sin(state.alpha / DEG);
-  const measured = {
-    lift: (fx * sa - fz * ca) / (qbar * S), drag: -(fx * ca + fz * sa) / (qbar * S), side: fy / (qbar * S),
-    roll: get('moments/l-aero-lbsft') / (qbar * S * SPAN), pitch: get('moments/m-aero-lbsft') / (qbar * S * CHORD), yaw: get('moments/n-aero-lbsft') / (qbar * S * SPAN),
-  };
-  return { state, measured, qbar, force: [fx, fy, fz] };
-}
 
 /** Runs a flight for some seconds, calling `each(t)` before every step. */
 function run(flight, seconds, each) {
@@ -214,10 +126,16 @@ test.after(() => report.save());
 
 // ---- 1. The aircraft file's tables are the record's ----
 
-test('f4c: every table in the aircraft file is AFWAL\'s listing as read, cell for cell: the 24 functions of set 1, and no other table', () => {
-  const tables = [...aerodynamics.matchAll(/<function name="([^"]+)">\s*<table>([^]*?)<\/table>\s*<\/function>/g)];
+test('f4c: every table of AFWAL\'s in the aircraft file is its listing as read, cell for cell: the 24 functions of set 1; the only other tables are the 22 that carry what Mach changes', () => {
+  // The first half of pull request 5 had these 24 and no other table. The second half added what Mach changes:
+  // 22 tables in Mach and height, between two marks, which tests/f4c-conditions.test.js holds to their own record.
+  const every = [...aerodynamics.matchAll(/<function name="([^"]+)">\s*<table>([^]*?)<\/table>\s*<\/function>/g)];
+  const tables = every.filter(([, name]) => name.startsWith('aero/table/')), others = every.filter(([, name]) => !name.startsWith('aero/table/'));
   assert.equal(tables.length, USED.length);
-  assert.equal(file.split('<table>').length - 1, USED.length, 'there is no table anywhere else in the file');
+  assert.equal(file.split('<table>').length - 1, every.length, 'there is no table anywhere else in the file');
+  assert.ok(others.length === 22 && others.every(([, name]) => /^aero\/(factor|increment)\//.test(name)), 'every other table is a factor or an increment of what Mach changes');
+  const marked = file.slice(file.indexOf('<!-- MACH TABLES'), file.indexOf('<!-- END OF MACH TABLES -->'));
+  assert.equal(marked.split('<table>').length - 1, others.length, 'and they are all between the two marks');
   assert.deepEqual(tables.map(([, name]) => name), USED.map((name) => `aero/table/${name}`), 'each table is named for AFWAL\'s function, in the listing\'s order');
   assert.deepEqual(Object.keys(LISTING).filter((name) => !USED.includes(name)), ['CRB2', 'CRP2', 'DCM2', 'CNB2'], 'what is left out is AFWAL\'s second set');
   let cells = 0;
@@ -246,20 +164,26 @@ test('f4c: every table in the aircraft file is AFWAL\'s listing as read, cell fo
   // 24 of the listing's 28 functions: its 504 cells less the second set's.
   const all = Object.values(LISTING).reduce((sum, f) => sum + (f.values_by_beta ? f.values_by_beta.length * f.values_by_beta[0].values.length : f.values.length), 0);
   assert.equal(all, DATA.counts.table_9_cells);
-  report.line(`f4c: ${tables.length} tables in the aircraft file, ${cells} cells, each equal to AFWAL's listing as read (aircraft/f4c/data/afwal-f4j.json: ${all} cells in ${Object.keys(LISTING).length} functions; the second set is not used)`);
+  report.line(`f4c: ${tables.length} tables of AFWAL's in the aircraft file, ${cells} cells, each equal to AFWAL's listing as read (aircraft/f4c/data/afwal-f4j.json: ${all} cells in ${Object.keys(LISTING).length} functions; the second set is not used)`);
 
-  // The four numbers that are not tables, and the factors, which are all 1 until Mach comes in.
+  // The four numbers that are not tables, and a factor for every term of Table 1. In the first half every
+  // factor was the number 1. Now a factor is 1 by declaration (a term NASA CR-2144 says nothing about), or a
+  // table in Mach whose first row is 1 (tests/f4c-conditions.test.js), or another term's factor (the
+  // spoiler's is the aileron's). The flights below read every one back as 1 at low Mach.
   const declared = new Map([...aerodynamics.matchAll(/<property value="([^"]+)">\s*(\S+)\s*<\/property>/g)].map((m) => [m[2], Number(m[1])]));
   assert.equal(declared.get('aero/constant/CLBAS-at-zero'), LISTING.CLBAS.values[0]);
   assert.equal(LISTING.CLBAS.alpha_deg[0], 0);
   assert.equal(declared.get('aero/constant/Cy-delta-a'), constant('Cy_delta_a'));
   assert.equal(declared.get('aero/constant/Cy-delta-sp'), constant('Cy_delta_sp'));
   assert.equal(declared.get('aero/constant/K-beta'), constant('K_beta^(Cm_delta_stab)'));
-  const factors = [...declared].filter(([name]) => name.startsWith('aero/factor/'));
-  const terms = [...aerodynamics.matchAll(/<function name="aero\/coefficient\/([a-z-]+)">/g)].map((m) => m[1]).filter((name) => !SIX.includes(name));
-  assert.deepEqual(factors.map(([name]) => name.replace('aero/factor/', '')), terms, 'a factor for every term of Table 1');
-  assert.ok(factors.length === 26 && factors.every(([, value]) => value === 1), 'and every factor is 1');
-  assert.equal(declared.size, 4 + factors.length);
+  const byDeclaration = [...declared].filter(([name]) => name.startsWith('aero/factor/')), byTable = others.map(([, name]) => name).filter((name) => name.startsWith('aero/factor/'));
+  const shared = [...aerodynamics.matchAll(/<function name="(aero\/factor\/[a-z-]+)">\s*<property> aero\/factor\/[a-z-]+ <\/property>\s*<\/function>/g)].map((m) => m[1]);
+  const terms = [...aerodynamics.matchAll(/<function name="aero\/coefficient\/([a-z-]+)">/g)].map((m) => m[1]).filter((name) => !SIX.includes(name) && !name.endsWith('-mach'));
+  assert.equal(terms.length, 26);
+  assert.deepEqual([...byDeclaration.map(([name]) => name), ...byTable, ...shared].sort(), terms.map((term) => `aero/factor/${term}`).sort(), 'a factor for every term of Table 1, and no other');
+  assert.ok(byDeclaration.every(([, value]) => value === 1), 'every factor that is a number is 1');
+  assert.deepEqual([byDeclaration.length, byTable.length, shared.length], [7, 17, 2]);
+  assert.equal(declared.size, 4 + byDeclaration.length);
   for (const term of terms) assert.ok(aerodynamics.includes(`<function name="aero/coefficient/${term}">\n   <product>\n    <property> aero/factor/${term} </property>`), `${term} is multiplied by its factor`);
 
   // The geometry is AFWAL's and CR-2144's alike, and the reference point is where the two reports put it.
@@ -313,7 +237,7 @@ for (const variant of VARIANTS) {
 
   // ---- 2. The wiring: JSBSim's six totals are Table 1's ----
 
-  test(`${variant}, f4c: at a grid of states the six coefficients JSBSim works out are AFWAL's Table 1 worked out in JavaScript from the record, within 0.000001: angles of attack from -120 to 130 degrees, sideslip to 35 either way, every control, and the airplane turning`, async () => {
+  test(`${variant}, f4c: at a grid of states below Mach 0.3 the six coefficients JSBSim works out are AFWAL's Table 1 worked out in JavaScript from the record, within 0.000001: angles of attack from -120 to 130 degrees, sideslip to 35 either way, every control, and the airplane turning`, async () => {
     const module = await moduleWith(F4C, variant);
     const ALPHAS = [-120, -45, -10, -5, -2, 0, 2.5, 5, 10, 15, 20, 22.5, 25, 30, 37, 45, 52.5, 60, 90, 110, 130];
     const BETAS = [0, 5, -5, 20, -20, 35, -35, 12];
@@ -322,7 +246,7 @@ for (const variant of VARIANTS) {
     const PITCH = [1, 0, -1, 0.4, -0.5], ROLL = [0, 1, -1, 0.6, -0.3, 0.25, -0.75], RUDDER = [0, 1, -1, 0.5];
     const P = [0, 0.8, -1.5], Q = [0.3, 0, -0.2, 0.1, 0], R = [0, -0.4, 0.25, 0, 0.1, -0.1, 0.3];
     const worst = Object.fromEntries(SIX.map((name) => [name, { off: 0 }]));
-    const seen = { states: 0, alphaDot: 0, negative: 0, above45: 0, above110: 0, slipBeyond30: 0, stabilators: new Set(), ailerons: new Set(), rudders: new Set(), turning: 0 };
+    const seen = { states: 0, mach: 0, alphaDot: 0, negative: 0, above45: 0, above110: 0, slipBeyond30: 0, stabilators: new Set(), ailerons: new Set(), rudders: new Set(), turning: 0 };
     const check = (flight, what) => {
       const { state, measured } = snapshot(flight), wanted = table1(state, CG_PERCENT_CHORD.value);
       for (const name of SIX) {
@@ -331,6 +255,7 @@ for (const variant of VARIANTS) {
         if (off > worst[name].off) worst[name] = { off, what, value: wanted[name] };
       }
       seen.states++;
+      seen.mach = Math.max(seen.mach, flight.get('velocities/mach'));
       seen.alphaDot = Math.max(seen.alphaDot, Math.abs(state.alphaDot));
       if (state.alpha < 0) seen.negative++;
       if (Math.abs(state.alpha) > 45) seen.above45++;
@@ -345,7 +270,7 @@ for (const variant of VARIANTS) {
       const flight = startAt(module, asked), what = `at ${alpha} and ${beta} degrees (state ${k})`;
       // As started: read back that the state is the one asked for.
       const state = check(flight, `${what}, as started`);
-      assert.ok(Math.abs(state.alpha - alpha) < 1e-6 && Math.abs(state.beta - beta) < 1e-6 && Math.abs(state.vt - 600) < 1e-6, `${what}: started at ${state.alpha} and ${state.beta} degrees, ${state.vt} ft/s`);
+      assert.ok(Math.abs(state.alpha - alpha) < 1e-6 && Math.abs(state.beta - beta) < 1e-6 && Math.abs(state.vt - SLOW_FPS) < 1e-6, `${what}: started at ${state.alpha} and ${state.beta} degrees, ${state.vt} ft/s`);
       assert.ok(Math.abs(state.p - asked.p) < 1e-4 && Math.abs(state.q - asked.q) < 1e-4 && Math.abs(state.r - asked.r) < 1e-4, `${what}: turning at ${state.p}, ${state.q}, ${state.r}`);
       const [up, down] = STABILATOR_TRAVEL.value;
       assert.ok(Math.abs(state.stabilator - (asked.pitch >= 0 ? asked.pitch * up : -asked.pitch * down)) < 1e-9, `${what}: stabilator ${state.stabilator}`);
@@ -375,7 +300,15 @@ for (const variant of VARIANTS) {
     assert.ok([up, 0, down].every((x) => seen.stabilators.has(x)), 'the stabilator at 21 up, 0 and 9 down');
     assert.ok([-30, 0, 30].every((x) => seen.ailerons.has(x)) && [-30, 0, 30].every((x) => seen.rudders.has(x)), 'full aileron and rudder each way');
     assert.ok(seen.negative > 50 && seen.above45 > 50 && seen.above110 > 20 && seen.slipBeyond30 > 50 && seen.turning > 20 && seen.alphaDot > 0.1, JSON.stringify(seen));
-    say(`${seen.states} states (${seen.negative} below zero angle of attack, ${seen.above45} above 45 degrees, ${seen.above110} above 110, ${seen.slipBeyond30} beyond 30 degrees of sideslip; the angle of attack changing at up to ${seen.alphaDot.toFixed(2)} rad/s): the largest difference from Table 1, each within 0.000001:`);
+    // All of it slower than Mach 0.3, where nothing of what Mach changes is in the airplane: read back, every factor 1 and every increment 0.
+    assert.ok(seen.mach > 0.2 && seen.mach < 0.3, `the fastest state was at Mach ${seen.mach}`);
+    const slow = startAt(module, { alpha: 4, beta: 0 });
+    for (const term of [...aerodynamics.matchAll(/<function name="aero\/coefficient\/([a-z-]+)">/g)].map((m) => m[1]).filter((name) => !SIX.includes(name) && !name.endsWith('-mach'))) {
+      assert.equal(slow.get(`aero/factor/${term}`), 1, `aero/factor/${term} at Mach ${slow.get('velocities/mach')}`);
+    }
+    for (const name of ['lift', 'drag', 'pitch', 'yaw-roll-rate', 'yaw-aileron']) assert.equal(slow.get(`aero/increment/${name}`), 0, `aero/increment/${name} at Mach ${slow.get('velocities/mach')}`);
+    slow.dispose();
+    say(`${seen.states} states, all at Mach ${seen.mach.toFixed(2)} or less (${seen.negative} below zero angle of attack, ${seen.above45} above 45 degrees, ${seen.above110} above 110, ${seen.slipBeyond30} beyond 30 degrees of sideslip; the angle of attack changing at up to ${seen.alphaDot.toFixed(2)} rad/s): the largest difference from Table 1, each within 0.000001:`);
     for (const name of SIX) say(`  ${name}: ${worst[name].off.toExponential(2)}${worst[name].off ? ` (${worst[name].what}, where it is ${worst[name].value.toFixed(6)})` : ''}`);
   });
 

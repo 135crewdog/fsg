@@ -76,6 +76,33 @@ export const SPEEDBRAKE_PANELS = { value: [-5.99, 0, 2.49], unit: WHEEL_UNIT, so
 /** Gear up or down. Wings' figure: the flight manual gives none. */
 export const GEAR_SECONDS = { value: 4, unit: 's', source: WINGS, where: 'src/sim/sim.js, GEAR_SECONDS' };
 
+// CR-2144's nine clean flight conditions (pull request 5, second half): its conditions 2 to 10, in that order,
+// 38,925 lb, centre of gravity at 28.9% of the chord, level flight. Pages are the PDF's; the printed page is 6
+// less. The transfer functions the checkride lays the airplane's responses beside (Tables IV-4, IV-14 and
+// IV-15) are too many numbers to repeat here: they are read from the record, aircraft/f4c/data/cr2144-f4c.json,
+// and tests/f4c-conditions.test.js holds every list below to that record.
+const NINE = 'conditions 2 to 10';
+export const CONDITION_MACH = { value: [0.8, 1.1, 0.9, 0.6, 0.9, 1.2, 1.5, 2.15, 1.8], unit: 'Mach', source: CR_2144, where: `table IV-2 (M), PDF p.88; ${NINE}` };
+export const CONDITION_HEIGHT = { value: [0, 0, 15000, 35000, 35000, 35000, 45000, 45000, 55000], unit: 'ft', source: CR_2144, where: `table IV-2 (H), PDF p.88; ${NINE}` };
+/** Trim angle of attack, from the fuselage reference line. */
+export const CONDITION_TRIM_ALPHA = { value: [0.3, -0.3, 0.5, 9.4, 2.6, 1.6, 2.6, 1.4, 3.3], unit: 'degrees', source: CR_2144, where: `table IV-2 (ALPHA), PDF p.88; ${NINE}` };
+/** Trim stabilator, trailing edge down positive: read from the plot at each condition's Mach number on its height's curve (the plot reads to about 0.1 degree, 0.4 where it is steep). */
+export const CONDITION_TRIM_STABILATOR = { value: [0.43, -0.5, -0.23, -4.36, -1.99, -3.79, -6.89, -7.34, -9.58], unit: 'degrees, trailing edge down positive', source: CR_2144, where: `the trim plot (figure IV-8), PDF p.77; ${NINE}` };
+/** The trimmed drag coefficient, read from the plot the same way (the plot reads to about 3%). */
+export const CONDITION_DRAG = { value: [0.0175, 0.0414, 0.0226, 0.0921, 0.0336, 0.0487, 0.0477, 0.0381, 0.0476], unit: 'drag coefficient', source: CR_2144, where: `the CL and CD plot (figure IV-9), PDF p.78; ${NINE}` };
+/** Stabilator for each g in a steady pull at constant speed, augmentation off, its size (the stabilator goes trailing edge up). */
+export const CONDITION_STABILATOR_PER_G = { value: [0.867, 0.827, 1.29, 4.54, 2.99, 3.64, 5.65, 6.08, 8.44], unit: 'degrees per g', source: CR_2144, where: `table IV-12 (DE/G), PDF p.104; ${NINE}` };
+/** The quick pitch swing (the short period), augmentation off: its damping ratio and its frequency. */
+export const CONDITION_PITCH_DAMPING = { value: [0.393, 0.324, 0.308, 0.259, 0.224, 0.162, 0.102, 0.0645, 0.065], unit: 'damping ratio', source: CR_2144, where: `table IV-4 (Z(DET)2), PDF p.90; ${NINE}` };
+export const CONDITION_PITCH_FREQUENCY = { value: [4.44, 7.99, 4.24, 1.41, 2.85, 5.43, 5.39, 6.54, 4.84], unit: 'rad/s', source: CR_2144, where: `table IV-4 (W(DET)2), PDF p.90; ${NINE}` };
+/** The Dutch roll, augmentation off: its damping ratio and its frequency. */
+export const CONDITION_DUTCH_ROLL_DAMPING = { value: [0.125, 0.134, 0.0972, 0.0881, 0.0491, 0.0727, 0.067, 0.0731, 0.0535], unit: 'damping ratio', source: CR_2144, where: `table IV-14 (Z(DET)1), PDF p.106; ${NINE}` };
+export const CONDITION_DUTCH_ROLL_FREQUENCY = { value: [4.01, 6.21, 3.45, 1.83, 2.43, 3.57, 3.23, 2.93, 2.58], unit: 'rad/s', source: CR_2144, where: `table IV-14 (W(DET)1), PDF p.106; ${NINE}` };
+/** The spiral: its root, 1/s (positive dies away; condition 8's is the one that grows, doubling in 3,868 s). */
+export const CONDITION_SPIRAL_ROOT = { value: [0.00469, 0.00568, 0.00848, 0.0173, 0.00969, 0.00187, -0.000179, 0.000558, 0.000226], unit: '1/s', source: CR_2144, where: `table IV-14 (1/T(DET)1), PDF p.106; ${NINE}` };
+/** The "tuck": at conditions 2, 4 and 6 the slow speed-and-height swing is replaced by a slow divergence. Seconds for a speed error to double, stick fixed. */
+export const TUCK_SECONDS_TO_DOUBLE = { value: [18.4, 11.3, 15.2], unit: 's, at conditions 2, 4 and 6', source: CR_2144, where: 'table IV-12 (TUCK(2)), PDF p.104' };
+
 // For the numbers that are only reported, with no pass or fail.
 /** Wings' F-4C: the speed it holds with the phone at neutral, which FSG's neutral trim is set for (src/sim/aircraft/f4c.js). */
 export const WINGS_NEUTRAL_SPEED = { value: 350, unit: 'kt', source: WINGS, where: `${CARD}, neutral_speed_kt` };

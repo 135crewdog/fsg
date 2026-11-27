@@ -1,0 +1,1998 @@
+{
+ "about_this_copy": {
+  "what": "NASA CR-2144 (Heffley and Jewell, 'Aircraft Handling Qualities Data', December 1972), Section IV, the F-4C, as data: its tables of flight conditions, dimensional derivatives, transfer-function factors and handling-qualities parameters, its control-system diagrams, and its plotted curves measured from the page images.",
+  "made_from": "The full transcription made for FSG milestone 3 on 26 November 2026 (390 KB). It and its reading notes were working files of the session that made them, and are not in the repo.",
+  "left_out_of_this_copy": ["The four thrust-input transfer-function tables (IV-5, IV-7, IV-9, IV-11). The game has no use for them: thrust is the engine model's. The numerators of IV-7, IV-9 and IV-11 were read only once.", "Each table row's cells 'as printed' (the same numbers as text). They are kept, as 'printed', only in a row where a printed cell is not the value used: a blank, a dash, a parenthesis, or a misprint (each misprint is in its table's 'doubt' list with the reason)."],
+  "paths": "Paths that start work/ or refs/ are in the transcription's working folder, not in this repo. The report is NASA CR-2144, https://ntrs.nasa.gov/citations/19730003312; its F-4C section is PDF pages 67 to 113 (printed 61 to 107).",
+  "see": "aircraft/f4c/data/README.md"
+ },
+ "source": {
+  "report": "NASA CR-2144, Heffley, R. K., and Jewell, W. F., 'Aircraft Handling Qualities Data', December 1972 (Systems Technology, Inc.)",
+  "chapter": "Section IV, F-4C: PDF pages 67-113, printed pages 61-107",
+  "scan": "refs/cr2144.pdf, 300 dpi 1-bit; transcribed from page images, not from the OCR text",
+  "conventions": "Every table row gives 'values' (numbers; null = blank cell; strings such as 'SL', '15K', '--' kept as printed) and 'printed' (the cell as printed, parentheses included). 'parenthesised' marks cells printed in parentheses (see how_to_read). 'doubt' lists cells not read with confidence."
+ },
+ "flight_conditions": {
+  "note": "Ten flight conditions (F/C). F/C 1 is the power-approach configuration (33197 lb, c.g. .291 MGC); F/C 2-10 are the nominal clean configuration (38925 lb in the tables, '38924 lb' on the figures; c.g. .289 MGC = 28.9% of the mean geometric chord). All are straight and level (GAMMA = 0).",
+  "fc": [
+   {"fc": 1, "altitude": "SL", "mach": 0.206},
+   {"fc": 2, "altitude": "SL", "mach": 0.8},
+   {"fc": 3, "altitude": "SL", "mach": 1.1},
+   {"fc": 4, "altitude": "15,000 ft", "mach": 0.9},
+   {"fc": 5, "altitude": "35,000 ft", "mach": 0.6},
+   {"fc": 6, "altitude": "35,000 ft", "mach": 0.9},
+   {"fc": 7, "altitude": "35,000 ft", "mach": 1.2},
+   {"fc": 8, "altitude": "45,000 ft", "mach": 1.5},
+   {"fc": 9, "altitude": "45,000 ft", "mach": 2.15},
+   {"fc": 10, "altitude": "55,000 ft", "mach": 1.8}
+  ]
+ },
+ "background": {
+  "pdf_page": 68,
+  "printed_page": 62,
+  "source": "OCR text of the page, corrected by eye",
+  "text": ["The F-4C is an Air Force tactical fighter whose primary mission is all-weather air-to-air missile combat. Lateral control is achieved by ailerons in combination with spoilers on a swept wing. A swept stabilator provides longitudinal stability and control. Directional stability and control is accomplished through a conventional fin-rudder combination. Landing speed is reduced by full span leading edge flaps and inboard plain trailing edge flaps in conjunction with blowing-type boundary layer control (BLC). Boundary layer control is automatically induced when full flap deflection occurs.", "Features distinguishing the USAF F-4C from its Navy counterpart, the F-4B, are: Lack of drooped ailerons with flaps down resulting in higher landing speeds. Dual flight controls resulting in slightly increased control system inertia. Wing bumps to house larger main gear wheels resulting in a slight drag increase.", "Data included here was obtained primarily from MAC Report No. 9842. Special emphasis is placed on the longitudinal control system because of its relative complexity when compared to other aircraft. Figure IV-4 has been added to help illustrate this system. Also, care has been taken to retain some of the control system nomenclature used by the manufacturer, e.g., qB and PBF (see Fig. IV-5).", "The Stability Augmentation block diagrams are shown in Fig. IV-7. The roll SAS described is not included in lateral directional SAS on transfer functions since it is faded out with the lateral control stick out of neutral position."]
+ },
+ "general_arrangement": {
+  "title": "Figure IV-2. F-4C General Arrangement",
+  "pdf_page": 70,
+  "printed_page": 64,
+  "printed": {
+   "S_ft2": 530,
+   "b_ft": 38.67,
+   "c_bar_ft": 16.04,
+   "quarter_chord_of_MGC": "'.25 c-bar  F.S. 309.2'",
+   "MGC_buttock_line": "'MGC  B.L. 88.4'",
+   "front_cockpit_mark": "F.S. 122.2, W.L. 61.4",
+   "rear_cockpit_mark": "F.S. 178.3, W.L. 67.6",
+   "side_view_labels": ["W.L. 32.8", "FRL", "Zero W.L.", "T.L.", "5.25 deg"],
+   "front_view_label": "W.L. 0",
+   "scale_bar_ft": [0, 5, 10, 20]
+  },
+  "derived": ["c.g. at .289 c-bar is F.S. 309.2 + (.289-.25)(16.04)(12) = F.S. 316.7; the front-cockpit mark F.S. 122.2 is then 16.2 ft ahead of it = LXP of Table IV-2 (pilot station).", "LZP = -2.81 ft with the pilot at W.L. 61.4 puts the reference c.g. at about W.L. 27.7.", "The thrust line (T.L.) is inclined 5.25 deg to the FRL (= ITH of Table IV-2).", "What 'W.L. 32.8' marks on the side view is not stated on the figure."]
+ },
+ "control_system": {
+  "title": "Figure IV-3. F-4C Control System",
+  "pdf_page": 71,
+  "printed_page": 65,
+  "pitch_axis": {
+   "summing_junction": "F_ST (lb) enters with +, the bobweight feedback with -",
+   "feel_system": {
+    "input": "stick force minus bobweight force, lb",
+    "output": "delta_ST (in)",
+    "transfer_function": "1 / [ .0369 s^2 + .208 s + .0157 qB PBF + .0569 qB PBF / (1 + .0569 qB PBF / (b s)) ]",
+    "note_printed": "See Fig    and    for feel system details  [figure numbers left blank in the print; Figs. IV-4 and IV-5]"
+   },
+   "gearing": {"value": "-3.36/57.3", "units": "rad of stabilator per inch of stick (i.e. -3.36 deg/in)", "input": "delta_ST (in)"},
+   "sas_summing": "delta_s_SAS (rad) is added after the gearing, before the actuator",
+   "actuator": {"transfer_function": "1/(.05 s + 1)", "output": "delta_s (rad)"},
+   "bobweight": {
+    "gain": "5.35/32.2",
+    "units": "lb per ft/sec^2 (5.35 lb/g)",
+    "input": "a_z^B (ft/sec^2), normal acceleration at l_B = 39.3 ft (ahead of the c.g.)",
+    "fed_back_to": "feel-system input with negative sign"
+   }
+  },
+  "roll_axis": {
+   "feel_spring": {"transfer_function": "1/2.96", "meaning": "F_ST^LAT (lb) -> delta_ST^LAT (in): 2.96 lb/in"},
+   "gearing": {"value": "6.25/57.3", "units": "rad aileron per inch lateral stick (6.25 deg/in)"},
+   "sas_summing": "delta_a_SAS (rad) added after the gearing",
+   "outputs": {
+    "aileron": "delta_a (rad)",
+    "spoiler": "delta_sp (rad) = 1.87 x delta_a",
+    "ARI": "delta_r_ARI (rad) = (d delta_r / d delta_a) x delta_a, through a switch marked CLEAN (open) / PA (closed): aileron-rudder interconnect acts in the power-approach configuration only"
+   },
+   "ARI_gain": {"d_delta_r_over_d_delta_a": {"SAS OFF": -0.46, "SAS ON": -0.69}}
+  },
+  "yaw_axis": {
+   "feel_spring": "1/K^DIR : F_PED (lb) -> delta_PED (in)",
+   "gearing": "G^DIR/57.3 : delta_PED (in) -> rad",
+   "summing": "delta_r_ARI (rad) and delta_r_SAS (rad) are added after the gearing",
+   "rudder_flexure": "K^DIR_FLEX multiplies the summed command to give delta_r (rad); 'See Fig' [number blank; Fig. IV-6]",
+   "table": [
+    {"condition": "V < 235 KIAS", "K_DIR_lb_per_in": 36.6, "G_DIR_deg_per_in": -11.5},
+    {"condition": "V > 220 KIAS", "K_DIR_lb_per_in": 8.5, "G_DIR_deg_per_in": -6.5}
+   ],
+   "note": "the two speed conditions overlap (235 and 220 KIAS) as printed"
+  },
+  "sign_conventions_from_appendix_A": ["F_ST longitudinal stick force + aft; delta_ST + aft", "delta_s stabilizer deflection from trim, positive for trailing edge down (rad)", "F_ST^LAT and delta_ST^LAT + right", "delta_a positive for positive rolling moment (right wing down); includes spoiler effects", "F_PED + right; delta_PED positive right pedal forward", "delta_r positive for nose-left yawing moment (negative N)", "delta_sp spoiler deflection positive up"]
+ },
+ "feel_system_schematic": {
+  "title": "Figure IV-4. F-4C Feel System Schematic",
+  "pdf_page": 72,
+  "printed_page": 66,
+  "elements": [
+   {"name": "Viscous Damper", "value": "(infinity if bottomed out, 3.03 lb/in/sec otherwise)", "note": "in series with the bellows-pressure spring"},
+   {"name": "Bellows Pressure", "value": "(.0569 qB PBF lb/in)*", "note": "spring in series with the viscous damper"},
+   {"name": "Bellows Spring", "value": "(.0157 qB PBF lb/in)*"},
+   {"name": "Lumped Viscous Damping", "value": "(.208 lb/in/sec)"},
+   {"name": "Lumped Inertia", "value": "(.0369 lb/in/sec^2)"},
+   {"name": "Bobweight", "value": "(5.35 lb/g)"},
+   {"name": "Effective Bobweight Position", "value": "(39.3 ft) [ahead of the airplane CG]"}
+  ],
+  "footnote": "* The product qB PBF is determined by the mach, q, and delta_s combination at a particular flight condition. See Fig. IV-5 for nominal configuration values",
+  "labels": ["F_ST (stick force arrow at the grip)", "delta_ST (stick angle)", "Airplane CG"],
+  "reading_note": "With the damper bottomed (b = infinity) the feel spring is (.0157 + .0569) qB PBF lb/in; with it free the .0569 qB PBF term acts through the 3.03 lb/in/sec damper (the 1 + .0569 qB PBF/(b s) term of Fig. IV-3)."
+ },
+ "stability_augmentation": {
+  "title": "Figure IV-7. F-4C Stability Augmentation",
+  "pdf_page": 75,
+  "printed_page": 69,
+  "pitch_SAS": {"input": "theta-dot (rad/sec)", "transfer_function": ".15 s / (s + 1)", "output": "delta_s_SAS (rad)"},
+  "roll_SAS": {
+   "input": "P_G (rad/sec)",
+   "gain": -0.265,
+   "output": "delta_a_SAS (rad)",
+   "notes": ["P_G = P (Roll rate gyro assumed aligned with FRL)", "Note: Roll SAS faded out with lateral control out of neutral"],
+   "reading_note": "the gain prints as '-.265' with the decimal point merged into the minus sign"
+  },
+  "yaw_SAS": {
+   "inputs": ["r_G (rad/sec) through 3 s / (s + .5)", "a'_y (ft/sec^2) through gain .0168"],
+   "summing": "the two paths are added",
+   "output": "delta_r_SAS (rad)",
+   "equations": ["r_G = r cos(-1.5 deg) + p sin(-1.5 deg)", "a'_y = a_y + 9.9 r-dot - .39 p-dot"],
+   "notes": ["Yaw rate gyro inclined 1.5 deg below FRL and lateral accelerometer at F.S. 198.0 and W.L. 23.0"],
+   "reading_note": "the washout numerator prints as '3s' with no visible decimal point; a faint mark could make it '.3s'. Read as 3 s/(s + .5): gain not confirmed by recomputation. The accelerometer arm 9.9 ft agrees with F.S. 198.0 against the c.g. at F.S. 316.7."
+  }
+ },
+ "data_sources": {
+  "pdf_page": 113,
+  "printed_page": 107,
+  "title": "F-4C DATA SOURCES",
+  "source": "OCR text, corrected by eye where obvious; report numbers not re-read at high zoom",
+  "items": ["Bonine, W. J., et al, Model F/RF-4B-C Aerodynamic Derivatives, MAC Report 9842, 10 Feb. 1964", "Crawford, W. N., and G. Nadler, Static and Dynamic Control System Characteristics for the F-4 Aircraft, MAC Rept. F21[?], 16 Dec. 1966", "Bridges, B. C., Calculated Longitudinal Stability and Performance Characteristics of the F-4B/C/D/J and RF-4B/C Aircraft plus the AN/ASA-32H Automatic Flight Control System, MAC Rept. F934, 19 Apr. 1968 [OCR: 1963]", "Bridges, B. C., Calculated Lateral-Directional Stability and Performance Characteristics of the F-4B/C/D/J and RF-4B/C Aircraft plus the AN/ASA-32H Automatic Flight Control System, MAC Rept. F935, 3 May 1968", "NATOPS Flight Manual, Navy Model F-4B Aircraft, NAVAIR 01-245 FDB-1, 1 Nov. 1966"]
+ },
+ "how_to_read": {
+  "transfer_function_notation": {
+   "pdf_page": 333,
+   "printed_page": "A-11",
+   "verified": "read from the page image",
+   "quote": ["The following shorthand notation is used to print the factored polynomials for all transfer functions*:  (s + 1/Tx)_i = 1/Tx_i , i = 1 to k ;  (s^2 + 2 zeta omega_n s + omega_n^2)_j = zeta_j; omega_n_j , j = 1 to l ;  where k + 2l = n, the order of the polynomial", "COMPUTER PRINT OUT / STANDARD NOTATION, DEFINITION:  DET - Roots of the denominator;  N(X/Y) - Numerator N^x_y;  A(X) - Gain of the transfer function x/y;  1/T(X)I - 1/Tx_i, rad/sec;  Z(X)J - zeta_j;  W(X)J - omega_n_j, rad/sec", "For example: DENOMINATOR 1/T(DET)1 .0318, 1/T(DET)2 2.20, Z(DET)1 .0609, W(DET)1 1.13; NUMERATORS N(B /DR) A(B) .0295, 1/T(B)1 -.0494, 1/T(B)2 2.05, 1/T(B)3 42.3  Translates to:  beta/delta_r = .0295 (s - .0494)(s + 2.05)(s + 42.3) / [ (s + .0318)(s + 2.20)(s^2 + 2 x .0609 x 1.13 s + 1.13^2) ]", "*The transfer function x/y is written as: x/y = N^x_y / Delta = A_x (s^m + s^(m-1) + ... s^0) / (s^n + s^(n-1) + ... s^0)", "Any roots enclosed in parentheses imply the opposite order of what is specified, e.g., Z(DET)1 = (0.00132) => 1/T(DET)1 = 0.00132"],
+   "in_practice": ["A parenthesised pair printed on a Z(...)/W(...) row pair is two real roots 1/T (e.g. Table IV-4 F/C 2: Z(DET)1 = (-.0378), W(DET)1 = ( .0516) means (s - .0378)(s + .0516): an unstable 'tuck' root and a stable one in place of a phugoid pair).", "A parenthesised pair printed on two consecutive 1/T(...) rows is a complex pair: first zeta, then omega (e.g. Table IV-4 F/C 1: 1/T(U)2 = ( .452), 1/T(U)3 = ( .561) means zeta = .452, omega = .561).", "A single parenthesised value on a Z row with a blank W row (Table IV-6 F/C 2, Z(DET)1 = ( 25.3)) is one real root.", "A root is (s + 1/T): positive 1/T is stable. The gain A is the ratio of leading coefficients (denominator made monic).", "The example's last factor is printed in the report as '1.13^2 s^2' [sic]."]
+  },
+  "text_on_tables": {
+   "pdf_page": 9,
+   "printed_page": 3,
+   "source": "OCR text",
+   "quote": ["Transfer functions are always given for body axis motion quantities. Handling qualities parameters are also given in the body axis. All acceleration transfer functions (a_z' and a_y') are for the pilot's position. Thrust transfer functions do not include any engine response characteristics.", "The coefficients are based on rigid wind tunnel data, estimated flexible data, or flight test results, depending upon availability. This is indicated by the words \"rigid,\" \"flexible,\" and \"flight\" on each aero data plot. Also, the axis system is indicated by \"stability\" for a body-fixed stability axis system or \"body\" for a body-fixed system aligned with the F.R.L.", "Although only SAS-off values are shown, the definitions given in Appendix A are general and could be used in conjunction with the SAS-on transfer functions to yield SAS-on handling qualities parameters."]
+  },
+  "axis_systems": {
+   "pdf_page": 323,
+   "printed_page": "A-1",
+   "source": "OCR text",
+   "quote": ["XB, YB, ZB - The Body-Axis System consists of right-handed, orthogonal axes whose origin is fixed at the nominal aircraft center of gravity. Its orientation remains fixed with respect to the aircraft, the XB and ZB axes being in the plane of symmetry. The exact alignment of XB axis is arbitrary, herein it is taken along the body centerline reference.", "XS, YS, ZS - The Stability-Axis System is that particular body-axis system for which the XS axis is coincident with the projection of the total steady-state velocity vector (VTo) on the aircraft's plane of symmetry. Its orientation remains fixed with respect to the aircraft."]
+  },
+  "mnemonics": {
+   "pdf_pages": [330, 331, 332],
+   "printed_pages": ["A-8", "A-9", "A-10"],
+   "source": "OCR text checked against the tables",
+   "table_IV_2": {
+    "S": "wing reference area",
+    "B": "wing span",
+    "C": "mean geometric chord",
+    "F/C #": "flight condition number",
+    "H(FT)": "altitude, feet (SL = sea level)",
+    "M(-)": "Mach number",
+    "VTO(FPS)": "true airspeed, ft/sec",
+    "VTO(KTAS)": "true airspeed, knots",
+    "VTO(KCAS)": "calibrated airspeed, knots",
+    "W(LBS)": "weight, pounds",
+    "C.G.(MGC)": "center of gravity relative to mean geometric chord",
+    "IX, IY, IZ, IXZ": "body axis (FRL) moments of inertia, slug-ft^2",
+    "EPSILON(DEG)": "inclination of principal axis with respect to FRL, degrees",
+    "Q(PSF)": "dynamic pressure, psf",
+    "QC(PSF)": "impact pressure, psf",
+    "ALPHA(DEG)": "FRL angle of attack, degrees",
+    "GAMMA(DEG)": "flight path angle, degrees",
+    "LXP(FT)": "x distance to pilot, ft (positive forward)",
+    "LZP(FT)": "z distance to pilot, ft (positive down)",
+    "ITH(DEG)": "thrust incidence with respect to FRL, degrees",
+    "XI(DEG)": "xi_0 = i_th + alpha_0, degrees [as defined in Appendix A; the F-4C table prints 5.25 for every flight condition, i.e. equal to ITH]",
+    "LTH(FT)": "perpendicular distance to thrust line from c.g., ft (positive for nose-up pitching moment due to thrust)"
+   },
+   "longitudinal": {
+    "XU*, ZU*": "1/sec (starred: include thrust terms)",
+    "MU*": "1/sec-ft",
+    "XW, ZW": "1/sec",
+    "MW": "1/sec-ft",
+    "ZWD": "Z_w-dot, dimensionless",
+    "ZQ": "Z_q, ft/sec per rad/sec",
+    "MWD": "M_w-dot, 1/ft",
+    "MQ": "1/sec",
+    "XDS, ZDS": "ft/sec^2 per rad of stabilizer",
+    "MDS": "1/sec^2 per rad",
+    "XDTH, ZDTH": "ft/sec^2 per lb of thrust (1/m and its component)",
+    "MDTH": "rad/sec^2 per lb of thrust (= LTH/IY)",
+    "DS": "stabilizer",
+    "DTH": "thrust",
+    "FST": "stick force",
+    "U, W": "fps",
+    "THE": "theta, rad",
+    "HD": "h-dot, fps",
+    "AZP": "a_z' at the pilot station, ft/sec^2 (positive down)"
+   },
+   "lateral": {
+    "YV": "1/sec",
+    "YB": "Y_beta = VTo Yv, ft/sec^2",
+    "LB', NB'": "1/sec^2",
+    "LP', NP', LR', NR'": "1/sec",
+    "Y*DA, Y*DR": "Y_delta/VTo, 1/sec",
+    "L'DA, N'DA, L'DR, N'DR": "1/sec^2",
+    "B": "beta, rad",
+    "P, R": "rad/sec",
+    "PHI": "rad",
+    "AYP": "a_y' at lx, lz (pilot station), ft/sec^2",
+    "DA": "aileron (with spoiler)",
+    "DR": "rudder"
+   }
+  },
+  "handling_quality_definitions": {
+   "pdf_pages": [334, 335],
+   "printed_pages": ["A-12", "A-13"],
+   "verified": "read from the page images",
+   "longitudinal": {
+    "D(G)/D(U) (DEG/KT)": "d gamma / d u, degrees/knot, at s = 0",
+    "NZA (G/RAD)": "N_z_alpha, g/rad = -(U0/g) N^az_delta(s)/N^w_delta(s) at s = 0 (constant speed)",
+    "DE/G (DEG/G)": "delta_e/g, degrees/g (here stabilator per g), constant speed, s = 0",
+    "CAP (RAD/SEC/SEC/G)": "control anticipation parameter, rad/sec^2/g",
+    "PHUGOID(2) (TUCK(2))": "the phugoid time to double amplitude, seconds = ln 2/|zeta_ph omega_ph| for zeta_ph < 0; printed in parentheses when it is the time to double of a real 'tuck' root",
+    "1/C(1/10)": "short period inverse cycles to 1/10 amplitude = (2 pi/ln 10) sqrt(zeta_sp^2/(1 - zeta_sp^2)) for 0 <= zeta_sp < 1",
+    "FST/KT (LB/KT)": "stick force per knot, pounds/knot, s = 0",
+    "FST/G (LB/G)": "stick force per g, pounds per g, constant speed, s = 0",
+    "--": "The parameter has no meaning or is not defined at this flight condition"
+   },
+   "lateral": {
+    "DR PERIOD (SEC)": "Dutch roll period = 2 pi/(omega_d sqrt(1 - zeta_d^2))",
+    "1/C(1/2)": "Dutch roll inverse cycles to 1/2 amplitude = (2 pi/ln 2) sqrt(zeta_d^2/(1 - zeta_d^2)), for zeta_d >= 0",
+    "SPIRAL (2) (SEC)": "spiral time to double amplitude = Ts ln 2, for 1/Ts <= 0",
+    "P(I)": "roll rate at peak I for a unit step input of delta_a",
+    "P(OSC)/P(AV)": "(p1 + p3 - 2 p2)/(p1 + p3 + 2 p2) for zeta_d <= 0.2; (p1 - p2)/(p1 + p2) for zeta_d > 0.2",
+    "W(PHI)/W(D)": "ratio of the roll (phi numerator) frequency to the Dutch roll frequency",
+    "DEL-B-MAX": "maximum sideslip excursion at the c.g., occurring within two seconds or one half-period of the Dutch roll, whichever is greater, for a step aileron-control command",
+    "PHI TO BETA, PHASE": "phase of phi/beta at the Dutch-roll root, degrees",
+    "PHI TO BETA": "|phi/beta| at the Dutch-roll root, rad/rad",
+    "PHI TO VE": "|phi/v_e| at the Dutch-roll root, deg/fps; v_e = beta x V_EAS, V_EAS = sqrt(2 q/rho_0)"
+   }
+  },
+  "equations_of_motion": {
+   "pdf_pages": [345, 347],
+   "printed_pages": ["C-1", "C-3"],
+   "verified": "read from the page images and confirmed numerically: they reproduce Tables IV-4, IV-5, IV-14, IV-15 from Tables IV-2, IV-3, IV-13",
+   "longitudinal": ["[(1 - X_u-dot)s - X_u*] u + [-X_w-dot s - X_w] w + [(-X_q + W0)s + g cos(theta0)] theta = X_delta delta", "[-Z_u-dot s - Z_u*] u + [(1 - Z_w-dot)s - Z_w] w + [(-Z_q - U0)s + g sin(theta0)] theta = Z_delta delta", "[-M_u-dot s - M_u*] u - [M_w-dot s + M_w] w + [s^2 - M_q s] theta = M_delta delta", "q = s theta;  h-dot = -w cos(theta0) + u sin(theta0) + (U0 cos(theta0) + W0 sin(theta0)) theta;  a_z = s w - U0 q + (g sin theta0) theta;  a_z' = a_z - l_x s^2 theta", "NOTE: Terms including X_u-dot, Z_u-dot, M_u-dot, X_w-dot are neglected in polynomial expressions.", "U0 = VTo cos(alpha0), W0 = VTo sin(alpha0), theta0 = alpha0 + gamma0"],
+   "lateral": ["(s - Y_v) beta - [(W0 s + g cos theta0)/VTo] (p/s) + [(U0 s - g sin theta0)/(VTo s)] r = Y*_delta delta", "-L'_beta beta + s(s - L'_p)(p/s) - L'_r r = L'_delta delta", "-N'_beta beta - N'_p s (p/s) + (s - N'_r) r = N'_delta delta", "v = VTo beta;  phi = p/s + (r/s) tan theta0;  a_y = s v + U0 r - W0 p - g (cos theta0) phi;  a_y' = a_y + l_x s r - l_z s p"]
+  }
+ },
+ "tables": {
+  "IV-1": {
+   "title": "TABLE IV-1  F-4C  Power Approach Non-Dimensional Stability Derivatives",
+   "pdf_page": 76,
+   "printed_page": 70,
+   "reading": "two readings (110 dpi and 300 dpi): identical; typewritten, clear",
+   "flight_condition": {"h": "sea level", "VTo_ft_per_sec": 230, "VTo_kt": 136, "alpha0_deg": 11.7, "delta_s_deg": -9.1},
+   "longitudinal": {
+    "CL": 0.915,
+    "CD": 0.242,
+    "CL_alpha_per_rad": 2.8,
+    "CD_alpha_per_rad": 0.555,
+    "Cm_alpha_per_rad": -0.098,
+    "Cm_alpha_dot_per_rad": -0.95,
+    "Cm_q_per_rad": -2.0,
+    "CL_delta_s_per_rad": 0.24,
+    "Cm_delta_s_per_rad": -0.322,
+    "CD_delta_s_per_rad": -0.14
+   },
+   "lateral_directional": {
+    "axis": "Stability Axis",
+    "Cy_beta_per_rad": -0.655,
+    "Cn_beta_per_rad": 0.199,
+    "Cl_beta_per_rad": -0.156,
+    "Cl_p_per_rad": -0.272,
+    "Cn_p_per_rad": -0.013,
+    "Cl_r_per_rad": 0.205,
+    "Cn_r_per_rad": -0.32,
+    "Cy_delta_a_per_rad": -0.0355,
+    "Cn_delta_a_per_rad": -0.0041,
+    "Cl_delta_a_per_rad": 0.057,
+    "spoiler_note": "Cy_delta_a, Cn_delta_a, Cl_delta_a are bracketed 'Spoiler Effects Included'",
+    "Cy_delta_r_per_rad": 0.124,
+    "Cn_delta_r_per_rad": -0.072,
+    "Cl_delta_r_per_rad": -0.0009
+   },
+   "doubt": []
+  },
+  "IV-2": {
+   "title": "TABLE IV-2  F-4C DIMENSIONAL, MASS, AND FLIGHT CONDITION PARAMETERS  s = 530 sq ft, b = 38.67 ft, c-bar = 16.04 ft",
+   "pdf_page": 88,
+   "printed_page": 82,
+   "reading": "two full readings (300 dpi native, then 1.5x zoom): identical; identities checked (KTAS, Q, QC from standard atmosphere)",
+   "flight_condition": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+   "rows": [
+    {"label": "F/C #", "values": [1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0]},
+    {"label": "H(FT)", "values": ["SL", "SL", "SL", "15K", "35K", "35K", "35K", "45K", "45K", "55K"]},
+    {"label": "M(-)", "values": [0.206, 0.8, 1.1, 0.9, 0.6, 0.9, 1.2, 1.5, 2.15, 1.8]},
+    {"label": "VTO(FPS)", "values": [230.0, 893.0, 1228.0, 952.0, 584.0, 876.0, 1167.0, 1452.0, 2081.0, 1742.0]},
+    {"label": "VTO(KTAS)", "values": [136.0, 529.0, 728.0, 564.0, 346.0, 519.0, 692.0, 860.0, 1233.0, 1032.0]},
+    {"label": "VTO(KCAS)", "values": [136.0, 529.0, 728.0, 465.0, 199.0, 311.0, 432.0, 445.0, 632.0, 433.0]},
+    {"label": "W(LBS)", "values": [33197.0, 38925.0, 38925.0, 38925.0, 38925.0, 38925.0, 38925.0, 38925.0, 38925.0, 38925.0]},
+    {"label": "C.G.(MGC)", "values": [0.291, 0.289, 0.289, 0.289, 0.289, 0.289, 0.289, 0.289, 0.289, 0.289]},
+    {"label": "IX (SLUG-FT SQ)", "values": [23669.0, 25002.0, 25002.0, 25002.0, 25002.0, 25002.0, 25002.0, 25002.0, 25002.0, 25002.0]},
+    {"label": "IY (SLUG-FT SQ)", "values": [117506.0, 122193.0, 122193.0, 122193.0, 122193.0, 122193.0, 122193.0, 122193.0, 122193.0, 122193.0]},
+    {"label": "IZ (SLUG-FT SQ)", "values": [133730.0, 139767.0, 139767.0, 139767.0, 139767.0, 139767.0, 139767.0, 139767.0, 139767.0, 139767.0]},
+    {"label": "IXZ(SLUG-FT SQ)", "values": [1575.0, 2177.0, 2177.0, 2177.0, 2177.0, 2177.0, 2177.0, 2177.0, 2177.0, 2177.0]},
+    {"label": "EPSILON(DEG)", "values": [-0.82, -1.09, -1.09, -1.09, -1.09, -1.09, -1.09, -1.09, -1.09, -1.09]},
+    {"label": "Q(PSF)", "values": [62.6, 948.0, 1792.0, 677.0, 126.0, 283.0, 503.0, 489.0, 1004.0, 436.0]},
+    {"label": "QC(PSF)", "values": [63.3, 1109.0, 2397.0, 825.0, 138.0, 345.0, 703.0, 749.0, 1687.0, 706.0]},
+    {"label": "ALPHA(DEG)", "values": [11.7, 0.3, -0.3, 0.5, 9.4, 2.6, 1.6, 2.6, 1.4, 3.3]},
+    {"label": "GAMMA(DEG)", "values": [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]},
+    {"label": "LXP(FT)", "values": [16.3, 16.2, 16.2, 16.2, 16.2, 16.2, 16.2, 16.2, 16.2, 16.2]},
+    {"label": "LZP(FT)", "values": [-3.02, -2.81, -2.81, -2.81, -2.81, -2.81, -2.81, -2.81, -2.81, -2.81]},
+    {"label": "ITH(DEG)", "values": [5.25, 5.25, 5.25, 5.25, 5.25, 5.25, 5.25, 5.25, 5.25, 5.25]},
+    {"label": "XI(DEG)", "values": [5.25, 5.25, 5.25, 5.25, 5.25, 5.25, 5.25, 5.25, 5.25, 5.25]},
+    {"label": "LTH(FT)", "values": [-0.57, -0.37, -0.37, -0.37, -0.37, -0.37, -0.37, -0.37, -0.37, -0.37]}
+   ],
+   "doubt": [
+    {
+     "row": "QC(PSF)",
+     "fc": 4,
+     "value": 825,
+     "candidates": [825, 826],
+     "why": "last digit damaged (reads like 'S'); standard-atmosphere value is 825.6-826.5; unimportant"
+    },
+    {
+     "row": "Q(PSF)",
+     "fc": 9,
+     "value": 1004,
+     "candidates": [1004],
+     "why": "third digit faded; decided by identity (0.7 p M^2 with the table's own 45,000 ft pressure, which runs 0.3% above the 1962 standard)",
+     "decided_by": "identity"
+    },
+    {
+     "row": "Q(PSF)",
+     "fc": 10,
+     "value": 436,
+     "candidates": [436, 434, 435],
+     "why": "last digit faded; decided by the same identity (435.0 x 1.003)",
+     "decided_by": "identity"
+    },
+    {
+     "row": "C.G.(MGC)",
+     "fc": 4,
+     "value": 0.289,
+     "candidates": [0.289],
+     "why": "prints like '.299' (damaged 8); every other column and every figure header says .289",
+     "decided_by": "repetition"
+    }
+   ]
+  },
+  "IV-3": {
+   "title": "TABLE IV-3  F-4C LONGITUDINAL DIMENSIONAL DERIVATIVES  (BODY AXIS SYSTEM)",
+   "pdf_page": 89,
+   "printed_page": 83,
+   "reading": "two full readings (300 dpi native, then 2x zoom) + recomputation of Tables IV-4/IV-5 from these values",
+   "flight_condition": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+   "axis_system": "body axes (x along the fuselage reference line); starred derivatives include thrust terms",
+   "rows": [
+    {"label": "F/C #", "values": [1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0]},
+    {"label": "H", "values": ["SL", "SL", "SL", "15K", "35K", "35K", "35K", "45K", "45K", "55K"]},
+    {"label": "M", "values": [0.206, 0.8, 1.1, 0.9, 0.6, 0.9, 1.2, 1.5, 2.15, 1.8]},
+    {"label": "XU *", "values": [-0.0417, -0.0159, -0.0677, -0.0203, 0.000719, -0.00796, -0.0135, -0.00679, -0.0158, -0.00528]},
+    {"label": "ZU *", "values": [-0.177, -0.0645, 0.0226, -0.134, -0.0689, -0.0876, 0.0105, 0.011, -0.000992, 0.000474]},
+    {"label": "MU *", "values": [0.000743, -0.00161, 0.00329, -0.00425, 0.000511, -0.00239, 0.00292, 0.00341, 0.00128, 0.00175]},
+    {"label": "XW", "values": [0.13, 0.00706, -0.0107, 0.00371, 0.00458, 0.0158, 0.00576, 0.00146, 0.00387, -0.00501]},
+    {"label": "ZW", "values": [-0.452, -1.54, -2.11, -1.16, -0.296, -0.547, -0.727, -0.494, -0.494, -0.319]},
+    {"label": "MW", "values": [-0.00182, -0.0199, -0.0488, -0.0179, -0.00326, -0.00911, -0.0248, -0.0198, -0.0205, -0.0133]},
+    {"label": "ZWD", "values": [-0.00305, -0.00271, -0.00326, -0.0021, -0.00104, -0.00116, -0.00106, -0.000358, 9.77e-05, -6.04e-05]},
+    {"label": "ZQ", "values": [-2.48, -8.2, -8.72, -6.0, -1.84, -2.89, -4.09, -2.24, -1.27, -1.14]},
+    {"label": "MWD", "values": [-0.000642, -0.000663, -0.000729, -0.00048, -0.000244, -0.000267, -0.000247, -8.4e-05, 2.59e-05, -1.6e-05]},
+    {"label": "MQ", "values": [-0.317, -1.36, -2.2, -0.993, -0.307, -0.487, -0.745, -0.488, -0.404, -0.286]},
+    {"label": "XDS", "values": [5.98, 0.739, -1.32, 0.932, 3.42, 2.25, 2.52, 3.21, 2.04, 2.86]},
+    {"label": "ZDS", "values": [-6.65, -141.0, -251.0, -107.0, -20.7, -49.6, -90.4, -70.6, -83.6, -49.6]},
+    {"label": "MDS", "values": [-1.46, -32.3, -61.1, -25.0, -4.9, -11.4, -20.7, -16.0, -16.1, -11.2]},
+    {"label": "XDTH", "values": [0.000965, 0.000823, 0.000823, 0.000823, 0.000823, 0.000823, 0.000823, 0.000823, 0.000823, 0.000823]},
+    {"label": "ZDTH", "values": [-8.87e-05, -7.56e-05, -7.56e-05, -7.56e-05, -7.56e-05, -7.56e-05, -7.56e-05, -7.56e-05, -7.56e-05, -7.56e-05]},
+    {"label": "MDTH", "values": [-4.85e-06, -3.03e-06, -3.03e-06, -3.03e-06, -3.03e-06, -3.03e-06, -3.03e-06, -3.03e-06, -3.03e-06, -3.03e-06]}
+   ],
+   "doubt": [
+    {
+     "row": "ZW",
+     "fc": 9,
+     "value": -0.494,
+     "candidates": [-0.494, -0.404],
+     "why": "middle digit prints like a 0; -.404 is impossible: 1/T(THE)2=.388, NZA=25.1 and the whole F/C 9 column of Table IV-4 are reproduced only with -.494 (rms misfit 0.6% against 32%)",
+     "decided_by": "identity"
+    },
+    {
+     "row": "ZW",
+     "fc": 8,
+     "value": -0.494,
+     "candidates": [-0.494, -0.404, -0.464],
+     "why": "middle digit faded; -.494 reproduces Table IV-4 (0.2% rms) and the others do not",
+     "decided_by": "identity"
+    },
+    {
+     "row": "MW",
+     "fc": 4,
+     "value": -0.0179,
+     "candidates": [-0.0179, -0.0175, -0.0177],
+     "why": "F/C 4 column is badly printed; last digit is a closed-loop glyph (9); -.0179 reproduces the printed short period 4.24 rad/sec (-.0175 gives 4.20)",
+     "decided_by": "identity + glyph"
+    },
+    {
+     "row": "XW",
+     "fc": 4,
+     "value": 0.00371,
+     "candidates": [0.00371, 0.00271],
+     "why": "third digit broken; .00371 fits the printed phugoid/tuck roots better (0.4% rms against 1.2%)",
+     "decided_by": "identity"
+    },
+    {
+     "row": "ZU *",
+     "fc": 4,
+     "value": -0.134,
+     "candidates": [-0.134, -0.124, -0.154],
+     "why": "middle digit broken; -.134 fits Table IV-4 best",
+     "decided_by": "identity"
+    },
+    {
+     "row": "ZU *",
+     "fc": 7,
+     "value": 0.0105,
+     "candidates": [0.0105, 0.0125, 0.0135, 0.0195],
+     "why": "third digit faded; .0105 fits Tables IV-4/IV-5 best (0.50% rms against 0.88% for .0125): moderately sure",
+     "decided_by": "identity"
+    },
+    {
+     "row": "MQ",
+     "fc": 9,
+     "value": -0.404,
+     "candidates": [-0.404, -0.494],
+     "why": "middle digit faded; -.404 reproduces the printed short-period damping .0645 (-.494 does not)",
+     "decided_by": "identity"
+    },
+    {
+     "row": "MW",
+     "fc": 9,
+     "value": -0.0205,
+     "candidates": [-0.0205, -0.0295],
+     "why": "third digit faded; -.0205 reproduces the printed short-period frequency 6.54",
+     "decided_by": "identity"
+    },
+    {
+     "row": "XU *",
+     "fc": 10,
+     "value": -0.00528,
+     "candidates": [-0.00528, -0.00529],
+     "why": "last digit damaged; cannot be settled by recomputation (no visible effect)"
+    },
+    {"row": "MQ", "fc": 7, "value": -0.745, "candidates": [-0.745, -0.746], "why": "last digit 5 or 6; no visible effect on recomputed roots"},
+    {"row": "ZQ", "fc": 7, "value": -4.09, "candidates": [-4.09, -4.07], "why": "last digit open-topped; no visible effect on recomputed roots"},
+    {
+     "row": "MDTH",
+     "fc": 1,
+     "value": -4.85e-06,
+     "candidates": [-4.85e-06],
+     "why": "reads clearly -.485E-5 and equals LTH/IY (-.570/117506), but the printed gain A(THE) of the thrust tables (-.467E-5) implies about -.471E-5: a discrepancy inside the report, not a reading doubt"
+    }
+   ]
+  },
+  "IV-13": {
+   "title": "TABLE IV-13  F-4C LATERAL-DIRECTIONAL DIMENSIONAL DERIVATIVES  (BODY AXIS SYSTEM)",
+   "pdf_page": 105,
+   "printed_page": 99,
+   "reading": "two full readings (native, 2x zoom): identical; recomputation of IV-14/IV-15 from these values",
+   "flight_condition": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+   "axis_system": "body axes; primed derivatives (L', N' include the product-of-inertia coupling: L'=(L+Ixz N/Ix)G, N'=(N+Ixz L/Iz)G, G=1/(1-Ixz^2/(Ix Iz))); Y*DA, Y*DR are Y_delta/VT0 in 1/sec",
+   "rows": [
+    {"label": "F/C #", "values": [1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0]},
+    {"label": "H", "values": ["SL", "SL", "SL", "15K", "35K", "35K", "35K", "45K", "45K", "55K"]},
+    {"label": "M", "values": [0.206, 0.8, 1.1, 0.9, 0.6, 0.9, 1.2, 1.5, 2.15, 1.8]},
+    {"label": "YV", "values": [-0.0918, -0.335, -0.486, -0.215, -0.0566, -0.0921, -0.151, -0.118, -0.133, -0.0768]},
+    {"label": "YB", "values": [-21.1, -299.0, -597.0, -205.0, -33.1, -80.6, -176.0, -171.0, -277.0, -134.0]},
+    {"label": "LB'", "values": [-10.4, -26.3, -47.0, -27.4, -10.7, -18.3, -14.1, -11.7, -8.67, -8.66]},
+    {"label": "NB'", "values": [1.44, 15.6, 38.2, 11.5, 1.66, 4.97, 12.3, 9.9, 8.37, 6.18]},
+    {"label": "LP'", "values": [-1.43, -3.04, -3.11, -2.27, -0.799, -1.24, -1.38, -1.0, -1.08, -0.767]},
+    {"label": "NP'", "values": [-0.026, -0.0372, 0.0184, -0.026, -0.0179, -0.0504, -0.0378, -0.017, 0.0153, -0.00913]},
+    {"label": "LR'", "values": [0.929, 0.817, 0.802, 0.638, 0.3, 0.395, 0.318, 0.328, 0.217, 0.198]},
+    {"label": "NR'", "values": [-0.215, -0.739, -1.2, -0.53, -0.134, -0.238, -0.397, -0.309, -0.273, -0.181]},
+    {"label": "Y*DA", "values": [-0.013, -0.00744, -0.0102, -0.00499, -0.00151, -0.00227, -0.00302, -0.00199, -0.00169, -0.000329]},
+    {"label": "L'DA", "values": [2.74, 22.2, 15.0, 17.5, 4.7, 0.0, 10.9, 6.78, 5.35, 4.67]},
+    {"label": "N'DA", "values": [0.416, 0.923, 2.45, 0.747, 0.0887, 0.195, 0.667, 0.376, 0.357, 0.0567]},
+    {"label": "Y*DR", "values": [0.0174, 0.0442, 0.0307, 0.0281, 0.0113, 0.0142, 0.0132, 0.00988, 0.00867, 0.00614]},
+    {"label": "L'DR", "values": [0.699, 7.32, 9.26, 5.07, 0.768, 1.95, 2.99, 1.95, 2.57, 1.21]},
+    {"label": "N'DR", "values": [-0.67, -7.8, -8.8, -5.58, -1.36, -2.61, -3.19, -2.03, -1.86, -1.31]}
+   ],
+   "doubt": [
+    {
+     "row": "L'DA",
+     "fc": 6,
+     "value": 0.0,
+     "candidates": [10.0],
+     "why": "PRINTED 0.00, which is wrong: the same number prints as 0.00 for A(P) in Table IV-14 but as 10.0 for A(PHI) there and 9.90 in Table IV-16; q S b Cl_da/Ix with the plotted Cl_da (.0434) gives 10.0. Use 10.0. (A print-format overflow.)",
+     "use_instead": 10.0
+    },
+    {
+     "row": "LB'",
+     "fc": 9,
+     "value": -8.67,
+     "candidates": [-8.67, -9.67],
+     "why": "first digit damaged; -8.67 reproduces Table IV-14/15 and is smooth with F/C 10 (-8.66)",
+     "decided_by": "identity"
+    },
+    {
+     "row": "NB'",
+     "fc": 10,
+     "value": 6.18,
+     "candidates": [6.18, 5.18],
+     "why": "first digit damaged; Dutch-roll frequency 2.58 needs 6.18",
+     "decided_by": "identity"
+    },
+    {"row": "NP'", "fc": 10, "value": -0.00913, "candidates": [-0.00913], "why": "third digit faded (9 or 0); -.00913 used; small effect"},
+    {
+     "row": "F/C 4 column",
+     "fc": 4,
+     "value": null,
+     "candidates": [],
+     "why": "whole column is weakly printed (NB' 11.5, NP' -.0260, LR' .638, NR' -.530, Y*DA -.00499, L'DA 17.5, Y*DR .0281, N'DR -5.58): each agrees with the gains reprinted in Tables IV-14/IV-15 or with the recomputed roots"
+    }
+   ]
+  },
+  "IV-4": {
+   "title": "TABLE IV-4  F-4C STABILIZER TRANSFER FUNCTION FACTORS  SAS Off - Bobweight Loop Open  (BODY AXIS SYSTEM)",
+   "pdf_page": 90,
+   "printed_page": 84,
+   "reading": "one full reading; every numerator re-read where it is reprinted in Table IV-8 and denominator where reprinted in IV-5 (all agree); recomputed from IV-2/IV-3 (agree within about 1.5%)",
+   "flight_condition": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+   "rows": [
+    {"label": "F/C #", "values": [1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0]},
+    {"label": "H", "values": ["SL", "SL", "SL", "15K", "35K", "35K", "35K", "45K", "45K", "55K"]},
+    {"label": "M", "values": [0.206, 0.8, 1.1, 0.9, 0.6, 0.9, 1.2, 1.5, 2.15, 1.8]},
+    {
+     "label": "Z(DET)1",
+     "block": "DENOMINATOR",
+     "values": [0.102, -0.0378, 0.639, -0.0612, 0.0928, 0.0446, 0.191, 0.156, 0.384, 0.175],
+     "printed": [".102", "(-.0378)", ".639", "(-.0612)", ".0928", "(.0446)", ".191", ".156", ".384", ".175"],
+     "parenthesised": [false, true, false, true, false, true, false, false, false, false]
+    },
+    {
+     "label": "W(DET)1",
+     "block": "DENOMINATOR",
+     "values": [0.191, 0.0516, 0.0542, 0.0741, 0.0774, -0.0456, 0.045, 0.0402, 0.022, 0.0274],
+     "printed": [".191", "(.0516)", ".0542", "(.0741)", ".0774", "(-.0456)", ".0450", ".0402", ".0220", ".0274"],
+     "parenthesised": [false, true, false, true, false, true, false, false, false, false]
+    },
+    {"label": "Z(DET)2", "block": "DENOMINATOR", "values": [0.607, 0.393, 0.324, 0.308, 0.259, 0.224, 0.162, 0.102, 0.0645, 0.065]},
+    {"label": "W(DET)2", "block": "DENOMINATOR", "values": [0.757, 4.44, 7.99, 4.24, 1.41, 2.85, 5.43, 5.39, 6.54, 4.84]},
+    {"label": "A(U)", "block": "N(U /DS)", "values": [5.97, 0.737, -1.31, 0.93, 3.42, 2.25, 2.52, 3.2, 2.04, 2.86]},
+    {"label": "1/T(U)1", "block": "N(U /DS)", "values": [11.4, 1.94, 1.49, 1.25, 136.0, 201.0, 266.0, 0.31, 400.0, 0.143]},
+    {
+     "label": "1/T(U)2",
+     "block": "N(U /DS)",
+     "values": [0.452, 5.35, -6.31, 3.44, 0.98, 0.787, 0.965, 0.641, 0.978, 0.584],
+     "printed": ["(.452)", "5.35", "-6.31", "3.44", "(.980)", "(.787)", "(.965)", ".641", "(.978)", ".584"],
+     "parenthesised": [true, false, false, false, true, true, true, false, true, false]
+    },
+    {
+     "label": "1/T(U)3",
+     "block": "N(U /DS)",
+     "values": [0.561, 197.0, 304.0, 218.0, 0.307, 0.643, 0.783, 328.0, 0.496, 394.0],
+     "printed": ["(.561)", "197.", "304.", "218.", "(.307)", "(.643)", "(.783)", "328.", "(.496)", "394."],
+     "parenthesised": [true, false, false, false, true, true, true, false, true, false]
+    },
+    {"label": "A(W)", "block": "N(W /DS)", "values": [-6.62, -141.0, -250.0, -107.0, -20.6, -49.5, -90.3, -70.6, -83.6, -49.6]},
+    {"label": "1/T(W)1", "block": "N(W /DS)", "values": [49.3, 204.0, -0.0032, 222.0, 137.0, 202.0, 267.0, 328.0, 400.0, 394.0]},
+    {
+     "label": "Z(W)1",
+     "block": "N(W /DS)",
+     "values": [0.151, 0.176, 0.0711, 0.169, 0.0121, 0.0964, 0.852, 0.29, 0.731, 0.184],
+     "printed": [".151", ".176", "(.0711)", ".169", ".0121", ".0964", ".852", ".290", ".731", ".184"],
+     "parenthesised": [false, false, true, false, false, false, false, false, false, false]
+    },
+    {
+     "label": "W(W)1",
+     "block": "N(W /DS)",
+     "values": [0.156, 0.0456, 299.0, 0.0627, 0.0627, 0.0532, 0.00729, 0.00911, 0.0106, 0.0114],
+     "printed": [".156", ".0456", "(299.)", ".0627", ".0627", ".0532", ".00729", ".00911", ".0106", ".0114"],
+     "parenthesised": [false, false, true, false, false, false, false, false, false, false]
+    },
+    {"label": "A(THE)", "block": "N(THE/DS)", "values": [-1.45, -32.2, -60.9, -24.9, -4.9, -11.4, -20.6, -16.0, -16.1, -11.2]},
+    {"label": "1/T(THE)1", "block": "N(THE/DS)", "values": [0.104, 0.0162, 0.0678, 0.0208, -0.000498, 0.0106, 0.0131, 0.00608, 0.0157, 0.0046]},
+    {"label": "1/T(THE)2", "block": "N(THE/DS)", "values": [0.379, 1.46, 1.9, 1.08, 0.282, 0.505, 0.618, 0.407, 0.388, 0.26]},
+    {"label": "A(HD)", "block": "N(HD /DS)", "values": [7.7, 141.0, 250.0, 107.0, 20.9, 49.6, 90.3, 70.6, 83.6, 49.7]},
+    {"label": "1/T(HD)1", "block": "N(HD /DS)", "values": [0.00726, 0.0146, 0.068, 0.0169, -0.0245, 0.00335, 0.0123, 0.00489, 0.0151, 0.00307]},
+    {"label": "1/T(HD)2", "block": "N(HD /DS)", "values": [-4.21, 17.0, -23.8, 15.3, 5.96, 9.99, 12.7, 11.5, -12.4, -10.1]},
+    {"label": "1/T(HD)3", "block": "N(HD /DS)", "values": [4.27, -17.5, 23.9, -15.7, -6.05, -10.2, -12.9, -11.5, 12.5, 10.1]},
+    {"label": "A(AZP)", "block": "N(AZP/DS)", "values": [17.0, 382.0, 737.0, 298.0, 58.7, 135.0, 244.0, 188.0, 177.0, 132.0]},
+    {
+     "label": "1/T(AZP)1",
+     "block": "N(AZP/DS)",
+     "values": [-0.0514, -0.000207, 0.000137, -0.000356, -0.000194, -0.00287, -0.000776, -0.00104, -0.000385, -0.00117]
+    },
+    {"label": "1/T(AZP)2", "block": "N(AZP/DS)", "values": [0.0543, 0.0148, 0.0679, 0.0172, -0.0243, 0.00618, 0.0131, 0.0059, 0.0154, 0.00419]},
+    {"label": "Z(AZP)1", "block": "N(AZP/DS)", "values": [0.121, 0.104, 0.0917, 0.0876, 0.062, 0.0625, 0.0586, 0.04, 0.0294, 0.028]},
+    {"label": "W(AZP)1", "block": "N(AZP/DS)", "values": [2.8, 10.5, 13.9, 9.3, 3.61, 6.09, 7.81, 7.07, 8.56, 6.19]}
+   ],
+   "doubt": [
+    {
+     "row": "1/T(U)1",
+     "fc": 2,
+     "value": 1.94,
+     "candidates": [1.94, 1.95],
+     "why": "prints 1.94 here and in IV-8 and IV-10 but 1.95 in IV-6; recomputation gives 1.95"
+    }
+   ]
+  },
+  "IV-6": {
+   "title": "TABLE IV-6  F-4C STICK FORCE TRANSFER FUNCTION FACTORS  SAS Off - Bobweight Loop Closed  (BODY AXIS SYSTEM)",
+   "pdf_page": [92, 93],
+   "printed_page": [86, 87],
+   "reading": "one full reading; denominator read again at 1.6x zoom and a third time in Table IV-7; numerators re-read where reprinted in IV-10",
+   "flight_condition": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+   "rows": [
+    {"label": "F/C #", "values": [1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0]},
+    {"label": "H", "values": ["SL", "SL", "SL", "15K", "35K", "35K", "35K", "45K", "45K", "55K"]},
+    {"label": "M", "values": [0.206, 0.8, 1.1, 0.9, 0.6, 0.9, 1.2, 1.5, 2.15, 1.8]},
+    {"label": "1/T(DET)1", "block": "DENOMINATOR", "values": [20.8, -0.0271, 26.6, -0.0445, 22.0, -0.0335, 24.5, 1.49, 3.1, 1.35]},
+    {
+     "label": "1/T(DET)2",
+     "block": "DENOMINATOR",
+     "values": [null, 0.0412, null, 0.0589, null, 0.0343, null, 23.2, 21.1, 22.2],
+     "printed": ["", ".0412", "", ".0589", "", ".0343", "", "23.2", "21.1", "22.2"]
+    },
+    {
+     "label": "Z(DET)1",
+     "block": "DENOMINATOR",
+     "values": [0.146, 25.3, 0.76, 25.0, -0.0455, 23.5, 0.205, 0.159, 0.431, 0.169],
+     "printed": [".146", "(25.3)", ".760", "(25.0)", "-.0455", "(23.5)", ".205", ".159", ".431", ".169"],
+     "parenthesised": [false, true, false, true, false, true, false, false, false, false]
+    },
+    {
+     "label": "W(DET)1",
+     "block": "DENOMINATOR",
+     "values": [0.0881, null, 0.0454, null, 0.054, null, 0.0389, 0.0291, 0.0192, 0.0218],
+     "printed": [".0881", "", ".0454", "", ".0540", "", ".0389", ".0291", ".0192", ".0218"]
+    },
+    {"label": "Z(DET)2", "block": "DENOMINATOR", "values": [0.271, 0.277, 0.263, 0.219, 0.166, 0.155, 0.148, 0.138, 0.102, 0.101]},
+    {"label": "W(DET)2", "block": "DENOMINATOR", "values": [1.15, 4.91, 7.9, 4.6, 1.67, 3.09, 5.12, 5.07, 6.36, 4.63]},
+    {"label": "Z(DET)3", "block": "DENOMINATOR", "values": [0.427, 0.0192, 0.000438, 0.0253, 0.167, 0.0751, 0.0302, 0.109, 0.174, 0.137]},
+    {"label": "W(DET)3", "block": "DENOMINATOR", "values": [6.01, 29.1, 38.9, 24.6, 11.4, 16.5, 22.1, 22.4, 34.5, 22.5]},
+    {"label": "A(U)", "block": "N(U /FST)", "values": [-190.0, -23.4, 41.7, -29.6, -109.0, -71.5, -80.2, -102.0, -64.9, -90.9]},
+    {"label": "1/T(U)1", "block": "N(U /FST)", "values": [11.4, 1.95, 1.49, 1.25, 136.0, 201.0, 266.0, 0.31, 11.1, 0.143]},
+    {
+     "label": "1/T(U)2",
+     "block": "N(U /FST)",
+     "values": [0.452, 5.35, -6.31, 3.44, 0.98, 0.787, 0.965, 0.641, 400.0, 0.584],
+     "printed": ["(.452)", "5.35", "-6.31", "3.44", "(.980)", "(.787)", "(.965)", ".641", "400.", ".584"],
+     "parenthesised": [true, false, false, false, true, true, true, false, false, false]
+    },
+    {
+     "label": "1/T(U)3",
+     "block": "N(U /FST)",
+     "values": [0.561, 197.0, 304.0, 218.0, 0.307, 0.643, 0.783, 4.22, 0.978, 4.42],
+     "printed": ["(.561)", "197.", "304.", "218.", "(.307)", "(.643)", "(.783)", "4.22", "(.978)", "4.42"],
+     "parenthesised": [true, false, false, false, true, true, true, false, true, false]
+    },
+    {
+     "label": "1/T(U)4",
+     "block": "N(U /FST)",
+     "values": [null, null, null, null, null, null, null, 328.0, 0.496, 394.0],
+     "printed": ["", "", "", "", "", "", "", "328.", "(.496)", "394."],
+     "parenthesised": [false, false, false, false, false, false, false, false, true, false]
+    },
+    {"label": "A(W)", "block": "N(W /FST)", "values": [210.0, 4476.0, 7961.0, 3388.0, 656.0, 1573.0, 2869.0, 2242.0, 2656.0, 1576.0]},
+    {"label": "1/T(W)1", "block": "N(W /FST)", "values": [49.3, 204.0, -0.0032, 222.0, 137.0, 202.0, 267.0, 4.22, 11.1, 4.42]},
+    {
+     "label": "1/T(W)2",
+     "block": "N(W /FST)",
+     "values": [null, null, 0.0711, null, null, null, null, 328.0, 400.0, 394.0],
+     "printed": ["", "", ".0711", "", "", "", "", "328.", "400.", "394."]
+    },
+    {
+     "label": "Z(W)1",
+     "block": "N(W /FST)",
+     "values": [0.151, 0.176, 299.0, 0.169, 0.0121, 0.0964, 0.852, 0.29, 0.731, 0.184],
+     "printed": [".151", ".176", "(299.)", ".169", ".0121", ".0964", ".852", ".290", ".731", ".184"],
+     "parenthesised": [false, false, true, false, false, false, false, false, false, false]
+    },
+    {
+     "label": "W(W)1",
+     "block": "N(W /FST)",
+     "values": [0.156, 0.0456, null, 0.0627, 0.0627, 0.0532, 0.00729, 0.00911, 0.0106, 0.0114],
+     "printed": [".156", ".0456", "", ".0627", ".0627", ".0532", ".00729", ".00911", ".0106", ".0114"]
+    },
+    {"label": "A(THE)", "block": "N(THE/FST)", "values": [46.2, 1024.0, 1936.0, 792.0, 156.0, 363.0, 656.0, 508.0, 511.0, 357.0]},
+    {"label": "1/T(THE)1", "block": "N(THE/FST)", "values": [0.104, 0.0162, 0.0678, 0.0208, -0.000498, 0.0106, 0.0131, 0.00608, 0.0157, 0.0046]},
+    {"label": "1/T(THE)2", "block": "N(THE/FST)", "values": [0.379, 1.46, 1.9, 1.08, 0.282, 0.505, 0.618, 0.407, 0.388, 0.26]},
+    {
+     "label": "1/T(THE)3",
+     "block": "N(THE/FST)",
+     "values": [null, null, null, null, null, null, null, 4.22, 11.1, 4.42],
+     "printed": ["", "", "", "", "", "", "", "4.22", "11.1", "4.42"]
+    },
+    {"label": "A(HD)", "block": "N(HD /FST)", "values": [-245.0, -4476.0, -7961.0, -3388.0, -665.0, -1575.0, -2870.0, -2245.0, -2657.0, -1579.0]},
+    {"label": "1/T(HD)1", "block": "N(HD /FST)", "values": [0.00726, 0.0146, 0.068, 0.0169, -0.0245, 0.00335, 0.0123, 0.00489, 0.0151, 0.00307]},
+    {"label": "1/T(HD)2", "block": "N(HD /FST)", "values": [-4.21, 17.0, -23.8, 15.3, 5.96, 9.99, 12.7, 4.22, 11.1, 4.42]},
+    {"label": "1/T(HD)3", "block": "N(HD /FST)", "values": [4.27, -17.5, 23.9, -15.7, -6.05, -10.2, -12.9, 11.5, -12.4, -10.1]},
+    {
+     "label": "1/T(HD)4",
+     "block": "N(HD /FST)",
+     "values": [null, null, null, null, null, null, null, -11.5, 12.5, 10.1],
+     "printed": ["", "", "", "", "", "", "", "-11.5", "12.5", "10.1"]
+    },
+    {"label": "A(AZP)", "block": "N(AZP/FST)", "values": [-540.0, -12129.0, -23430.0, -9456.0, -1867.0, -4306.0, -7765.0, -5989.0, -5624.0, -4209.0]},
+    {
+     "label": "1/T(AZP)1",
+     "block": "N(AZP/FST)",
+     "values": [-0.0514, -0.000207, 0.000137, -0.000356, -0.000194, -0.00287, -0.000776, -0.00104, -0.000385, -0.00117]
+    },
+    {"label": "1/T(AZP)2", "block": "N(AZP/FST)", "values": [0.0543, 0.0148, 0.0679, 0.0172, -0.0243, 0.00618, 0.0131, 0.0059, 0.0154, 0.00419]},
+    {
+     "label": "1/T(AZP)3",
+     "block": "N(AZP/FST)",
+     "values": [null, null, null, null, null, null, null, 4.22, 11.1, 4.42],
+     "printed": ["", "", "", "", "", "", "", "4.22", "11.1", "4.42"]
+    },
+    {"label": "Z(AZP)1", "block": "N(AZP/FST)", "values": [0.121, 0.104, 0.0917, 0.0876, 0.062, 0.0625, 0.0586, 0.04, 0.0294, 0.028]},
+    {"label": "W(AZP)1", "block": "N(AZP/FST)", "values": [2.8, 10.5, 13.9, 9.3, 3.61, 6.09, 7.81, 7.07, 8.56, 6.19]}
+   ],
+   "doubt": [
+    {
+     "row": "W(DET)3",
+     "fc": 2,
+     "value": 29.1,
+     "candidates": [29.1, 25.1],
+     "why": "the 9 prints like an 'S'; reads 29.1 in Table IV-7 and in the 1.6x zoom; feel-system frequency sqrt(K/I) supports 29",
+     "decided_by": "repetition"
+    },
+    {"row": "1/T(U)1", "fc": 2, "value": 1.95, "candidates": [1.95, 1.94], "why": "prints 1.95 here, 1.94 in IV-4/IV-8/IV-10"},
+    {
+     "row": "W(DET)3",
+     "fc": 4,
+     "value": 24.6,
+     "candidates": [24.6, 24.8],
+     "why": "last digit damaged in the weak F/C 4 column; 24.6 keeps the +0.3 step to Table IV-10 (24.9) seen in the neighbouring columns"
+    }
+   ]
+  },
+  "IV-8": {
+   "title": "TABLE IV-8  F-4C STABILIZER TRANSFER FUNCTION FACTORS  SAS On - Bobweight Loop Open  (BODY AXIS SYSTEM)",
+   "pdf_page": [96, 97],
+   "printed_page": [90, 91],
+   "reading": "one full reading; denominator read again at 1.6x zoom and in IV-9; numerators agree with IV-4 plus the added roots",
+   "flight_condition": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+   "rows": [
+    {"label": "F/C #", "values": [1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0]},
+    {"label": "H", "values": ["SL", "SL", "SL", "15K", "35K", "35K", "35K", "45K", "45K", "55K"]},
+    {"label": "M", "values": [0.206, 0.8, 1.1, 0.9, 0.6, 0.9, 1.2, 1.5, 2.15, 1.8]},
+    {"label": "1/T(DET)1", "block": "DENOMINATOR", "values": [1.24, -0.0375, 0.858, -0.0607, 1.44, 0.0447, 1.05, 0.883, 1.04, 0.924]},
+    {"label": "1/T(DET)2", "block": "DENOMINATOR", "values": [19.8, 0.052, 6.4, 0.0746, 19.2, -0.0454, 16.1, 1.06, 2.34, 1.06]},
+    {
+     "label": "1/T(DET)3",
+     "block": "DENOMINATOR",
+     "values": [null, 0.851, null, 0.974, null, 1.18, null, 17.2, 17.4, 18.1],
+     "printed": ["", ".851", "", ".974", "", "1.18", "", "17.2", "17.4", "18.1"]
+    },
+    {
+     "label": "Z(DET)1",
+     "block": "DENOMINATOR",
+     "values": [0.0868, 4.44, 0.632, 14.2, 0.089, 17.9, 0.189, 0.155, 0.384, 0.175],
+     "printed": [".0868", "(4.44)", ".632", "(14.2)", ".0890", "(17.9)", ".189", ".155", ".384", ".175"],
+     "parenthesised": [false, true, false, true, false, true, false, false, false, false]
+    },
+    {
+     "label": "W(DET)1",
+     "block": "DENOMINATOR",
+     "values": [0.189, null, 0.0542, null, 0.0775, null, 0.045, 0.0402, 0.022, 0.0274],
+     "printed": [".189", "", ".0542", "", ".0775", "", ".0450", ".0402", ".0220", ".0274"]
+    },
+    {"label": "Z(DET)2", "block": "DENOMINATOR", "values": [0.672, 0.94, 0.62, 0.824, 0.464, 0.568, 0.477, 0.339, 0.25, 0.247]},
+    {"label": "W(DET)2", "block": "DENOMINATOR", "values": [0.69, 10.2, 15.3, 5.1, 1.2, 2.77, 5.9, 5.64, 6.88, 4.93]},
+    {"label": "Z(DET)3", "block": "DENOMINATOR", "values": [0.584, 0.103, 0.076, 0.125, 0.287, 0.194, 0.141, 0.21, 0.208, 0.209]},
+    {"label": "W(DET)3", "block": "DENOMINATOR", "values": [4.83, 27.4, 37.1, 22.6, 9.82, 14.5, 20.0, 21.4, 34.5, 21.9]},
+    {"label": "A(U)", "block": "N(U /DS)", "values": [5.97, 0.737, -1.31, 0.93, 3.42, 2.25, 2.52, 3.2, 2.04, 2.86]},
+    {"label": "1/T(U)1", "block": "N(U /DS)", "values": [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 0.31, 1.0, 0.143]},
+    {"label": "1/T(U)2", "block": "N(U /DS)", "values": [11.4, 1.94, 1.49, 1.25, 20.0, 20.0, 20.0, 0.641, 2.34, 0.584]},
+    {"label": "1/T(U)3", "block": "N(U /DS)", "values": [20.0, 5.35, -6.31, 3.44, 136.0, 201.0, 266.0, 0.883, 20.0, 0.924]},
+    {
+     "label": "1/T(U)4",
+     "block": "N(U /DS)",
+     "values": [0.452, 20.0, 20.0, 20.0, 0.98, 0.787, 0.965, 1.0, 400.0, 1.0],
+     "printed": ["(.452)", "20.0", "20.0", "20.0", "(.980)", "(.787)", "(.965)", "1.00", "400.", "1.00"],
+     "parenthesised": [true, false, false, false, true, true, true, false, false, false]
+    },
+    {
+     "label": "1/T(U)5",
+     "block": "N(U /DS)",
+     "values": [0.561, 197.0, 304.0, 218.0, 0.307, 0.643, 0.783, 20.0, 0.978, 20.0],
+     "printed": ["(.561)", "197.", "304.", "218.", "(.307)", "(.643)", "(.783)", "20.0", "(.978)", "20.0"],
+     "parenthesised": [true, false, false, false, true, true, true, false, true, false]
+    },
+    {
+     "label": "1/T(U)6",
+     "block": "N(U /DS)",
+     "values": [null, null, null, null, null, null, null, 328.0, 0.496, 394.0],
+     "printed": ["", "", "", "", "", "", "", "328.", "(.496)", "394."],
+     "parenthesised": [false, false, false, false, false, false, false, false, true, false]
+    },
+    {"label": "Z(U)1", "block": "N(U /DS)", "values": [0.584, 0.103, 0.076, 0.125, 0.287, 0.194, 0.141, 0.21, 0.208, 0.209]},
+    {"label": "W(U)1", "block": "N(U /DS)", "values": [4.83, 27.4, 37.1, 22.6, 9.82, 14.5, 20.0, 21.4, 34.5, 21.9]},
+    {"label": "A(W)", "block": "N(W /DS)", "values": [-6.62, -141.0, -250.0, -107.0, -20.6, -49.5, -90.3, -70.6, -83.6, -49.6]},
+    {"label": "1/T(W)1", "block": "N(W /DS)", "values": [1.0, 1.0, -0.0032, 1.0, 1.0, 1.0, 1.0, 0.883, 1.0, 0.924]},
+    {"label": "1/T(W)2", "block": "N(W /DS)", "values": [20.0, 20.0, 0.0711, 20.0, 20.0, 20.0, 20.0, 1.0, 2.34, 1.0]},
+    {"label": "1/T(W)3", "block": "N(W /DS)", "values": [49.3, 204.0, 1.0, 222.0, 137.0, 202.0, 267.0, 20.0, 20.0, 20.0]},
+    {
+     "label": "1/T(W)4",
+     "block": "N(W /DS)",
+     "values": [null, null, 20.0, null, null, null, null, 328.0, 400.0, 394.0],
+     "printed": ["", "", "20.0", "", "", "", "", "328.", "400.", "394."]
+    },
+    {
+     "label": "Z(W)1",
+     "block": "N(W /DS)",
+     "values": [0.151, 0.176, 299.0, 0.169, 0.0121, 0.0964, 0.852, 0.29, 0.731, 0.184],
+     "printed": [".151", ".176", "(299.)", ".169", ".0121", ".0964", ".852", ".290", ".731", ".184"],
+     "parenthesised": [false, false, true, false, false, false, false, false, false, false]
+    },
+    {
+     "label": "W(W)1",
+     "block": "N(W /DS)",
+     "values": [0.156, 0.0456, null, 0.0627, 0.0627, 0.0532, 0.00729, 0.00911, 0.0106, 0.0114],
+     "printed": [".156", ".0456", "", ".0627", ".0627", ".0532", ".00729", ".00911", ".0106", ".0114"]
+    },
+    {"label": "Z(W)2", "block": "N(W /DS)", "values": [0.584, 0.103, 0.076, 0.125, 0.287, 0.194, 0.141, 0.21, 0.208, 0.209]},
+    {"label": "W(W)2", "block": "N(W /DS)", "values": [4.83, 27.4, 37.1, 22.6, 9.82, 14.5, 20.0, 21.4, 34.5, 21.9]},
+    {"label": "A(THE)", "block": "N(THE/DS)", "values": [-1.45, -32.2, -60.9, -24.9, -4.9, -11.4, -20.6, -16.0, -16.1, -11.2]},
+    {"label": "1/T(THE)1", "block": "N(THE/DS)", "values": [0.104, 0.0162, 0.0678, 0.0208, -0.000498, 0.0106, 0.0131, 0.00608, 0.0157, 0.0046]},
+    {"label": "1/T(THE)2", "block": "N(THE/DS)", "values": [0.379, 1.0, 1.0, 1.0, 0.282, 0.505, 0.618, 0.407, 0.388, 0.26]},
+    {"label": "1/T(THE)3", "block": "N(THE/DS)", "values": [1.0, 1.46, 1.9, 1.08, 1.0, 1.0, 1.0, 0.883, 1.0, 0.924]},
+    {"label": "1/T(THE)4", "block": "N(THE/DS)", "values": [20.0, 20.0, 20.0, 20.0, 20.0, 20.0, 20.0, 1.0, 2.34, 1.0]},
+    {
+     "label": "1/T(THE)5",
+     "block": "N(THE/DS)",
+     "values": [null, null, null, null, null, null, null, 20.0, 20.0, 20.0],
+     "printed": ["", "", "", "", "", "", "", "20.0", "20.0", "20.0"]
+    },
+    {"label": "Z(THE)1", "block": "N(THE/DS)", "values": [0.584, 0.103, 0.076, 0.125, 0.287, 0.194, 0.141, 0.21, 0.208, 0.209]},
+    {"label": "W(THE)1", "block": "N(THE/DS)", "values": [4.83, 27.4, 37.1, 22.6, 9.82, 14.5, 20.0, 21.4, 34.5, 21.9]},
+    {"label": "A(HD)", "block": "N(HD /DS)", "values": [7.7, 141.0, 250.0, 107.0, 20.9, 49.6, 90.3, 70.6, 83.6, 49.7]},
+    {"label": "1/T(HD)1", "block": "N(HD /DS)", "values": [0.00726, 0.0146, 0.068, 0.0169, -0.0245, 0.00335, 0.0123, 0.00489, 0.0151, 0.00307]},
+    {"label": "1/T(HD)2", "block": "N(HD /DS)", "values": [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 0.883, 1.0, 0.924]},
+    {"label": "1/T(HD)3", "block": "N(HD /DS)", "values": [-4.21, 17.0, 20.0, 15.3, 5.96, 9.99, 12.7, 1.0, 2.34, 1.0]},
+    {"label": "1/T(HD)4", "block": "N(HD /DS)", "values": [4.27, -17.5, -23.8, -15.7, -6.05, -10.2, -12.9, 11.5, -12.4, -10.1]},
+    {"label": "1/T(HD)5", "block": "N(HD /DS)", "values": [20.0, 20.0, 23.9, 20.0, 20.0, 20.0, 20.0, -11.5, 12.5, 10.1]},
+    {
+     "label": "1/T(HD)6",
+     "block": "N(HD /DS)",
+     "values": [null, null, null, null, null, null, null, 20.0, 20.0, 20.0],
+     "printed": ["", "", "", "", "", "", "", "20.0", "20.0", "20.0"]
+    },
+    {"label": "Z(HD)1", "block": "N(HD /DS)", "values": [0.584, 0.103, 0.076, 0.125, 0.287, 0.194, 0.141, 0.21, 0.208, 0.209]},
+    {"label": "W(HD)1", "block": "N(HD /DS)", "values": [4.83, 27.4, 37.1, 22.6, 9.82, 14.5, 20.0, 21.4, 34.5, 21.9]},
+    {"label": "A(AZP)", "block": "N(AZP/DS)", "values": [17.0, 382.0, 737.0, 298.0, 58.7, 135.0, 244.0, 188.0, 177.0, 132.0]},
+    {
+     "label": "1/T(AZP)1",
+     "block": "N(AZP/DS)",
+     "values": [-0.0514, -0.000207, 0.000137, -0.000356, -0.000194, -0.00287, -0.000776, -0.00104, -0.000385, -0.00117]
+    },
+    {"label": "1/T(AZP)2", "block": "N(AZP/DS)", "values": [0.0543, 0.0148, 0.0679, 0.0172, -0.0243, 0.00618, 0.0131, 0.0059, 0.0154, 0.00419]},
+    {"label": "1/T(AZP)3", "block": "N(AZP/DS)", "values": [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 0.883, 1.0, 0.924]},
+    {"label": "1/T(AZP)4", "block": "N(AZP/DS)", "values": [20.0, 20.0, 20.0, 20.0, 20.0, 20.0, 20.0, 1.0, 2.34, 1.0]},
+    {
+     "label": "1/T(AZP)5",
+     "block": "N(AZP/DS)",
+     "values": [null, null, null, null, null, null, null, 20.0, 20.0, 20.0],
+     "printed": ["", "", "", "", "", "", "", "20.0", "20.0", "20.0"]
+    },
+    {"label": "Z(AZP)1", "block": "N(AZP/DS)", "values": [0.121, 0.104, 0.0917, 0.0876, 0.062, 0.0625, 0.0586, 0.04, 0.0294, 0.028]},
+    {"label": "W(AZP)1", "block": "N(AZP/DS)", "values": [2.8, 10.5, 13.9, 9.3, 3.61, 6.09, 7.81, 7.07, 8.56, 6.19]},
+    {"label": "Z(AZP)2", "block": "N(AZP/DS)", "values": [0.584, 0.103, 0.076, 0.125, 0.287, 0.194, 0.141, 0.21, 0.208, 0.209]},
+    {"label": "W(AZP)2", "block": "N(AZP/DS)", "values": [4.83, 27.4, 37.1, 22.6, 9.82, 14.5, 20.0, 21.4, 34.5, 21.9]}
+   ],
+   "doubt": []
+  },
+  "IV-10": {
+   "title": "TABLE IV-10  F-4C STICK FORCE TRANSFER FUNCTION FACTORS  SAS On - Bobweight Loop Closed  (BODY AXIS SYSTEM)",
+   "pdf_page": [100, 101],
+   "printed_page": [94, 95],
+   "reading": "one full reading; denominator read again at 1.6x zoom and in IV-11; numerators agree with IV-6 plus the added root",
+   "flight_condition": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+   "rows": [
+    {"label": "F/C #", "values": [1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0]},
+    {"label": "H", "values": ["SL", "SL", "SL", "15K", "35K", "35K", "35K", "45K", "45K", "55K"]},
+    {"label": "M", "values": [0.206, 0.8, 1.1, 0.9, 0.6, 0.9, 1.2, 1.5, 2.15, 1.8]},
+    {"label": "1/T(DET)1", "block": "DENOMINATOR", "values": [1.05, -0.027, 0.902, -0.0443, 1.14, -0.0335, 1.04, 0.99, 1.02, 0.991]},
+    {"label": "1/T(DET)2", "block": "DENOMINATOR", "values": [20.6, 0.0413, 17.9, 0.059, 21.4, 0.0344, 22.2, 1.68, 3.34, 1.5]},
+    {
+     "label": "1/T(DET)3",
+     "block": "DENOMINATOR",
+     "values": [null, 0.924, null, 0.988, null, 1.07, null, 21.1, 18.5, 20.7],
+     "printed": ["", ".924", "", ".988", "", "1.07", "", "21.1", "18.5", "20.7"]
+    },
+    {
+     "label": "Z(DET)1",
+     "block": "DENOMINATOR",
+     "values": [0.143, 21.2, 0.755, 22.1, -0.0469, 22.2, 0.204, 0.159, 0.431, 0.168],
+     "printed": [".143", "(21.2)", ".755", "(22.1)", "-.0469", "(22.2)", ".204", ".159", ".431", ".168"],
+     "parenthesised": [false, true, false, true, false, true, false, false, false, false]
+    },
+    {
+     "label": "W(DET)1",
+     "block": "DENOMINATOR",
+     "values": [0.088, null, 0.0454, null, 0.054, null, 0.0389, 0.0291, 0.0192, 0.0218],
+     "printed": [".0880", "", ".0454", "", ".0540", "", ".0389", ".0291", ".0192", ".0218"]
+    },
+    {"label": "Z(DET)2", "block": "DENOMINATOR", "values": [0.313, 0.627, 0.657, 0.504, 0.294, 0.342, 0.357, 0.337, 0.289, 0.263]},
+    {"label": "W(DET)2", "block": "DENOMINATOR", "values": [1.12, 5.53, 10.1, 4.87, 1.56, 3.03, 5.22, 4.98, 6.46, 4.56]},
+    {"label": "Z(DET)3", "block": "DENOMINATOR", "values": [0.431, 0.0181, -0.00197, 0.0256, 0.17, 0.0781, 0.0316, 0.106, 0.173, 0.135]},
+    {"label": "W(DET)3", "block": "DENOMINATOR", "values": [6.06, 29.4, 39.2, 24.9, 11.5, 16.7, 22.4, 22.6, 34.5, 22.6]},
+    {"label": "A(U)", "block": "N(U /FST)", "values": [-190.0, -23.4, 41.7, -29.6, -109.0, -71.5, -80.2, -102.0, -64.9, -90.9]},
+    {"label": "1/T(U)1", "block": "N(U /FST)", "values": [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 0.31, 1.0, 0.143]},
+    {"label": "1/T(U)2", "block": "N(U /FST)", "values": [11.4, 1.94, 1.49, 1.25, 136.0, 201.0, 266.0, 0.641, 11.1, 0.584]},
+    {
+     "label": "1/T(U)3",
+     "block": "N(U /FST)",
+     "values": [0.452, 5.35, -6.31, 3.44, 0.98, 0.787, 0.965, 1.0, 400.0, 1.0],
+     "printed": ["(.452)", "5.35", "-6.31", "3.44", "(.980)", "(.787)", "(.965)", "1.00", "400.", "1.00"],
+     "parenthesised": [true, false, false, false, true, true, true, false, false, false]
+    },
+    {
+     "label": "1/T(U)4",
+     "block": "N(U /FST)",
+     "values": [0.561, 197.0, 304.0, 218.0, 0.307, 0.643, 0.783, 4.22, 0.978, 4.42],
+     "printed": ["(.561)", "197.", "304.", "218.", "(.307)", "(.643)", "(.783)", "4.22", "(.978)", "4.42"],
+     "parenthesised": [true, false, false, false, true, true, true, false, true, false]
+    },
+    {
+     "label": "1/T(U)5",
+     "block": "N(U /FST)",
+     "values": [null, null, null, null, null, null, null, 328.0, 0.496, 394.0],
+     "printed": ["", "", "", "", "", "", "", "328.", "(.496)", "394."],
+     "parenthesised": [false, false, false, false, false, false, false, false, true, false]
+    },
+    {"label": "A(W)", "block": "N(W /FST)", "values": [210.0, 4476.0, 7961.0, 3388.0, 656.0, 1573.0, 2869.0, 2242.0, 2656.0, 1576.0]},
+    {"label": "1/T(W)1", "block": "N(W /FST)", "values": [1.0, 1.0, -0.0032, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0]},
+    {"label": "1/T(W)2", "block": "N(W /FST)", "values": [49.3, 204.0, 0.0711, 222.0, 137.0, 202.0, 267.0, 4.22, 11.1, 4.42]},
+    {
+     "label": "1/T(W)3",
+     "block": "N(W /FST)",
+     "values": [null, null, 1.0, null, null, null, null, 328.0, 400.0, 394.0],
+     "printed": ["", "", "1.00", "", "", "", "", "328.", "400.", "394."]
+    },
+    {
+     "label": "Z(W)1",
+     "block": "N(W /FST)",
+     "values": [0.151, 0.176, 299.0, 0.169, 0.0121, 0.0964, 0.852, 0.29, 0.731, 0.184],
+     "printed": [".151", ".176", "(299.)", ".169", ".0121", ".0964", ".852", ".290", ".731", ".184"],
+     "parenthesised": [false, false, true, false, false, false, false, false, false, false]
+    },
+    {
+     "label": "W(W)1",
+     "block": "N(W /FST)",
+     "values": [0.156, 0.0456, null, 0.0627, 0.0627, 0.0532, 0.00729, 0.00911, 0.0106, 0.0114],
+     "printed": [".156", ".0456", "", ".0627", ".0627", ".0532", ".00729", ".00911", ".0106", ".0114"]
+    },
+    {"label": "A(THE)", "block": "N(THE/FST)", "values": [46.2, 1024.0, 1936.0, 792.0, 156.0, 363.0, 656.0, 508.0, 511.0, 357.0]},
+    {"label": "1/T(THE)1", "block": "N(THE/FST)", "values": [0.104, 0.0162, 0.0678, 0.0208, -0.000498, 0.0106, 0.0131, 0.00608, 0.0157, 0.0046]},
+    {"label": "1/T(THE)2", "block": "N(THE/FST)", "values": [0.379, 1.0, 1.0, 1.0, 0.282, 0.505, 0.618, 0.407, 0.388, 0.26]},
+    {"label": "1/T(THE)3", "block": "N(THE/FST)", "values": [1.0, 1.46, 1.9, 1.08, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0]},
+    {
+     "label": "1/T(THE)4",
+     "block": "N(THE/FST)",
+     "values": [null, null, null, null, null, null, null, 4.22, 11.1, 4.42],
+     "printed": ["", "", "", "", "", "", "", "4.22", "11.1", "4.42"]
+    },
+    {"label": "A(HD)", "block": "N(HD /FST)", "values": [-245.0, -4476.0, -7961.0, -3388.0, -665.0, -1575.0, -2870.0, -2245.0, -2657.0, -1579.0]},
+    {"label": "1/T(HD)1", "block": "N(HD /FST)", "values": [0.00726, 0.0146, 0.068, 0.0169, -0.0245, 0.00335, 0.0123, 0.00489, 0.0151, 0.00307]},
+    {"label": "1/T(HD)2", "block": "N(HD /FST)", "values": [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0]},
+    {"label": "1/T(HD)3", "block": "N(HD /FST)", "values": [-4.21, 17.0, -23.8, 15.3, 5.96, 9.99, 12.7, 4.22, 11.1, 4.42]},
+    {"label": "1/T(HD)4", "block": "N(HD /FST)", "values": [4.27, -17.5, 23.9, -15.7, -6.05, -10.2, -12.9, 11.5, -12.4, -10.1]},
+    {
+     "label": "1/T(HD)5",
+     "block": "N(HD /FST)",
+     "values": [null, null, null, null, null, null, null, -11.5, 12.5, 10.1],
+     "printed": ["", "", "", "", "", "", "", "-11.5", "12.5", "10.1"]
+    },
+    {"label": "A(AZP)", "block": "N(AZP/FST)", "values": [-540.0, -12129.0, -23430.0, -9456.0, -1867.0, -4306.0, -7765.0, -5989.0, -5624.0, -4209.0]},
+    {
+     "label": "1/T(AZP)1",
+     "block": "N(AZP/FST)",
+     "values": [-0.0514, -0.000207, 0.000137, -0.000356, -0.000194, -0.00287, -0.000776, -0.00104, -0.000385, -0.00117]
+    },
+    {"label": "1/T(AZP)2", "block": "N(AZP/FST)", "values": [0.0543, 0.0148, 0.0679, 0.0172, -0.0243, 0.00618, 0.0131, 0.0059, 0.0154, 0.00419]},
+    {"label": "1/T(AZP)3", "block": "N(AZP/FST)", "values": [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0]},
+    {
+     "label": "1/T(AZP)4",
+     "block": "N(AZP/FST)",
+     "values": [null, null, null, null, null, null, null, 4.22, 11.1, 4.42],
+     "printed": ["", "", "", "", "", "", "", "4.22", "11.1", "4.42"]
+    },
+    {"label": "Z(AZP)1", "block": "N(AZP/FST)", "values": [0.121, 0.104, 0.0917, 0.0876, 0.062, 0.0625, 0.0586, 0.04, 0.0294, 0.028]},
+    {"label": "W(AZP)1", "block": "N(AZP/FST)", "values": [2.8, 10.5, 13.9, 9.3, 3.61, 6.09, 7.81, 7.07, 8.56, 6.19]}
+   ],
+   "doubt": [
+    {
+     "row": "1/T(HD)3",
+     "fc": 1,
+     "value": -4.21,
+     "candidates": [-4.21],
+     "why": "prints ' .21' (the '-4' did not print); -4.21 from the same row of Tables IV-4, IV-6, IV-8",
+     "decided_by": "repetition"
+    },
+    {"row": "Z(DET)3", "fc": 7, "value": 0.0316, "candidates": [0.0316, 0.0315], "why": "last digit 5 or 6 (reads 6 here, 5-or-6 in IV-11)"}
+   ]
+  },
+  "IV-12": {
+   "title": "TABLE IV-12  F-4C LONGITUDINAL HANDLING QUALITIES PARAMETERS  SAS Off  (BODY AXIS SYSTEM)",
+   "pdf_page": 104,
+   "printed_page": 98,
+   "reading": "two full readings (native, 1.5x zoom): identical",
+   "flight_condition": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+   "rows": [
+    {"label": "F/C #", "values": [1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0]},
+    {"label": "H", "values": ["SL", "SL", "SL", "15K", "35K", "35K", "35K", "45K", "45K", "55K"]},
+    {"label": "M", "values": [0.206, 0.8, 1.1, 0.9, 0.6, 0.9, 1.2, 1.5, 2.15, 1.8]},
+    {
+     "label": "D(G)/D(U) (DEG/KT)",
+     "block": "Bobweight Loop Open",
+     "values": [-0.0221, -0.044, -0.205, -0.0508, 0.0737, -0.0101, -0.037, -0.0147, -0.0453, -0.00923]
+    },
+    {"label": "NZA (G/RAD)", "block": "Bobweight Loop Open", "values": [3.11, 40.5, 72.6, 32.1, 5.06, 13.8, 22.4, 18.3, 25.1, 14.1]},
+    {"label": "DE/G (DEG/G)", "block": "Bobweight Loop Open", "values": [6.94, 0.867, 0.827, 1.29, 4.54, 2.99, 3.64, 5.65, 6.08, 8.44]},
+    {"label": "CAP (RAD/SEC/SEC/G)", "block": "Bobweight Loop Open", "values": [0.176, 0.488, 0.88, 0.562, 0.388, 0.595, 1.31, 1.58, 1.7, 1.66]},
+    {
+     "label": "PHUGOID(2) (SEC) ( TUCK(2) )",
+     "block": "Bobweight Loop Open",
+     "values": ["--", 18.4, "--", 11.3, "--", 15.2, "--", "--", "--", "--"],
+     "printed": ["--", "(18.4)", "--", "(11.3)", "--", "(15.2)", "--", "--", "--", "--"],
+     "parenthesised": [false, true, false, true, false, true, false, false, false, false]
+    },
+    {"label": "1/C(1/10)", "block": "Bobweight Loop Open", "values": [2.08, 1.17, 0.935, 0.883, 0.731, 0.626, 0.447, 0.279, 0.176, 0.178]},
+    {
+     "label": "FST/KT (LB/KT)",
+     "block": "Bobweight Loop Closed",
+     "values": [-0.0191, 0.0203, -0.0736, 0.0511, -0.0279, 0.0199, -0.0613, "--", "--", "--"]
+    },
+    {"label": "FST/G (LB/G)", "block": "Bobweight Loop Closed", "values": [7.13, 12.5, 17.9, 12.6, 10.2, 12.2, 21.3, "--", "--", "--"]}
+   ],
+   "doubt": [
+    {
+     "row": "D(G)/D(U) (DEG/KT)",
+     "fc": 4,
+     "value": -0.0508,
+     "candidates": [-0.0508, -0.0506],
+     "why": "last digit damaged; glyph shape is the damaged 8 of this column"
+    },
+    {
+     "row": "FST/G (LB/G)",
+     "fc": 4,
+     "value": 12.6,
+     "candidates": [12.6, 12.8],
+     "why": "last digit damaged; glyph shape is the damaged 6 of this column; a feel-system estimate gives 12.6-12.8"
+    }
+   ]
+  },
+  "IV-14": {
+   "title": "TABLE IV-14  F-4C AILERON TRANSFER FUNCTION FACTORS  SAS Off  (BODY AXIS SYSTEM)",
+   "pdf_page": 106,
+   "printed_page": 100,
+   "reading": "two full readings (native, 1.5x zoom): identical; recomputed from IV-2/IV-13",
+   "flight_condition": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+   "rows": [
+    {"label": "F/C #", "values": [1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0]},
+    {"label": "H", "values": ["SL", "SL", "SL", "15K", "35K", "35K", "35K", "45K", "45K", "55K"]},
+    {"label": "M", "values": [0.206, 0.8, 1.1, 0.9, 0.6, 0.9, 1.2, 1.5, 2.15, 1.8]},
+    {
+     "label": "1/T(DET)1",
+     "block": "DENOMINATOR",
+     "values": [0.0147, 0.00469, 0.00568, 0.00848, 0.0173, 0.00969, 0.00187, -0.000179, 0.000558, 0.000226]
+    },
+    {"label": "1/T(DET)2", "block": "DENOMINATOR", "values": [1.15, 3.1, 3.13, 2.33, 0.65, 1.33, 1.4, 0.996, 1.06, 0.748]},
+    {"label": "Z(DET)1", "block": "DENOMINATOR", "values": [0.156, 0.125, 0.134, 0.0972, 0.0881, 0.0491, 0.0727, 0.067, 0.0731, 0.0535]},
+    {"label": "W(DET)1", "block": "DENOMINATOR", "values": [1.82, 4.01, 6.21, 3.45, 1.83, 2.43, 3.57, 3.23, 2.93, 2.58]},
+    {
+     "label": "A(B)",
+     "block": "N(B /DA)",
+     "values": [-0.013, -0.00744, -0.0102, -0.00499, -0.00151, -0.00227, -0.00302, -0.00199, -0.00169, -0.000329]
+    },
+    {"label": "1/T(B)1", "block": "N(B /DA)", "values": [-10.4, -0.425, -0.0664, -0.407, 0.121, 0.127, -0.487, -0.76, -0.066, 0.155]},
+    {
+     "label": "1/T(B)2",
+     "block": "N(B /DA)",
+     "values": [0.297, 1.77, 3.08, 1.35, 0.433, 2.7, 0.704, 0.93, 1.6, 0.479],
+     "printed": ["(.297)", "1.77", "3.08", "1.35", ".433", "2.70", ".704", ".930", "1.60", ".479"],
+     "parenthesised": [true, false, false, false, false, false, false, false, false, false]
+    },
+    {
+     "label": "1/T(B)3",
+     "block": "N(B /DA)",
+     "values": [1.05, 111.0, 249.0, 121.0, -450.0, -115.0, 121.0, 35.1, 134.0, -644.0],
+     "printed": ["(1.05)", "111.", "249.", "121.", "-450.", "-115.", "121.", "35.1", "134.", "-644."],
+     "parenthesised": [true, false, false, false, false, false, false, false, false, false]
+    },
+    {"label": "A(P)", "block": "N(P /DA)", "values": [2.74, 22.2, 15.0, 17.5, 4.7, 0.0, 10.9, 6.78, 5.35, 4.67]},
+    {
+     "label": "1/T(P)1",
+     "block": "N(P /DA)",
+     "values": [-0.0285, -0.000186, 0.000135, -0.000292, -0.00908, -0.00166, -0.000766, -0.001, -0.000376, -0.00106]
+    },
+    {"label": "Z(P)1", "block": "N(P /DA)", "values": [0.152, 0.136, 0.135, 0.109, 0.0767, 0.0742, 0.0788, 0.0691, 0.0706, 0.0522]},
+    {"label": "W(P)1", "block": "N(P /DA)", "values": [1.74, 4.11, 6.82, 3.57, 1.36, 2.31, 3.63, 3.25, 3.0, 2.51]},
+    {"label": "A(R)", "block": "N(R /DA)", "values": [0.416, 0.923, 2.45, 0.747, 0.0887, 0.195, 0.667, 0.376, 0.357, 0.0567]},
+    {"label": "1/T(R)1", "block": "N(R /DA)", "values": [0.746, 3.08, 4.09, 2.39, 0.331, 0.733, 0.964, 0.494, 0.711, 0.32]},
+    {"label": "Z(R)1", "block": "N(R /DA)", "values": [0.145, -0.169, -0.2, -0.146, -0.056, -0.275, -0.0224, 0.0457, 0.203, -0.0241]},
+    {"label": "W(R)1", "block": "N(R /DA)", "values": [1.91, 2.16, 1.34, 2.05, 4.03, 3.69, 2.48, 2.92, 1.71, 5.46]},
+    {"label": "A(PHI)", "block": "N(PHI/DA)", "values": [2.82, 22.2, 15.0, 17.5, 4.71, 10.0, 10.9, 6.8, 5.35, 4.67]},
+    {"label": "Z(PHI)1", "block": "N(PHI/DA)", "values": [0.15, 0.136, 0.135, 0.109, 0.0722, 0.0735, 0.0788, 0.0691, 0.0709, 0.0518]},
+    {"label": "W(PHI)1", "block": "N(PHI/DA)", "values": [1.74, 4.11, 6.83, 3.57, 1.38, 2.31, 3.63, 3.25, 3.0, 2.51]},
+    {"label": "A(AYP)", "block": "N(AYP/DA)", "values": [12.0, 70.7, 69.3, 56.6, 13.8, 29.3, 38.0, 22.3, 17.3, 13.5]},
+    {"label": "1/T(AYP)1", "block": "N(AYP/DA)", "values": [-0.234, -0.311, -0.0885, -0.243, 0.125, 0.119, -0.199, 0.184, -0.0738, 0.104]},
+    {"label": "1/T(AYP)2", "block": "N(AYP/DA)", "values": [0.373, 0.496, 1.27, 0.393, -0.4, -0.39, 0.23, -0.195, 0.485, -0.257]},
+    {"label": "Z(AYP)1", "block": "N(AYP/DA)", "values": [0.149, 0.114, 0.0935, 0.095, 0.149, 0.0765, 0.071, 0.0665, 0.023, 0.0766]},
+    {"label": "W(AYP)1", "block": "N(AYP/DA)", "values": [1.77, 4.14, 6.4, 3.57, 1.32, 2.34, 3.58, 3.26, 3.28, 2.42]}
+   ],
+   "doubt": [
+    {
+     "row": "1/T(DET)1",
+     "fc": 4,
+     "value": 0.00848,
+     "candidates": [0.00848, 0.00348],
+     "why": "PRINTS like .00348 here; Table IV-15 prints .00848 and recomputation gives .0084. A damaged 8.",
+     "decided_by": "repetition + identity"
+    },
+    {"row": "A(P)", "fc": 6, "value": 0.0, "candidates": [10.0], "why": "PRINTED 0.00 (overflow of 10.0; see IV-13 L'DA)", "use_instead": 10.0}
+   ]
+  },
+  "IV-15": {
+   "title": "TABLE IV-15  F-4C RUDDER TRANSFER FUNCTION FACTORS  SAS Off  (BODY AXIS SYSTEM)",
+   "pdf_page": 107,
+   "printed_page": 101,
+   "reading": "one full reading; numerators re-read where reprinted in IV-17, denominator in IV-14; recomputed from IV-2/IV-13",
+   "flight_condition": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+   "rows": [
+    {"label": "F/C #", "values": [1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0]},
+    {"label": "H", "values": ["SL", "SL", "SL", "15K", "35K", "35K", "35K", "45K", "45K", "55K"]},
+    {"label": "M", "values": [0.206, 0.8, 1.1, 0.9, 0.6, 0.9, 1.2, 1.5, 2.15, 1.8]},
+    {
+     "label": "1/T(DET)1",
+     "block": "DENOMINATOR",
+     "values": [0.0147, 0.00469, 0.00568, 0.00848, 0.0173, 0.00969, 0.00187, -0.000179, 0.000558, 0.000226]
+    },
+    {"label": "1/T(DET)2", "block": "DENOMINATOR", "values": [1.15, 3.1, 3.13, 2.33, 0.65, 1.33, 1.4, 0.996, 1.06, 0.748]},
+    {"label": "Z(DET)1", "block": "DENOMINATOR", "values": [0.156, 0.125, 0.134, 0.0972, 0.0881, 0.0491, 0.0727, 0.067, 0.0731, 0.0535]},
+    {"label": "W(DET)1", "block": "DENOMINATOR", "values": [1.82, 4.01, 6.21, 3.45, 1.83, 2.43, 3.57, 3.23, 2.93, 2.58]},
+    {"label": "A(B)", "block": "N(B /DR)", "values": [0.0174, 0.0442, 0.0307, 0.0281, 0.0113, 0.0142, 0.0132, 0.00988, 0.00867, 0.00614]},
+    {"label": "1/T(B)1", "block": "N(B /DR)", "values": [-0.0911, -0.00161, 0.00396, -0.00256, -0.024, -0.00775, 0.0003, -0.00165, 0.0019, -0.00179]},
+    {"label": "1/T(B)2", "block": "N(B /DR)", "values": [1.26, 3.09, 3.13, 2.3, 0.75, 1.26, 1.4, 0.996, 1.05, 0.752]},
+    {"label": "1/T(B)3", "block": "N(B /DR)", "values": [46.4, 178.0, 286.0, 201.0, 130.0, 191.0, 248.0, 215.0, 222.0, 225.0]},
+    {"label": "A(P)", "block": "N(P /DR)", "values": [0.699, 7.32, 9.26, 5.07, 0.768, 1.95, 2.99, 1.95, 2.57, 1.21]},
+    {
+     "label": "1/T(P)1",
+     "block": "N(P /DR)",
+     "values": [-0.0287, -0.000188, 0.00014, -0.000294, -0.00911, -0.00167, -0.000771, -0.001, -0.000376, -0.00106]
+    },
+    {
+     "label": "1/T(P)2",
+     "block": "N(P /DR)",
+     "values": [2.53, -3.52, -2.16, 4.27, 3.91, 4.26, -1.58, -1.51, 0.0758, 1.79],
+     "printed": ["2.53", "-3.52", "-2.16", "4.27", "3.91", "4.26", "-1.58", "-1.51", "(.0758)", "1.79"],
+     "parenthesised": [false, false, false, false, false, false, false, false, true, false]
+    },
+    {
+     "label": "1/T(P)3",
+     "block": "N(P /DR)",
+     "values": [-3.34, 3.57, 2.92, -4.38, -4.4, -4.59, 1.73, 1.54, 1.45, -1.79],
+     "printed": ["-3.34", "3.57", "2.92", "-4.38", "-4.40", "-4.59", "1.73", "1.54", "(1.45)", "-1.79"],
+     "parenthesised": [false, false, false, false, false, false, false, false, true, false]
+    },
+    {"label": "A(R)", "block": "N(R /DR)", "values": [-0.67, -7.8, -8.8, -5.58, -1.36, -2.61, -3.19, -2.03, -1.86, -1.31]},
+    {"label": "1/T(R)1", "block": "N(R /DR)", "values": [0.917, 3.1, 3.13, 2.33, 0.366, 1.11, 1.4, 0.964, -0.172, 0.632]},
+    {
+     "label": "Z(R)1",
+     "block": "N(R /DR)",
+     "values": [0.257, 0.297, 0.671, 0.113, 0.201, 0.169, 0.258, 0.277, 0.237, 0.326],
+     "printed": [".257", ".297", ".671", ".113", ".201", ".169", ".258", ".277", "(.237)", ".326"],
+     "parenthesised": [false, false, false, false, false, false, false, false, true, false]
+    },
+    {
+     "label": "W(R)1",
+     "block": "N(R /DR)",
+     "values": [1.15, 0.369, 0.238, 0.496, 1.21, 0.694, 0.225, 0.226, 1.09, 0.294],
+     "printed": ["1.15", ".369", ".238", ".496", "1.21", ".694", ".225", ".226", "(1.09)", ".294"],
+     "parenthesised": [false, false, false, false, false, false, false, false, true, false]
+    },
+    {"label": "A(PHI)", "block": "N(PHI/DR)", "values": [0.561, 7.28, 9.3, 5.02, 0.542, 1.83, 2.9, 1.86, 2.52, 1.13]},
+    {
+     "label": "1/T(PHI)1",
+     "block": "N(PHI/DR)",
+     "values": [2.67, -3.54, -2.15, 4.28, 4.51, 4.35, -1.63, 1.55, 0.0692, 1.83],
+     "printed": ["2.67", "-3.54", "-2.15", "4.28", "4.51", "4.35", "-1.63", "1.55", "(.0692)", "1.83"],
+     "parenthesised": [false, false, false, false, false, false, false, false, true, false]
+    },
+    {
+     "label": "1/T(PHI)2",
+     "block": "N(PHI/DR)",
+     "values": [-4.1, 3.57, 2.92, -4.42, -5.57, -4.79, 1.74, -1.58, 1.46, -1.88],
+     "printed": ["-4.10", "3.57", "2.92", "-4.42", "-5.57", "-4.79", "1.74", "-1.58", "(1.46)", "-1.88"],
+     "parenthesised": [false, false, false, false, false, false, false, false, true, false]
+    },
+    {"label": "A(AYP)", "block": "N(AYP/DR)", "values": [-4.79, -66.5, -79.0, -49.4, -13.3, -24.4, -27.8, -13.1, -4.95, -7.18]},
+    {"label": "1/T(AYP)1", "block": "N(AYP/DR)", "values": [-0.102, -0.0039, 0.0033, -0.00665, -0.032, -0.0152, -0.000507, -0.00267, 0.00246, -0.003]},
+    {"label": "1/T(AYP)2", "block": "N(AYP/DR)", "values": [0.604, 3.0, 3.15, 1.93, 0.368, 0.766, 1.37, 0.96, 1.11, 0.691]},
+    {"label": "Z(AYP)1", "block": "N(AYP/DR)", "values": [0.356, 0.102, 0.0552, 0.118, 0.13, 0.138, 0.0544, 0.0402, 0.04, 0.0408]},
+    {"label": "W(AYP)1", "block": "N(AYP/DR)", "values": [2.71, 5.19, 6.92, 4.54, 2.68, 3.29, 3.75, 4.12, 8.48, 4.18]}
+   ],
+   "doubt": [
+    {
+     "row": "1/T(AYP)1",
+     "fc": 4,
+     "value": -0.00665,
+     "candidates": [-0.00665, -0.00565],
+     "why": "first significant digit damaged (looks like 5 or 6) both here and in IV-17; recomputation from IV-13 gives -.006654, the neighbouring columns reproduce to 1-3%",
+     "decided_by": "identity"
+    },
+    {
+     "row": "1/T(B)1",
+     "fc": 7,
+     "value": 0.0003,
+     "candidates": [0.0003],
+     "why": "prints .000300 here and .000301 in IV-17: a genuine difference between the two printouts"
+    }
+   ]
+  },
+  "IV-16": {
+   "title": "TABLE IV-16  F-4C AILERON TRANSFER FUNCTION FACTORS  SAS On  (BODY AXIS SYSTEM)",
+   "pdf_page": [108, 109],
+   "printed_page": [102, 103],
+   "reading": "two full readings (native, 1.5x zoom): identical",
+   "flight_condition": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+   "rows": [
+    {"label": "F/C #", "values": [1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0]},
+    {"label": "H", "values": ["SL", "SL", "SL", "15K", "35K", "35K", "35K", "45K", "45K", "55K"]},
+    {"label": "M", "values": [0.206, 0.8, 1.1, 0.9, 0.6, 0.9, 1.2, 1.5, 2.15, 1.8]},
+    {
+     "label": "1/T(DET)1",
+     "block": "DENOMINATOR",
+     "values": [0.00233, -0.000122, 0.00468, 0.00114, 0.00289, 0.00176, 0.00129, -0.000595, 0.00116, -0.000318]
+    },
+    {"label": "1/T(DET)2", "block": "DENOMINATOR", "values": [0.905, 0.852, 0.534, 2.72, 0.453, 1.38, 0.645, 0.617, 0.539, 0.624]},
+    {"label": "1/T(DET)3", "block": "DENOMINATOR", "values": [2.03, 1.58, 3.15, 8.01, 3.62, 5.31, 1.38, 0.992, 1.11, 0.803]},
+    {
+     "label": "Z(DET)1",
+     "block": "DENOMINATOR",
+     "values": [0.393, 3.2, 0.657, 0.763, 0.332, 0.508, 0.752, 0.608, 0.572, 0.592],
+     "printed": [".393", "(3.20)", ".657", ".763", ".332", ".508", ".752", ".608", ".572", ".592"],
+     "parenthesised": [false, true, false, false, false, false, false, false, false, false]
+    },
+    {
+     "label": "W(DET)1",
+     "block": "DENOMINATOR",
+     "values": [1.52, 9.95, 6.68, 1.05, 1.36, 1.01, 3.38, 3.15, 3.24, 2.48],
+     "printed": ["1.52", "(9.95)", "6.68", "1.05", "1.36", "1.01", "3.38", "3.15", "3.24", "2.48"],
+     "parenthesised": [false, true, false, false, false, false, false, false, false, false]
+    },
+    {
+     "label": "A(B)",
+     "block": "N(B /DA)",
+     "values": [-0.016, -0.00965, -0.00937, -0.00605, -0.00181, -0.00294, -0.00315, -0.00216, -0.00187, -0.000461]
+    },
+    {"label": "1/T(B)1", "block": "N(B /DA)", "values": [0.0939, 0.0124, 0.0828, 0.015, 0.0136, 0.0128, 0.0299, 0.0354, 0.0543, 0.0223]},
+    {"label": "1/T(B)2", "block": "N(B /DA)", "values": [0.887, -1.04, -0.154, -1.14, 0.398, 1.62, -1.68, 1.1, -0.309, 0.591]},
+    {"label": "1/T(B)3", "block": "N(B /DA)", "values": [-6.92, 7.03, 4.91, 5.78, 4.15, 10.3, 2.24, -4.27, 2.13, 2.79]},
+    {"label": "1/T(B)4", "block": "N(B /DA)", "values": [8.52, 128.0, 246.0, 137.0, -354.0, -48.9, 129.0, 55.1, 143.0, -393.0]},
+    {"label": "A(P)", "block": "N(P /DA)", "values": [2.64, 21.8, 15.2, 17.3, 4.68, 9.9, 10.9, 6.75, 5.29, 4.64]},
+    {
+     "label": "1/T(P)1",
+     "block": "N(P /DA)",
+     "values": [-0.0285, -0.000187, 0.000136, -0.000294, -0.00908, -0.00166, -0.000767, -0.001, -0.000377, -0.00106]
+    },
+    {"label": "1/T(P)2", "block": "N(P /DA)", "values": [1.09, 0.592, 0.513, 0.71, 3.61, 5.33, 0.602, 0.594, 0.578, 0.636]},
+    {
+     "label": "Z(P)1",
+     "block": "N(P /DA)",
+     "values": [0.867, 2.16, 0.675, 1.49, 0.543, 0.764, 0.766, 0.626, 0.59, 0.598],
+     "printed": [".867", "(2.16)", ".675", "(1.49)", ".543", ".764", ".766", ".626", ".590", ".598"],
+     "parenthesised": [false, true, false, true, false, false, false, false, false, false]
+    },
+    {
+     "label": "W(P)1",
+     "block": "N(P /DA)",
+     "values": [1.29, 10.2, 7.33, 8.16, 0.549, 0.772, 3.48, 3.19, 3.35, 2.42],
+     "printed": ["1.29", "(10.2)", "7.33", "(8.16)", ".549", ".772", "3.48", "3.19", "3.35", "2.42"],
+     "parenthesised": [false, true, false, true, false, false, false, false, false, false]
+    },
+    {"label": "A(R)", "block": "N(R /DA)", "values": [0.547, 1.31, 2.21, 0.958, 0.125, 0.32, 0.699, 0.411, 0.395, 0.085]},
+    {"label": "1/T(R)1", "block": "N(R /DA)", "values": [0.471, 0.481, 0.495, 0.468, 0.302, 0.417, 0.456, 0.4, 0.423, 0.3]},
+    {"label": "1/T(R)2", "block": "N(R /DA)", "values": [0.904, 7.04, 5.26, 5.87, 0.719, 3.08, 1.84, 0.755, 1.36, 0.623]},
+    {"label": "Z(R)1", "block": "N(R /DA)", "values": [0.226, -0.0496, -0.22, -0.0272, 0.467, 0.417, 0.271, 0.305, 0.399, 0.414]},
+    {"label": "W(R)1", "block": "N(R /DA)", "values": [1.69, 1.52, 1.38, 1.38, 3.21, 1.68, 1.93, 2.69, 1.53, 4.47]},
+    {"label": "A(PHI)", "block": "N(PHI/DA)", "values": [2.76, 21.9, 15.2, 17.4, 4.7, 9.92, 10.9, 6.77, 5.3, 4.65]},
+    {"label": "1/T(PHI)1", "block": "N(PHI/DA)", "values": [1.07, 0.592, 0.513, 0.71, 3.59, 5.33, 0.602, 0.594, 0.578, 0.635]},
+    {
+     "label": "Z(PHI)1",
+     "block": "N(PHI/DA)",
+     "values": [0.841, 2.16, 0.675, 1.49, 0.539, 0.763, 0.766, 0.625, 0.59, 0.598],
+     "printed": [".841", "(2.16)", ".675", "(1.49)", ".539", ".763", ".766", ".625", ".590", ".598"],
+     "parenthesised": [false, true, false, true, false, false, false, false, false, false]
+    },
+    {
+     "label": "W(PHI)1",
+     "block": "N(PHI/DA)",
+     "values": [1.3, 10.2, 7.34, 8.15, 0.556, 0.772, 3.48, 3.18, 3.34, 2.42],
+     "printed": ["1.30", "(10.2)", "7.34", "(8.15)", ".556", ".772", "3.48", "3.18", "3.34", "2.42"],
+     "parenthesised": [false, true, false, true, false, false, false, false, false, false]
+    },
+    {"label": "A(AYP)", "block": "N(AYP/DA)", "values": [13.2, 74.1, 67.1, 58.5, 14.1, 30.4, 38.3, 22.5, 17.4, 13.6]},
+    {"label": "1/T(AYP)1", "block": "N(AYP/DA)", "values": [0.149, 0.0293, 0.111, 0.0294, 0.0208, 0.0212, 0.0486, 0.058, 0.079, 0.0371]},
+    {"label": "1/T(AYP)2", "block": "N(AYP/DA)", "values": [-0.37, -0.579, -0.174, -0.515, 0.508, -0.675, -0.396, -0.372, -0.174, -0.476]},
+    {"label": "1/T(AYP)3", "block": "N(AYP/DA)", "values": [0.925, 9.3, 2.56, 7.52, -0.88, 5.02, 1.17, 0.759, 1.14, 0.615]},
+    {
+     "label": "Z(AYP)1",
+     "block": "N(AYP/DA)",
+     "values": [0.61, 0.641, 0.475, 0.632, 1.31, 0.77, 0.673, 0.573, 0.47, 0.641],
+     "printed": [".610", ".641", ".475", ".632", "(1.31)", ".770", ".673", ".573", ".470", ".641"],
+     "parenthesised": [false, false, false, false, true, false, false, false, false, false]
+    },
+    {
+     "label": "W(AYP)1",
+     "block": "N(AYP/DA)",
+     "values": [1.64, 2.32, 6.0, 1.94, 3.16, 1.18, 3.33, 3.28, 3.47, 2.63],
+     "printed": ["1.64", "2.32", "6.00", "1.94", "(3.16)", "1.18", "3.33", "3.28", "3.47", "2.63"],
+     "parenthesised": [false, false, false, false, true, false, false, false, false, false]
+    }
+   ],
+   "doubt": [
+    {"row": "A(B)", "fc": 4, "value": -0.00605, "candidates": [-0.00605, -0.00609], "why": "last digit 5 or 9 in the weak F/C 4 column"},
+    {"row": "1/T(DET)1", "fc": 9, "value": 0.00116, "candidates": [0.00116, 0.00115], "why": "last digit 5 or 6 in both IV-16 and IV-17"}
+   ]
+  },
+  "IV-17": {
+   "title": "TABLE IV-17  F-4C RUDDER TRANSFER FUNCTION FACTORS  SAS On  (BODY AXIS SYSTEM)   [second page is headed 'TABLE IX-17 (Concluded)' in the print]",
+   "pdf_page": [110, 111],
+   "printed_page": [104, 105],
+   "reading": "one full reading; denominator = IV-16 (read three times); numerator roots agree with IV-15 plus the .500 root; numerator GAINS A() read once",
+   "flight_condition": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+   "rows": [
+    {"label": "F/C #", "values": [1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0]},
+    {"label": "H", "values": ["SL", "SL", "SL", "15K", "35K", "35K", "35K", "45K", "45K", "55K"]},
+    {"label": "M", "values": [0.206, 0.8, 1.1, 0.9, 0.6, 0.9, 1.2, 1.5, 2.15, 1.8]},
+    {
+     "label": "1/T(DET)1",
+     "block": "DENOMINATOR",
+     "values": [0.00233, -0.000122, 0.00468, 0.00114, 0.00289, 0.00176, 0.00129, -0.000595, 0.00116, -0.000318]
+    },
+    {"label": "1/T(DET)2", "block": "DENOMINATOR", "values": [0.905, 0.852, 0.534, 2.72, 0.453, 1.38, 0.645, 0.617, 0.539, 0.624]},
+    {"label": "1/T(DET)3", "block": "DENOMINATOR", "values": [2.03, 1.58, 3.15, 8.01, 3.62, 5.31, 1.38, 0.992, 1.11, 0.803]},
+    {
+     "label": "Z(DET)1",
+     "block": "DENOMINATOR",
+     "values": [0.393, 3.2, 0.657, 0.763, 0.332, 0.508, 0.752, 0.608, 0.572, 0.592],
+     "printed": [".393", "(3.20)", ".657", ".763", ".332", ".508", ".752", ".608", ".572", ".592"],
+     "parenthesised": [false, true, false, false, false, false, false, false, false, false]
+    },
+    {
+     "label": "W(DET)1",
+     "block": "DENOMINATOR",
+     "values": [1.52, 9.95, 6.68, 1.05, 1.36, 1.01, 3.38, 3.15, 3.24, 2.48],
+     "printed": ["1.52", "(9.95)", "6.68", "1.05", "1.36", "1.01", "3.38", "3.15", "3.24", "2.48"],
+     "parenthesised": [false, true, false, false, false, false, false, false, false, false]
+    },
+    {"label": "A(B)", "block": "N(B /DR)", "values": [0.0166, 0.0298, 0.0229, 0.0204, 0.0102, 0.0117, 0.0113, 0.00926, 0.00854, 0.00594]},
+    {
+     "label": "1/T(B)1",
+     "block": "N(B /DR)",
+     "values": [-0.0911, -0.00161, 0.00396, -0.00256, -0.024, -0.00775, 0.000301, -0.00165, 0.0019, -0.00179]
+    },
+    {"label": "1/T(B)2", "block": "N(B /DR)", "values": [0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5]},
+    {"label": "1/T(B)3", "block": "N(B /DR)", "values": [1.26, 3.09, 3.13, 2.3, 0.75, 1.26, 1.4, 0.996, 1.05, 0.752]},
+    {"label": "1/T(B)4", "block": "N(B /DR)", "values": [46.4, 178.0, 286.0, 201.0, 130.0, 191.0, 248.0, 215.0, 222.0, 225.0]},
+    {"label": "A(P)", "block": "N(P /DR)", "values": [0.669, 4.93, 6.91, 3.69, 0.69, 1.62, 2.57, 1.83, 2.53, 1.17]},
+    {
+     "label": "1/T(P)1",
+     "block": "N(P /DR)",
+     "values": [-0.0287, -0.000188, 0.00014, -0.000294, -0.00911, -0.00167, -0.000771, -0.001, -0.000376, -0.00106]
+    },
+    {"label": "1/T(P)2", "block": "N(P /DR)", "values": [0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5]},
+    {
+     "label": "1/T(P)3",
+     "block": "N(P /DR)",
+     "values": [2.53, -3.52, -2.16, 4.27, 3.91, 4.26, -1.58, -1.51, 0.0758, 1.79],
+     "printed": ["2.53", "-3.52", "-2.16", "4.27", "3.91", "4.26", "-1.58", "-1.51", "(.0758)", "1.79"],
+     "parenthesised": [false, false, false, false, false, false, false, false, true, false]
+    },
+    {
+     "label": "1/T(P)4",
+     "block": "N(P /DR)",
+     "values": [-3.34, 3.57, 2.92, -4.38, -4.4, -4.59, 1.73, 1.54, 1.45, -1.79],
+     "printed": ["-3.34", "3.57", "2.92", "-4.38", "-4.40", "-4.59", "1.73", "1.54", "(1.45)", "-1.79"],
+     "parenthesised": [false, false, false, false, false, false, false, false, true, false]
+    },
+    {"label": "A(R)", "block": "N(R /DR)", "values": [-0.641, -5.26, -6.57, -4.06, -1.22, -2.17, -2.73, -1.91, -1.84, -1.27]},
+    {"label": "1/T(R)1", "block": "N(R /DR)", "values": [0.5, 0.5, 0.5, 0.5, 0.366, 0.5, 0.5, 0.5, -0.172, 0.5]},
+    {"label": "1/T(R)2", "block": "N(R /DR)", "values": [0.917, 3.1, 3.13, 2.33, 0.5, 1.11, 1.4, 0.964, 0.237, 0.632]},
+    {
+     "label": "Z(R)1",
+     "block": "N(R /DR)",
+     "values": [0.257, 0.297, 0.671, 0.113, 0.201, 0.169, 0.258, 0.277, 0.5, 0.326],
+     "printed": [".257", ".297", ".671", ".113", ".201", ".169", ".258", ".277", "(.500)", ".326"],
+     "parenthesised": [false, false, false, false, false, false, false, false, true, false]
+    },
+    {
+     "label": "W(R)1",
+     "block": "N(R /DR)",
+     "values": [1.15, 0.369, 0.238, 0.496, 1.21, 0.694, 0.225, 0.226, 1.09, 0.294],
+     "printed": ["1.15", ".369", ".238", ".496", "1.21", ".694", ".225", ".226", "(1.09)", ".294"],
+     "parenthesised": [false, false, false, false, false, false, false, false, true, false]
+    },
+    {"label": "A(PHI)", "block": "N(PHI/DR)", "values": [0.536, 4.91, 6.95, 3.65, 0.487, 1.52, 2.49, 1.74, 2.49, 1.1]},
+    {"label": "1/T(PHI)1", "block": "N(PHI/DR)", "values": [0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5]},
+    {
+     "label": "1/T(PHI)2",
+     "block": "N(PHI/DR)",
+     "values": [2.67, -3.54, -2.15, 4.28, 4.51, 4.35, -1.63, 1.55, 0.0692, 1.83],
+     "printed": ["2.67", "-3.54", "-2.15", "4.28", "4.51", "4.35", "-1.63", "1.55", "(.0692)", "1.83"],
+     "parenthesised": [false, false, false, false, false, false, false, false, true, false]
+    },
+    {
+     "label": "1/T(PHI)3",
+     "block": "N(PHI/DR)",
+     "values": [-4.1, 3.57, 2.92, -4.42, -5.57, -4.79, 1.74, -1.58, 1.46, -1.88],
+     "printed": ["-4.10", "3.57", "2.92", "-4.42", "-5.57", "-4.79", "1.74", "-1.58", "(1.46)", "-1.88"],
+     "parenthesised": [false, false, false, false, false, false, false, false, true, false]
+    },
+    {"label": "A(AYP)", "block": "N(AYP/DR)", "values": [-4.58, -44.8, -59.0, -36.0, -12.0, -20.3, -23.8, -12.3, -4.88, -6.95]},
+    {"label": "1/T(AYP)1", "block": "N(AYP/DR)", "values": [-0.102, -0.0039, 0.0033, -0.00665, -0.032, -0.0152, -0.000507, -0.00267, 0.00246, -0.003]},
+    {"label": "1/T(AYP)2", "block": "N(AYP/DR)", "values": [0.5, 0.5, 0.5, 0.5, 0.368, 0.5, 0.5, 0.5, 0.5, 0.5]},
+    {"label": "1/T(AYP)3", "block": "N(AYP/DR)", "values": [0.604, 3.0, 3.15, 1.93, 0.5, 0.766, 1.37, 0.96, 1.11, 0.691]},
+    {"label": "Z(AYP)1", "block": "N(AYP/DR)", "values": [0.356, 0.102, 0.0552, 0.118, 0.13, 0.138, 0.0544, 0.0402, 0.04, 0.0408]},
+    {"label": "W(AYP)1", "block": "N(AYP/DR)", "values": [2.71, 5.19, 6.92, 4.54, 2.68, 3.29, 3.75, 4.12, 8.48, 4.18]}
+   ],
+   "doubt": [
+    {"row": "1/T(AYP)1", "fc": 4, "value": -0.00665, "candidates": [-0.00665, -0.00565], "why": "see IV-15"},
+    {"row": "1/T(DET)1", "fc": 9, "value": 0.00116, "candidates": [0.00116, 0.00115], "why": "see IV-16"},
+    {"row": "A() gain rows", "fc": null, "value": null, "candidates": [], "why": "read once only"},
+    {
+     "row": "N(R /DR)",
+     "fc": 9,
+     "value": null,
+     "candidates": [],
+     "why": "four real roots printed as 1/T(R)1=-.172, 1/T(R)2=.237, Z(R)1=(.500), W(R)1=(1.09): as printed"
+    }
+   ]
+  },
+  "IV-18": {
+   "title": "TABLE IX-18 [sic; it is the F-4C chapter's eighteenth table]  F-4C LATERAL-DIRECTIONAL HANDLING QUALITIES PARAMETERS  SAS Off  (BODY AXIS SYSTEM)",
+   "pdf_page": 112,
+   "printed_page": 106,
+   "reading": "two full readings (native, 1.45x zoom): identical; period and damping rows recomputed from IV-14",
+   "flight_condition": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+   "rows": [
+    {"label": "F/C #", "values": [1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0]},
+    {"label": "H", "values": ["SL", "SL", "SL", "15K", "35K", "35K", "35K", "45K", "45K", "55K"]},
+    {"label": "M", "values": [0.206, 0.8, 1.1, 0.9, 0.6, 0.9, 1.2, 1.5, 2.15, 1.8]},
+    {"label": "DR PERIOD (SEC)", "values": [3.49, 1.58, 1.02, 1.83, 3.45, 2.59, 1.76, 1.95, 2.15, 2.44]},
+    {"label": "1/C(1/2)", "values": [1.43, 1.15, 1.22, 0.885, 0.802, 0.446, 0.661, 0.609, 0.665, 0.485]},
+    {"label": "SPIRAL (2) (SEC)", "values": ["--", "--", "--", "--", "--", "--", "--", 3868.0, "--", "--"]},
+    {"label": "P(1)", "values": [1.9, 7.39, 5.51, 7.79, 2.52, 6.8, 7.93, 6.83, 5.22, 5.79]},
+    {"label": "P(2)", "values": ["--", 7.33, 5.42, 7.69, 2.12, 6.28, 7.9, 6.83, 5.21, 5.75]},
+    {"label": "P(3)", "values": ["--", 7.52, 5.81, 7.98, 4.0, 6.63, 7.98, 6.85, 5.28, 5.85]},
+    {"label": "P(2)/P(1)", "values": ["--", 0.992, 0.984, 0.988, 0.844, 0.924, 0.996, 0.0, 0.997, 0.993]},
+    {"label": "P(OSC)/P(AV)", "values": ["--", 0.00847, 0.0217, 0.0125, 0.211, 0.0335, 0.00355, 0.000659, 0.00415, 0.00588]},
+    {"label": "W(PHI)/W(D)", "values": [0.955, 1.03, 1.1, 1.03, 0.753, 0.951, 1.02, 1.01, 1.02, 0.972]},
+    {"label": "DEL-B-MAX", "values": [0.0738, 0.0664, 0.106, 0.0757, 0.338, 0.145, 0.0521, 0.0157, 0.0559, 0.0562]},
+    {"label": "PHI TO BETA, PHASE", "values": [29.1, 32.4, 18.7, 28.4, 16.4, -335.0, 18.2, 15.5, 16.9, -346.0]},
+    {"label": "PHI TO BETA", "values": [2.63, 1.39, 1.16, 2.0, 2.98, 2.79, 1.03, 1.05, 0.948, 1.21]},
+    {"label": "PHI TO VE", "values": [0.657, 0.0891, 0.0539, 0.152, 0.526, 0.327, 0.091, 0.094, 0.0591, 0.115]}
+   ],
+   "doubt": [
+    {"row": "P(2)/P(1)", "fc": 8, "value": 0.0, "candidates": [1.0], "why": "PRINTED .000: overflow of 1.000 (P(2)=P(1)=6.83)", "use_instead": 1.0},
+    {
+     "row": "P(2)/P(1)",
+     "fc": 4,
+     "value": 0.988,
+     "candidates": [0.988, 0.938],
+     "why": "prints like .938 (damaged 8); 7.69/7.79=.987",
+     "decided_by": "identity"
+    },
+    {
+     "row": "P(OSC)/P(AV)",
+     "fc": 4,
+     "value": 0.0125,
+     "candidates": [0.0125, 0.0129],
+     "why": "last digit damaged; (P1+P3-2P2)/(P1+P3+2P2)=.0125",
+     "decided_by": "identity"
+    }
+   ]
+  }
+ },
+ "figures": {
+  "trim": {
+   "title": "[Figure IV-8, caption not printed on the page] trim angle of attack and stabilator deflection vs Mach, F-4C, 38924 lb, .289 c-bar",
+   "pdf_page": 77,
+   "printed_page": 71,
+   "notes": ["alpha0 is relative to the fuselage reference line (FRL), degrees", "delta_s positive trailing edge down, degrees", "circled numbers on the figure are flight conditions 2-10; the table values (Table IV-2 ALPHA) agree with the curves within 0.1 deg"],
+   "reading_error": "alpha0 and delta_s about +/-0.1 deg where the curves are shallow; up to +/-0.4 deg on the steep low-Mach ends (alpha0 above 6 deg)",
+   "alpha0_deg": {
+    "SL": [[0.3, 9.07, "m"], [0.4, 4.5, "m"], [0.5, 2.32, "m"], [0.6, 1.33, "m"], [0.7, 0.76, "m"], [0.8, 0.3, "i"], [0.85, 0.12, "m"], [0.9, -0.03, "m"], [0.95, -0.15, "m"], [1.0, -0.25, "m"], [1.05, -0.3, "m"], [1.1, -0.33, "i"], [1.15, -0.33, "m"], [1.2, -0.27, "m"], [1.3, -0.04, "m"]],
+    "15000": [[0.35, 12.4, "m"], [0.4, 8.94, "m"], [0.5, 5.12, "m"], [0.6, 3.25, "m"], [0.7, 2.1, "m"], [0.8, 1.19, "m"], [0.85, 0.83, "m"], [0.9, 0.53, "i"], [0.95, 0.28, "m"], [1.0, 0.16, "m"], [1.05, 0.14, "m"], [1.1, 0.13, "m"], [1.15, 0.12, "m"], [1.2, 0.13, "m"], [1.3, 0.15, "m"], [1.4, 0.29, "m"], [1.5, 0.5, "m"]],
+    "35000": [[0.55, 12.28, "m"], [0.6, 9.72, "i"], [0.7, 5.97, "m"], [0.8, 3.91, "m"], [0.85, 3.26, "m"], [0.9, 2.69, "i"], [0.95, 2.31, "m"], [1.0, 2.0, "m"], [1.05, 1.84, "m"], [1.1, 1.73, "m"], [1.15, 1.63, "m"], [1.2, 1.56, "i"], [1.3, 1.42, "m"], [1.4, 1.31, "m"], [1.5, 1.21, "m"], [1.6, 1.13, "m"], [1.7, 1.07, "m"], [1.8, 0.99, "m"], [1.9, 0.91, "m"], [2.0, 0.86, "m"], [2.1, 0.81, "m"], [2.2, 0.74, "m"]],
+    "45000": [[0.7, 11.9, "m"], [0.8, 7.61, "m"], [0.85, 6.33, "m"], [0.9, 5.27, "m"], [0.95, 4.56, "m"], [1.0, 3.94, "m"], [1.05, 3.58, "m"], [1.1, 3.3, "m"], [1.15, 3.11, "m"], [1.2, 3.0, "m"], [1.3, 2.89, "m"], [1.4, 2.78, "m"], [1.5, 2.64, "i"], [1.6, 2.5, "m"], [1.7, 2.34, "m"], [1.8, 2.14, "m"], [1.9, 1.92, "m"], [2.0, 1.69, "m"], [2.1, 1.48, "m"], [2.2, 1.24, "m"]],
+    "55000": [[0.9, 10.89, "m"], [0.95, 9.07, "m"], [1.0, 7.43, "m"], [1.05, 6.29, "m"], [1.1, 5.6, "m"], [1.15, 5.36, "m"], [1.2, 5.35, "m"], [1.3, 5.2, "m"], [1.4, 4.88, "m"], [1.5, 4.46, "m"], [1.6, 3.96, "m"], [1.7, 3.56, "m"], [1.8, 3.32, "i"], [1.9, 3.19, "m"], [2.0, 3.12, "m"], [2.1, 2.93, "m"], [2.2, 2.61, "m"]]
+   },
+   "delta_s_deg": {
+    "SL": [[0.3, -3.82, "m"], [0.4, -1.68, "m"], [0.5, -0.53, "m"], [0.6, 0.03, "m"], [0.7, 0.31, "m"], [0.8, 0.43, "i"], [0.85, 0.42, "m"], [0.9, 0.39, "m"], [0.95, 0.28, "m"], [1.0, 0.08, "m"], [1.05, -0.25, "m"], [1.1, -0.5, "i"], [1.15, -0.8, "m"], [1.2, -0.96, "m"], [1.3, -1.19, "m"]],
+    "15000": [[0.35, -4.77, "m"], [0.4, -3.87, "m"], [0.5, -2.31, "i"], [0.6, -1.21, "m"], [0.7, -0.62, "m"], [0.8, -0.27, "m"], [0.85, -0.19, "m"], [0.9, -0.23, "i"], [0.95, -0.31, "m"], [1.0, -0.55, "m"], [1.05, -0.83, "m"], [1.1, -1.13, "m"], [1.15, -1.38, "m"], [1.2, -1.57, "m"], [1.3, -1.83, "m"], [1.4, -2.21, "m"], [1.5, -2.84, "m"]],
+    "35000": [[0.5, -5.5, "m"], [0.6, -4.36, "i"], [0.7, -2.94, "m"], [0.8, -1.97, "m"], [0.85, -1.81, "m"], [0.9, -1.99, "i"], [0.95, -2.25, "m"], [1.0, -2.63, "m"], [1.05, -2.97, "m"], [1.1, -3.33, "m"], [1.15, -3.61, "m"], [1.2, -3.79, "i"], [1.3, -4.04, "m"], [1.4, -4.12, "m"], [1.5, -4.2, "m"], [1.6, -4.27, "m"], [1.7, -4.32, "m"], [1.8, -4.34, "m"], [1.9, -4.47, "m"], [2.0, -4.7, "m"]],
+    "45000": [[0.7, -4.79, "m"], [0.8, -3.81, "m"], [0.85, -4.05, "m"], [0.9, -4.32, "m"], [0.95, -4.65, "m"], [1.0, -5.03, "m"], [1.05, -5.36, "m"], [1.1, -5.67, "m"], [1.15, -5.94, "m"], [1.2, -6.18, "m"], [1.3, -6.66, "m"], [1.4, -6.86, "m"], [1.5, -6.89, "i"], [1.6, -6.79, "m"], [1.7, -6.66, "m"], [1.8, -6.6, "m"], [1.9, -6.69, "m"], [2.0, -6.86, "m"], [2.1, -7.15, "i"], [2.2, -7.54, "m"]],
+    "55000": [[0.95, -6.69, "m"], [1.0, -7.26, "m"], [1.05, -7.91, "m"], [1.1, -8.53, "m"], [1.15, -9.12, "m"], [1.2, -9.68, "m"], [1.3, -10.51, "m"], [1.4, -10.73, "m"], [1.5, -10.53, "m"], [1.6, -9.99, "m"], [1.7, -9.56, "m"], [1.8, -9.58, "i"], [1.9, -9.86, "m"], [2.0, -10.07, "m"], [2.1, -10.11, "m"], [2.15, -10.03, "m"]]
+   }
+  },
+  "CL_CD": {
+   "title": "[Figure IV-9, caption not printed on the page] trimmed CL and CD vs Mach (log-log), F-4C, 38924 lb",
+   "pdf_page": 78,
+   "printed_page": 72,
+   "reading_error": "CD curves about +/-3% (log scale; +/-6% on the steep left ends); boundaries about +/-4% in CL or CD and +/-0.02 Mach",
+   "CL": {
+    "note": "The five CL lines are 1-g trim lift W/(q S): straight lines of slope -2 on the log-log plot. Measured line centres average 1.007-1.026 x W/(qS) (sd 0.01), i.e. the drawn lines agree with CL = K/M^2 within the line width.",
+    "CL_times_M_squared": {"SL": 0.04958, "15000": 0.08785, "35000": 0.2101, "45000": 0.338, "55000": 0.5454},
+    "drawn_Mach_range": {"SL": [0.225, 1.28], "15000": [0.3, 1.65], "35000": [0.46, 2.25], "45000": [0.64, 2.6], "55000": [0.82, 2.8]},
+    "CL_max": {
+     "note": "heavy line labelled CL MAX, drawn from M 0.21 to about 0.56",
+     "points": [[0.21, 0.964], [0.25, 0.953], [0.28, 0.944], [0.3, 0.937], [0.33, 0.924], [0.36, 0.912], [0.4, 0.893], [0.45, 0.872], [0.5, 0.85], [0.55, 0.824]]
+    },
+    "boundary_M056_to_M10": {
+     "note": "thin line continuing the envelope from the end of the CL MAX stroke to M 1.0; not separately labelled (presumably the CL limit falling with Mach)",
+     "points": [[0.55, 0.791], [0.6, 0.743], [0.65, 0.706], [0.7, 0.671], [0.75, 0.64], [0.8, 0.61], [0.85, 0.581], [0.9, 0.553], [0.95, 0.512], [0.99, 0.48]]
+    },
+    "zero_excess_thrust": {
+     "note": "labelled 'Zero Excess Thrust' (arrow at M 1.0, CL 0.40): near-vertical drop at M 1.0 from about 0.48 to 0.37, then the curve below; it merges with the 55,000 ft line near M 2.0 and meets the speed-restriction vertical at M 2.1",
+     "points": [[1.0, 0.42], [1.05, 0.351], [1.1, 0.314], [1.15, 0.291], [1.2, 0.271], [1.3, 0.244], [1.4, 0.225], [1.5, 0.211], [1.6, 0.199], [1.7, 0.19], [1.8, 0.183], [1.9, 0.17], [2.0, 0.15]]
+    },
+    "speed_restriction": {
+     "note": "labelled 'Speed Restriction': a sloping line at low altitude from M 1.05 to about 1.75, a step up to CL 0.054, a level line to M 2.1, then a vertical line at M 2.1 from CL 0.054 up to about 0.157",
+     "points": [[1.05, 0.037], [1.1, 0.038], [1.2, 0.039], [1.3, 0.04], [1.4, 0.042], [1.5, 0.043], [1.6, 0.044], [1.7, 0.045], [1.78, 0.047], [1.78, 0.054], [2.1, 0.054], [2.1, 0.157]]
+    },
+    "flight_condition_markers": "markers 2-10 lie on their altitude lines at the Table IV-2 Mach numbers (CL = W/qS: .0775, .0410, .1085, .584, .259, .146, .150, .0731, .168 for F/C 2..10)"
+   },
+   "CD": {
+    "curves": {
+     "SL": [[0.22, 0.3481, "m"], [0.3, 0.13, "e"], [0.4, 0.054, "e"], [0.5, 0.0315, "e"], [0.6, 0.0225, "e"], [0.7, 0.0184, "m"], [0.8, 0.0175, "i"], [0.85, 0.0182, "m"], [0.9, 0.0196, "m"], [0.93, 0.0217, "m"], [0.95, 0.0256, "m"], [0.97, 0.0279, "m"], [1.0, 0.0327, "m"], [1.05, 0.0405, "m"], [1.1, 0.0414, "k"]],
+     "15000": [[0.3, 0.3233, "m"], [0.4, 0.115, "e"], [0.5, 0.056, "e"], [0.6, 0.035, "e"], [0.7, 0.026, "e"], [0.8, 0.0212, "m"], [0.85, 0.0199, "m"], [0.9, 0.0226, "i"], [0.93, 0.0234, "i"], [0.95, 0.0245, "m"]],
+     "35000": [[0.5, 0.2112, "m"], [0.6, 0.0921, "i"], [0.7, 0.0507, "m"], [0.8, 0.0339, "m"], [0.85, 0.0314, "m"], [0.9, 0.0336, "i"], [0.93, 0.0351, "i"], [0.95, 0.0351, "m"], [0.96, 0.0376, "m"], [1.0, 0.0441, "m"], [1.05, 0.0479, "m"], [1.1, 0.0488, "m"], [1.15, 0.0487, "m"], [1.2, 0.0487, "i"], [1.3, 0.047, "m"], [1.4, 0.0463, "m"], [1.5, 0.0436, "m"], [1.6, 0.0434, "m"], [1.7, 0.0407, "m"], [1.8, 0.0393, "m"], [1.9, 0.0386, "m"], [2.0, 0.038, "m"], [2.1, 0.0379, "m"], [2.15, 0.0373, "m"]],
+     "45000": [[0.7, 0.1494, "m"], [0.8, 0.0826, "m"], [0.85, 0.0657, "m"], [0.88, 0.0561, "m"], [0.9, 0.0529, "m"], [0.93, 0.0526, "m"], [0.95, 0.0528, "m"], [0.96, 0.0549, "m"], [1.0, 0.0568, "m"], [1.05, 0.0603, "m"], [1.1, 0.0613, "m"], [1.15, 0.0608, "m"], [1.2, 0.0596, "m"], [1.3, 0.0547, "m"], [1.4, 0.0509, "m"], [1.5, 0.0477, "i"], [1.6, 0.0445, "m"], [1.7, 0.0434, "m"], [1.8, 0.0422, "m"], [1.9, 0.0399, "m"], [2.0, 0.039, "m"], [2.1, 0.0379, "m"], [2.15, 0.0381, "k"]],
+     "55000": [[0.85, 0.1666, "m"], [0.9, 0.1405, "m"], [0.95, 0.1213, "m"], [1.0, 0.1077, "m"], [1.05, 0.0985, "m"], [1.1, 0.0905, "m"], [1.15, 0.0841, "m"], [1.2, 0.0787, "m"], [1.3, 0.0708, "m"], [1.4, 0.0633, "m"], [1.5, 0.0584, "m"], [1.6, 0.0543, "m"], [1.7, 0.05, "m"], [1.8, 0.0476, "i"], [1.9, 0.0452, "m"], [2.0, 0.0431, "m"], [2.1, 0.0403, "m"], [2.2, 0.0387, "m"], [2.3, 0.0373, "m"], [2.4, 0.036, "m"]]
+    },
+    "CD_min": {
+     "note": "hatched boundary labelled CD MIN: level at about 0.0174 from M 0.41 to 0.82, then up the transonic rise of the sea-level curve to 0.042 at M 1.1, then slowly down",
+     "points": [[0.41, 0.0174], [0.82, 0.0174], [0.9, 0.0195], [0.95, 0.026], [1.0, 0.035], [1.05, 0.04], [1.1, 0.042], [1.2, 0.0417], [1.3, 0.0406], [1.4, 0.0398], [1.5, 0.0392], [1.6, 0.0393], [1.7, 0.0391], [1.8, 0.039], [1.9, 0.0385], [2.0, 0.0375], [2.15, 0.037]]
+    },
+    "note": "sea-level curve is drawn to M 1.1 and then runs along the CD MIN line; 35,000 and 45,000 ft curves end at marker 9 (M 2.15)"
+   }
+  },
+  "feel_system_parameters": {
+   "title": "Figure IV-5. F-4C Feel System Parameters",
+   "pdf_page": 73,
+   "printed_page": 67,
+   "header": "F-4C 38924 lb .289 c-bar; legend SL, 35,000 ft, 55,000 ft",
+   "reading_error": "qB/q +/-0.006; PBF +/-0.005 ft^2; damper boundary +/-800 ft",
+   "qB_over_q": {
+    "note": "one curve is drawn (no visible altitude dependence)",
+    "points": [[0.2, 0.202, "m"], [0.3, 0.285, "m"], [0.4, 0.353, "m"], [0.5, 0.397, "m"], [0.6, 0.427, "m"], [0.7, 0.439, "m"], [0.8, 0.421, "m"], [0.85, 0.41, "m"], [0.9, 0.402, "m"], [0.95, 0.397, "m"], [1.0, 0.397, "m"], [1.05, 0.4, "m"], [1.1, 0.405, "m"], [1.15, 0.416, "m"], [1.2, 0.427, "m"], [1.3, 0.451, "m"], [1.4, 0.474, "m"], [1.5, 0.498, "m"], [1.6, 0.522, "m"], [1.7, 0.545, "m"], [1.8, 0.569, "m"], [1.9, 0.591, "m"], [1.95, 0.602, "m"]]
+   },
+   "PBF_ft2": {
+    "note": "three nearly level lines; altitude identified from the flight-condition markers lying on them: upper line (markers 2, 4, 3) = SL (and F/C 4, 15,000 ft, is drawn on it); middle (markers 5, 6, 7) = 35,000 ft; lower (markers 8, 10, 9) = 45,000/55,000 ft",
+    "curves": {
+     "upper_SL": [[0.15, 0.92, "m"], [0.2, 0.925, "m"], [0.3, 0.935, "m"], [0.4, 0.944, "m"], [0.5, 0.952, "m"], [0.6, 0.957, "m"], [0.7, 0.96, "m"], [0.8, 0.959, "i"], [0.85, 0.959, "m"], [0.9, 0.957, "i"], [0.95, 0.955, "m"], [1.0, 0.959, "m"], [1.05, 0.959, "m"], [1.1, 0.96, "i"], [1.15, 0.959, "m"], [1.2, 0.96, "m"], [1.3, 0.96, "m"], [1.4, 0.96, "m"], [1.5, 0.962, "m"], [1.6, 0.96, "m"]],
+     "middle_35000": [[0.6, 0.932, "k"], [0.7, 0.936, "m"], [0.8, 0.94, "m"], [0.85, 0.941, "m"], [0.9, 0.943, "i"], [0.95, 0.947, "m"], [1.0, 0.942, "m"], [1.05, 0.943, "m"], [1.1, 0.943, "m"], [1.15, 0.943, "m"], [1.2, 0.947, "k"]],
+     "lower_45000_55000": [[1.0, 0.92, "m"], [1.05, 0.922, "m"], [1.1, 0.923, "m"], [1.15, 0.925, "m"], [1.2, 0.927, "m"], [1.3, 0.93, "m"], [1.4, 0.932, "m"], [1.5, 0.936, "i"], [1.6, 0.937, "m"], [1.7, 0.939, "m"], [1.8, 0.94, "i"], [1.9, 0.942, "m"], [2.0, 0.943, "m"], [2.1, 0.943, "m"], [2.2, 0.943, "m"], [2.3, 0.943, "m"]]
+    }
+   },
+   "viscous_damper_boundary": {
+    "note": "hatched boundary in the altitude-Mach plane. Below/left of it: 'Viscous Damper On Stop, b = infinity'. Above/right: 'Viscous Damper Off Stop, b = 3.03 lb/in/sec'. Drawn from about M 0.97 (55,000 ft) to M 1.6.",
+    "points_M_h_ft": [[0.97, 55500, "e"], [1.0, 51200, "m"], [1.05, 45600, "m"], [1.1, 42400, "m"], [1.15, 40600, "m"], [1.2, 38900, "m"], [1.25, 37600, "m"], [1.3, 36200, "m"], [1.35, 35500, "m"], [1.4, 34400, "m"], [1.45, 33600, "m"], [1.5, 33100, "m"], [1.55, 32600, "m"], [1.6, 32100, "m"]]
+   }
+  },
+  "rudder_flexure": {
+   "title": "Figure IV-6. F-4C Rudder Flexure Coefficient",
+   "pdf_page": 74,
+   "printed_page": 68,
+   "header": "F-4C 38924 lb; legend SL, 15,000 ft, 35,000 ft, 45,000 ft, 55,000 ft; ordinate K^RUD_FLEX (called K^DIR_FLEX on Figure IV-3)",
+   "reading_error": "+/-0.01 (+/-0.03 on the steep parts near M 1.1-1.2)",
+   "K_FLEX": {
+    "SL": [[0.45, 0.89, "m"], [0.5, 0.868, "m"], [0.6, 0.822, "m"], [0.7, 0.771, "m"], [0.8, 0.71, "i"], [0.85, 0.674, "m"], [0.9, 0.637, "m"], [0.95, 0.595, "m"], [1.0, 0.547, "m"], [1.05, 0.48, "m"], [1.1, 0.402, "k"]],
+    "15000": [[0.6, 0.865, "m"], [0.7, 0.825, "m"], [0.8, 0.78, "m"], [0.85, 0.754, "m"], [0.9, 0.731, "i"], [0.95, 0.699, "m"], [1.0, 0.656, "m"], [1.05, 0.6, "m"], [1.1, 0.529, "m"], [1.15, 0.445, "m"], [1.2, 0.362, "m"]],
+    "35000": [[0.45, 0.965, "m"], [0.5, 0.955, "m"], [0.6, 0.939, "i"], [0.7, 0.917, "m"], [0.8, 0.895, "m"], [0.85, 0.879, "m"], [0.9, 0.869, "i"], [0.95, 0.849, "m"], [1.0, 0.826, "m"], [1.05, 0.793, "m"], [1.1, 0.738, "m"], [1.15, 0.642, "m"], [1.2, 0.6, "i"], [1.3, 0.521, "m"], [1.4, 0.5, "m"], [1.5, 0.493, "m"], [1.6, 0.486, "m"], [1.7, 0.483, "m"], [1.8, 0.482, "m"], [1.9, 0.48, "m"], [1.95, 0.479, "m"]],
+    "45000": [[0.45, 0.965, "m"], [0.5, 0.955, "m"], [0.6, 0.959, "m"], [0.7, 0.944, "m"], [0.8, 0.933, "m"], [0.85, 0.926, "m"], [0.9, 0.911, "m"], [0.95, 0.902, "m"], [1.0, 0.885, "m"], [1.05, 0.86, "m"], [1.1, 0.817, "m"], [1.15, 0.749, "m"], [1.2, 0.685, "m"], [1.3, 0.626, "m"], [1.4, 0.611, "m"], [1.5, 0.608, "i"], [1.6, 0.608, "m"], [1.7, 0.61, "m"], [1.8, 0.611, "m"], [1.9, 0.608, "m"], [2.0, 0.606, "m"], [2.1, 0.605, "m"], [2.2, 0.603, "m"]],
+    "55000": [[1.5, 0.721, "m"], [1.6, 0.725, "m"], [1.7, 0.724, "m"], [1.8, 0.723, "i"], [1.9, 0.72, "m"], [2.0, 0.718, "m"]]
+   },
+   "note": "35,000 and 45,000 ft curves coincide below about M 0.55"
+  },
+  "nondimensional_derivatives": {
+   "note": "Plots of trimmed nondimensional derivatives vs Mach, PDF pages 79-87 (printed 73-81). Figure captions are not printed on these pages (they are Figures IV-10 on). All are marked 'Flexible'; lateral-directional ones are marked 'Stability Axis'. Sign conventions as in Appendix A (see how_to_read).",
+   "CL_alpha": {
+    "pdf_page": 79,
+    "printed_page": 73,
+    "units": "1/rad",
+    "header": "F-4C 38924 lb Flexible",
+    "reading_error": "+/-0.03 (+/-0.1 on the steep rises near M 1.0-1.1 at 45,000 and 55,000 ft and at the low-Mach ends)",
+    "curves": {
+     "SL": [[0.3, 2.811, "m"], [0.4, 3.099, "m"], [0.5, 3.194, "m"], [0.6, 3.154, "m"], [0.7, 3.163, "m"], [0.8, 3.331, "i"], [0.85, 3.41, "m"], [0.9, 3.547, "m"], [0.95, 3.56, "m"], [1.0, 3.506, "m"], [1.05, 3.408, "m"], [1.1, 3.274, "i"], [1.15, 3.115, "m"], [1.2, 2.966, "i"], [1.3, 2.615, "m"]],
+     "15000": [[0.4, 3.032, "m"], [0.5, 3.315, "m"], [0.6, 3.424, "m"], [0.7, 3.448, "m"], [0.8, 3.503, "m"], [0.85, 3.575, "m"], [0.9, 3.685, "i"], [0.95, 3.783, "m"], [1.0, 3.809, "m"], [1.05, 3.777, "m"], [1.1, 3.71, "m"], [1.15, 3.608, "m"], [1.2, 3.494, "m"], [1.3, 3.204, "m"], [1.4, 2.896, "i"], [1.5, 2.573, "m"], [1.55, 2.433, "m"]],
+     "35000": [[0.6, 2.873, "k"], [0.7, 3.412, "m"], [0.8, 3.586, "m"], [0.85, 3.679, "m"], [0.9, 3.857, "i"], [0.95, 3.998, "m"], [1.0, 4.081, "m"], [1.05, 4.057, "m"], [1.1, 4.018, "m"], [1.15, 3.928, "m"], [1.2, 3.829, "i"], [1.3, 3.607, "m"], [1.4, 3.4, "m"], [1.5, 3.203, "m"], [1.6, 2.996, "m"], [1.7, 2.814, "m"], [1.8, 2.635, "m"], [1.9, 2.463, "m"], [2.0, 2.295, "m"], [2.05, 2.219, "m"]],
+     "45000": [[0.9, 3.422, "m"], [0.95, 3.68, "m"], [1.0, 4.07, "m"], [1.03, 4.219, "m"], [1.05, 4.328, "m"], [1.07, 4.334, "m"], [1.1, 4.31, "m"], [1.12, 4.257, "m"], [1.15, 4.171, "m"], [1.2, 4.028, "m"], [1.3, 3.763, "m"], [1.4, 3.525, "m"], [1.5, 3.313, "i"], [1.6, 3.127, "m"], [1.7, 2.955, "m"], [1.8, 2.781, "m"], [1.9, 2.635, "m"], [2.0, 2.514, "m"], [2.1, 2.374, "m"], [2.15, 2.294, "k"]],
+     "55000": [[0.9, 2.436, "m"], [0.95, 2.697, "m"], [1.0, 3.116, "m"], [1.03, 3.64, "m"], [1.05, 3.923, "m"], [1.07, 4.338, "m"], [1.1, 4.645, "m"], [1.12, 4.645, "m"], [1.15, 4.506, "m"], [1.2, 4.27, "m"], [1.3, 3.893, "m"], [1.4, 3.642, "m"], [1.5, 3.395, "m"], [1.6, 3.202, "m"], [1.7, 2.988, "m"], [1.8, 2.834, "i"], [1.9, 2.66, "m"], [2.0, 2.514, "m"], [2.1, 2.374, "m"], [2.15, 2.287, "m"]]
+    },
+    "note": "above M 1.4 the 35,000, 45,000 and 55,000 ft curves lie within 0.1-0.2 of each other"
+   },
+   "CD_alpha": {
+    "pdf_page": 79,
+    "printed_page": 73,
+    "units": "1/rad",
+    "header": "F-4C 38924 lb Flexible",
+    "reading_error": "+/-0.01 (+/-0.05 on the steep parts: SL below M 0.4, 35,000 ft below M 0.8)",
+    "curves": {
+     "SL": [[0.25, 0.871, "m"], [0.28, 0.903, "m"], [0.3, 0.9, "m"], [0.32, 0.82, "m"], [0.38, 0.335, "m"], [0.4, 0.28, "m"], [0.5, 0.174, "m"], [0.6, 0.13, "m"], [0.7, 0.096, "m"], [0.8, 0.076, "i"], [0.85, 0.069, "m"], [0.9, 0.062, "m"], [0.95, 0.055, "m"], [1.0, 0.047, "m"], [1.05, 0.04, "m"], [1.1, 0.035, "i"], [1.15, 0.029, "m"], [1.2, 0.023, "m"]],
+     "15000": [[0.65, 0.239, "m"], [0.7, 0.201, "m"], [0.8, 0.156, "m"], [0.85, 0.137, "m"], [0.9, 0.129, "i"], [0.95, 0.12, "m"], [1.0, 0.109, "m"], [1.05, 0.098, "m"], [1.1, 0.081, "m"], [1.15, 0.081, "m"], [1.2, 0.074, "m"], [1.3, 0.061, "m"], [1.4, 0.05, "m"], [1.5, 0.036, "m"], [1.6, 0.022, "m"]],
+     "35000": [[0.55, 0.958, "m"], [0.58, 1.03, "e"], [0.6, 1.05, "e"], [0.62, 1.02, "e"], [0.7, 0.609, "m"], [0.8, 0.365, "m"], [0.85, 0.334, "m"], [0.9, 0.307, "m"], [0.95, 0.304, "m"], [1.0, 0.289, "m"], [1.05, 0.272, "m"], [1.1, 0.255, "m"], [1.15, 0.236, "m"], [1.2, 0.215, "m"], [1.3, 0.192, "m"], [1.4, 0.17, "m"], [1.5, 0.148, "m"], [1.6, 0.129, "m"], [1.7, 0.11, "m"], [1.8, 0.088, "m"], [1.9, 0.068, "m"], [2.0, 0.045, "m"], [2.05, 0.032, "m"]],
+     "45000": [[1.3, 0.331, "m"], [1.4, 0.308, "m"], [1.5, 0.286, "i"], [1.6, 0.262, "m"], [1.7, 0.237, "m"], [1.8, 0.21, "m"], [1.9, 0.182, "m"], [2.0, 0.153, "m"], [2.1, 0.125, "m"], [2.2, 0.091, "m"]],
+     "55000": [[1.6, 0.447, "m"], [1.7, 0.418, "m"], [1.8, 0.389, "i"], [1.9, 0.359, "m"], [2.0, 0.33, "m"]]
+    },
+    "note": "15,000 ft curve ends at M 1.6 with a '+' mark; 35,000 ft peak (about 1.05 at M 0.6) is hidden by marker 5: flagged e"
+   },
+   "Cm_alpha": {
+    "pdf_page": 80,
+    "printed_page": 74,
+    "units": "1/rad",
+    "header": "F-4C 38924 lb .289 c-bar Flexible",
+    "reading_error": "+/-0.01 (+/-0.03 where curves cross, M 0.9-1.15)",
+    "curves": {
+     "SL": [[0.3, -0.235, "e"], [0.4, -0.27, "m"], [0.5, -0.282, "m"], [0.6, -0.278, "m"], [0.7, -0.281, "m"], [0.765, -0.272, "m"], [0.8, -0.29, "i"], [0.835, -0.295, "m"], [0.85, -0.306, "m"], [0.9, -0.365, "m"], [0.95, -0.388, "m"], [1.0, -0.421, "m"], [1.05, -0.451, "m"], [1.1, -0.473, "i"], [1.15, -0.49, "m"], [1.2, -0.489, "m"], [1.3, -0.445, "m"]],
+     "15000": [[0.4, -0.262, "m"], [0.5, -0.285, "m"], [0.6, -0.299, "m"], [0.7, -0.298, "m"], [0.8, -0.31, "m"], [0.85, -0.331, "m"], [0.9, -0.384, "i"], [0.95, -0.441, "m"], [1.0, -0.492, "i"], [1.05, -0.544, "m"], [1.1, -0.594, "i"], [1.15, -0.638, "m"], [1.2, -0.656, "m"], [1.3, -0.655, "m"], [1.4, -0.616, "m"], [1.5, -0.543, "m"]],
+     "35000": [[0.55, -0.162, "m"], [0.6, -0.215, "i"], [0.7, -0.281, "m"], [0.8, -0.31, "m"], [0.85, -0.334, "m"], [0.9, -0.405, "i"], [0.95, -0.482, "m"], [1.0, -0.55, "i"], [1.05, -0.66, "i"], [1.1, -0.726, "m"], [1.15, -0.806, "m"], [1.2, -0.846, "i"], [1.3, -0.865, "m"], [1.4, -0.827, "m"], [1.5, -0.767, "m"], [1.6, -0.705, "m"], [1.7, -0.662, "i"], [1.8, -0.637, "i"], [1.9, -0.617, "m"], [2.0, -0.609, "m"], [2.1, -0.616, "m"], [2.15, -0.618, "m"]],
+     "45000": [[1.3, -0.94, "m"], [1.4, -0.907, "m"], [1.5, -0.849, "i"], [1.6, -0.79, "m"], [1.7, -0.74, "m"], [1.8, -0.695, "m"], [1.9, -0.661, "m"], [2.0, -0.636, "m"], [2.1, -0.616, "m"], [2.15, -0.617, "k"]],
+     "55000": [[0.9, -0.177, "m"], [0.95, -0.293, "i"], [1.0, -0.421, "m"], [1.05, -0.544, "m"], [1.1, -0.702, "m"], [1.15, -0.845, "m"], [1.2, -0.947, "i"], [1.3, -1.06, "m"], [1.4, -1.015, "m"], [1.5, -0.939, "m"], [1.6, -0.868, "m"], [1.7, -0.813, "m"], [1.8, -0.769, "i"], [1.9, -0.736, "m"], [2.0, -0.711, "m"]]
+    },
+    "note": "SL, 15,000 and 35,000 ft curves start at Cm_alpha = 0 at about M 0.27, 0.34 and 0.52 and drop almost vertically; they merge near -0.28 to -0.31 between M 0.7 and 0.85"
+   },
+   "Cm_q": {
+    "pdf_page": 80,
+    "printed_page": 74,
+    "units": "1/rad",
+    "header": "F-4C 38924 lb .289 c-bar Flexible",
+    "reading_error": "+/-0.03",
+    "curves": {
+     "SL": [[0.6, -2.347, "m"], [0.7, -2.324, "m"], [0.8, -2.335, "i"], [0.85, -2.359, "m"], [0.9, -2.412, "m"], [0.95, -2.481, "i"], [1.0, -2.549, "m"], [1.05, -2.64, "m"], [1.1, -2.699, "i"], [1.15, -2.749, "m"], [1.2, -2.76, "m"], [1.3, -2.678, "m"]],
+     "15000": [[0.6, -2.448, "m"], [0.7, -2.415, "m"], [0.8, -2.427, "m"], [0.85, -2.459, "m"], [0.9, -2.525, "i"], [0.95, -2.592, "m"], [1.0, -2.689, "m"], [1.05, -2.781, "m"], [1.1, -2.852, "m"], [1.15, -2.895, "m"], [1.2, -2.901, "m"], [1.25, -2.872, "m"]],
+     "35000": [[0.55, -2.574, "m"], [0.6, -2.55, "i"], [0.7, -2.542, "m"], [0.8, -2.592, "m"], [0.85, -2.636, "m"], [0.9, -2.706, "i"], [0.95, -2.791, "m"], [1.0, -2.87, "m"], [1.05, -2.956, "m"], [1.1, -3.061, "m"], [1.15, -3.136, "m"], [1.2, -3.141, "i"], [1.3, -3.081, "m"], [1.4, -2.908, "m"], [1.5, -2.657, "m"], [1.6, -2.371, "i"], [1.7, -2.124, "m"], [1.8, -1.972, "m"], [1.9, -1.785, "m"], [2.0, -1.734, "m"], [2.1, -1.604, "m"], [2.2, -1.486, "m"]],
+     "55000": [[0.55, -2.565, "m"], [0.6, -2.609, "m"], [0.7, -2.551, "i"], [0.8, -2.598, "m"], [0.85, -2.638, "m"], [0.9, -2.761, "m"], [0.95, -2.801, "m"], [1.0, -2.923, "m"], [1.05, -3.017, "m"], [1.1, -3.092, "m"], [1.15, -3.136, "m"], [1.2, -3.165, "m"], [1.3, -3.081, "m"], [1.4, -2.908, "m"], [1.5, -2.709, "m"], [1.6, -2.479, "m"], [1.7, -2.248, "m"], [1.8, -2.05, "i"], [1.9, -1.883, "m"], [2.0, -1.78, "e"]]
+    },
+    "note": "above M 1.3 two lines are drawn: the upper is 35,000 ft; the lower carries markers 8, 9 (45,000 ft) and 10 (55,000 ft) and is given here under '55000' (the 45,000 ft curve is not separable from it)"
+   },
+   "Cm_alpha_dot": {
+    "pdf_page": 80,
+    "printed_page": 74,
+    "units": "1/rad",
+    "header": "F-4C 38924 lb .289 c-bar Flexible",
+    "reading_error": "+/-0.03",
+    "curves": {
+     "SL": [[0.6, -0.998, "m"], [0.7, -0.966, "m"], [0.8, -1.0, "i"], [0.85, -1.022, "m"], [0.9, -1.095, "m"], [0.95, -1.123, "m"], [1.0, -1.138, "m"], [1.05, -1.136, "m"], [1.1, -1.141, "k"]],
+     "15000": [[0.6, -1.075, "m"], [0.7, -1.045, "m"], [0.8, -1.059, "m"], [0.85, -1.108, "m"], [0.9, -1.184, "i"], [0.95, -1.263, "m"], [1.0, -1.276, "m"], [1.05, -1.257, "m"], [1.1, -1.222, "m"]],
+     "35000": [[0.55, -1.24, "m"], [0.6, -1.194, "i"], [0.7, -1.146, "m"], [0.8, -1.16, "m"], [0.85, -1.22, "m"], [0.9, -1.285, "i"], [0.95, -1.36, "m"], [1.0, -1.372, "m"], [1.05, -1.351, "m"], [1.1, -1.325, "m"], [1.15, -1.253, "m"], [1.2, -1.181, "i"], [1.3, -1.018, "m"], [1.4, -0.837, "m"], [1.5, -0.642, "m"], [1.6, -0.516, "m"], [1.7, -0.37, "m"], [1.8, -0.198, "m"], [1.9, -0.107, "m"], [2.0, 0.021, "m"], [2.1, 0.103, "i"], [2.15, 0.123, "m"]],
+     "55000": [[0.8, -1.226, "m"], [0.85, -1.311, "m"], [0.9, -1.496, "m"], [0.92, -1.571, "m"], [0.95, -1.606, "m"], [0.97, -1.586, "m"], [1.0, -1.543, "m"], [1.05, -1.454, "m"], [1.1, -1.353, "m"], [1.15, -1.253, "m"], [1.2, -1.169, "m"], [1.3, -1.018, "m"], [1.4, -0.837, "m"], [1.5, -0.642, "m"], [1.6, -0.516, "m"], [1.7, -0.37, "m"], [1.8, -0.22, "i"], [1.9, -0.107, "m"], [1.95, -0.049, "m"]]
+    },
+    "note": "above M 1.2 all altitudes (35,000, 45,000, 55,000 ft; markers 7, 8, 9, 10) fall on one line, which crosses zero at about M 2.0"
+   },
+   "CL_M": {
+    "pdf_page": 81,
+    "printed_page": 75,
+    "units": "per unit Mach",
+    "header": "F-4C 38924 lb .289 c-bar Flexible; legend SL, 35,000 ft, 55,000 ft",
+    "reading_error": "+/-0.01 (+/-0.03 at the peaks near M 0.9, which are hidden by markers 4 and 6)",
+    "curves": {
+     "SL": [[0.8, 0.0, "e"], [0.82, 0.021, "m"], [0.85, 0.117, "m"], [0.88, 0.231, "m"], [0.9, 0.28, "e"], [0.92, 0.247, "m"], [0.95, 0.15, "m"], [1.0, -0.034, "m"], [1.05, -0.075, "m"], [1.1, -0.128, "i"], [1.15, -0.146, "m"], [1.2, -0.159, "m"], [1.3, -0.143, "m"]],
+     "35000": [[0.6, 0.033, "k"], [0.7, 0.078, "m"], [0.8, 0.254, "m"], [0.83, 0.34, "m"], [0.85, 0.379, "m"], [0.86, 0.384, "m"], [0.88, 0.37, "e"], [0.9, 0.31, "e"], [0.95, 0.178, "m"], [1.0, 0.054, "m"], [1.05, -0.075, "m"], [1.1, -0.142, "m"], [1.15, -0.188, "m"], [1.2, -0.199, "i"], [1.3, -0.171, "m"], [1.4, -0.123, "m"], [1.5, -0.088, "m"], [1.6, -0.064, "m"], [1.7, -0.047, "m"], [1.8, -0.034, "m"], [1.9, -0.025, "m"], [1.95, -0.02, "m"]],
+     "55000": [[1.4, -0.263, "m"], [1.5, -0.211, "m"], [1.6, -0.166, "m"], [1.7, -0.133, "m"], [1.8, -0.108, "i"], [1.9, -0.092, "m"], [2.0, -0.081, "m"], [2.05, -0.076, "m"]]
+    },
+    "isolated_markers": {"4 (15,000 ft, M .9)": 0.28, "8 (45,000 ft, M 1.5)": -0.14, "9 (45,000 ft, M 2.15)": -0.04}
+   },
+   "CD_M": {
+    "pdf_page": 81,
+    "printed_page": 75,
+    "units": "per unit Mach",
+    "header": "as CL_M",
+    "reading_error": "+/-0.005 away from the peak; +/-0.03 on the M 0.9-1.1 peak",
+    "curves": {
+     "SL": [[0.9, 0.03, "e"], [0.92, 0.067, "m"], [0.95, 0.249, "m"], [0.97, 0.371, "m"], [0.985, 0.398, "m"], [1.0, 0.376, "m"], [1.02, 0.319, "m"], [1.05, 0.248, "i"], [1.08, 0.077, "m"], [1.1, 0.03, "e"], [1.13, -0.001, "m"], [1.15, -0.008, "m"], [1.2, -0.017, "m"], [1.3, -0.027, "m"], [1.4, -0.03, "m"], [1.5, -0.033, "m"], [1.6, -0.021, "m"], [1.7, -0.017, "m"], [1.8, -0.01, "m"], [1.9, -0.01, "m"], [2.0, -0.01, "m"]],
+     "35000": [[0.9, 0.03, "e"], [0.92, 0.06, "e"], [0.95, 0.142, "m"], [0.98, 0.186, "m"], [1.0, 0.192, "m"], [1.02, 0.173, "m"], [1.05, 0.124, "m"], [1.08, 0.05, "m"], [1.1, 0.01, "e"]],
+     "55000": [[1.1, -0.019, "m"], [1.15, -0.038, "m"], [1.2, -0.038, "m"], [1.3, -0.05, "m"], [1.4, -0.048, "m"], [1.5, -0.041, "m"], [1.6, -0.037, "m"], [1.7, -0.031, "m"], [1.8, -0.024, "i"], [1.9, -0.019, "m"], [2.0, -0.01, "m"]]
+    },
+    "note": "Zero below about M 0.87. After M 1.1 the 35,000 ft curve joins the sea-level line (use 'SL' values); the lower line is 55,000 ft.",
+    "isolated_markers": {"5 (M .6)": 0.0, "2 (M .8)": 0.0, "9 (M 2.15)": -0.003}
+   },
+   "Cm_M": {
+    "pdf_page": 81,
+    "printed_page": 75,
+    "units": "per unit Mach",
+    "header": "as CL_M",
+    "reading_error": "+/-0.005 (+/-0.02 on the steep 55,000 ft rise M 1.05-1.2)",
+    "curves": {
+     "SL": [[0.65, -0.006, "m"], [0.7, -0.012, "m"], [0.8, -0.046, "i"], [0.85, -0.06, "m"], [0.9, -0.092, "m"], [0.95, -0.092, "m"], [1.0, -0.055, "m"], [1.05, -0.012, "m"], [1.1, 0.021, "i"], [1.15, 0.06, "m"], [1.2, 0.064, "m"], [1.3, 0.028, "m"], [1.4, 0.015, "m"], [1.5, 0.012, "m"]],
+     "35000": [[0.6, -0.014, "k"], [0.7, -0.03, "m"], [0.8, -0.062, "m"], [0.85, -0.091, "m"], [0.9, -0.13, "i"], [0.95, -0.155, "m"], [1.0, -0.148, "m"], [1.05, -0.113, "m"], [1.1, -0.048, "i"], [1.15, 0.028, "m"], [1.2, 0.044, "i"], [1.3, 0.072, "m"], [1.4, 0.071, "m"], [1.5, 0.067, "m"], [1.53, 0.06, "m"], [1.57, 0.023, "m"], [1.6, 0.014, "m"], [1.7, 0.008, "m"], [1.8, 0.009, "m"], [1.9, 0.005, "m"], [2.0, 0.007, "m"]],
+     "55000": [[1.02, -0.277, "m"], [1.05, -0.268, "m"], [1.08, -0.24, "m"], [1.1, -0.209, "m"], [1.13, -0.122, "m"], [1.15, -0.039, "m"], [1.18, 0.026, "m"], [1.2, 0.048, "m"], [1.3, 0.083, "m"], [1.4, 0.086, "m"], [1.5, 0.08, "m"], [1.6, 0.04, "m"], [1.7, 0.032, "m"], [1.8, 0.027, "i"], [1.9, 0.022, "m"], [2.0, 0.01, "m"]]
+    },
+    "isolated_markers": {"4 (15,000 ft, M .9)": -0.097, "9 (45,000 ft, M 2.15)": 0.01}
+   },
+   "CL_delta_s": {
+    "pdf_page": 82,
+    "printed_page": 76,
+    "units": "1/rad",
+    "header": "F-4C 38924 lb Flexible; legend SL, 15,000 ft, 35,000 ft, 55,000 ft",
+    "reading_error": "+/-0.004",
+    "curves": {
+     "SL": [[0.4, 0.39, "m"], [0.5, 0.377, "m"], [0.6, 0.364, "m"], [0.7, 0.351, "m"], [0.8, 0.339, "i"], [0.85, 0.333, "m"], [0.9, 0.33, "m"], [0.95, 0.328, "m"], [1.0, 0.329, "m"], [1.05, 0.33, "m"], [1.1, 0.323, "i"], [1.15, 0.317, "m"], [1.2, 0.305, "m"], [1.3, 0.278, "m"], [1.35, 0.263, "m"]],
+     "15000": [[0.5, 0.394, "m"], [0.6, 0.379, "m"], [0.7, 0.382, "m"], [0.8, 0.371, "m"], [0.85, 0.365, "m"], [0.9, 0.365, "i"], [0.95, 0.364, "m"], [1.0, 0.367, "m"], [1.05, 0.372, "m"], [1.1, 0.374, "m"], [1.15, 0.366, "m"], [1.2, 0.352, "m"], [1.3, 0.319, "m"], [1.4, 0.29, "m"], [1.5, 0.263, "m"], [1.6, 0.237, "m"]],
+     "35000": [[0.5, 0.354, "m"], [0.6, 0.382, "i"], [0.7, 0.39, "m"], [0.8, 0.393, "m"], [0.85, 0.393, "m"], [0.9, 0.399, "i"], [0.95, 0.399, "m"], [1.0, 0.416, "m"], [1.05, 0.421, "m"], [1.1, 0.426, "m"], [1.15, 0.42, "m"], [1.2, 0.409, "i"], [1.3, 0.376, "m"], [1.4, 0.341, "m"], [1.5, 0.308, "m"], [1.6, 0.275, "m"], [1.7, 0.25, "m"], [1.8, 0.23, "m"], [1.9, 0.21, "m"], [2.0, 0.192, "m"], [2.1, 0.178, "m"], [2.2, 0.168, "m"]],
+     "55000": [[0.9, 0.365, "m"], [0.95, 0.393, "m"], [1.0, 0.418, "m"], [1.05, 0.441, "m"], [1.1, 0.449, "m"], [1.15, 0.447, "m"], [1.2, 0.435, "m"], [1.3, 0.405, "m"], [1.4, 0.369, "m"], [1.5, 0.329, "m"], [1.6, 0.308, "m"], [1.7, 0.282, "m"], [1.8, 0.258, "i"], [1.9, 0.236, "m"], [2.0, 0.218, "m"], [2.1, 0.202, "m"], [2.2, 0.186, "m"]]
+    },
+    "isolated_markers": {"8 (45,000 ft, M 1.5)": 0.325, "9 (45,000 ft, M 2.15)": 0.19}
+   },
+   "Cm_delta_s": {
+    "pdf_page": 82,
+    "printed_page": 76,
+    "units": "1/rad",
+    "header": "as CL_delta_s",
+    "reading_error": "+/-0.004",
+    "curves": {
+     "SL": [[0.3, -0.574, "m"], [0.4, -0.571, "m"], [0.5, -0.554, "m"], [0.6, -0.532, "m"], [0.7, -0.508, "m"], [0.8, -0.486, "i"], [0.85, -0.479, "m"], [0.9, -0.474, "m"], [0.95, -0.474, "m"], [1.0, -0.48, "m"], [1.05, -0.489, "m"], [1.1, -0.479, "i"], [1.15, -0.472, "m"], [1.2, -0.452, "m"], [1.3, -0.407, "m"], [1.35, -0.383, "m"]],
+     "15000": [[0.5, -0.573, "m"], [0.6, -0.56, "m"], [0.7, -0.552, "m"], [0.8, -0.539, "m"], [0.85, -0.533, "m"], [0.9, -0.534, "i"], [0.95, -0.532, "m"], [1.0, -0.542, "m"], [1.05, -0.552, "m"], [1.1, -0.55, "m"], [1.15, -0.539, "m"], [1.2, -0.522, "m"], [1.3, -0.476, "m"], [1.4, -0.431, "m"], [1.5, -0.388, "m"], [1.6, -0.35, "m"]],
+     "35000": [[0.55, -0.551, "m"], [0.6, -0.563, "i"], [0.7, -0.576, "m"], [0.8, -0.577, "m"], [0.85, -0.578, "m"], [0.9, -0.583, "i"], [0.95, -0.582, "m"], [1.0, -0.605, "m"], [1.05, -0.611, "m"], [1.1, -0.62, "m"], [1.15, -0.614, "m"], [1.2, -0.595, "i"], [1.3, -0.549, "m"], [1.4, -0.499, "m"], [1.5, -0.458, "m"], [1.6, -0.406, "m"], [1.7, -0.366, "m"], [1.8, -0.332, "m"], [1.9, -0.302, "m"], [2.0, -0.276, "m"], [2.1, -0.255, "m"], [2.2, -0.239, "m"]],
+     "55000": [[0.9, -0.55, "m"], [0.95, -0.58, "m"], [1.0, -0.605, "m"], [1.05, -0.633, "m"], [1.1, -0.656, "m"], [1.15, -0.658, "m"], [1.2, -0.643, "m"], [1.3, -0.593, "m"], [1.4, -0.539, "m"], [1.5, -0.491, "m"], [1.6, -0.448, "m"], [1.7, -0.409, "m"], [1.8, -0.372, "i"], [1.9, -0.336, "m"], [2.0, -0.305, "m"], [2.1, -0.279, "m"], [2.2, -0.256, "m"]]
+    },
+    "isolated_markers": {"8 (45,000 ft, M 1.5)": -0.47, "9 (45,000 ft, M 2.15)": -0.258}
+   },
+   "Cy_beta": {
+    "pdf_page": 83,
+    "printed_page": 77,
+    "units": "1/rad",
+    "header": "F-4C 38924 lb Stability Axis Flexible; legend SL, 35,000 ft, 55,000 ft",
+    "reading_error": "+/-0.01",
+    "curves": {
+     "SL": [[0.35, -0.609, "m"], [0.4, -0.63, "m"], [0.5, -0.667, "m"], [0.6, -0.691, "m"], [0.7, -0.708, "m"], [0.8, -0.72, "i"], [0.85, -0.725, "m"], [0.9, -0.727, "m"], [0.95, -0.733, "m"], [1.0, -0.737, "m"], [1.05, -0.743, "m"], [1.1, -0.764, "i"], [1.15, -0.778, "m"], [1.2, -0.791, "m"], [1.3, -0.776, "m"], [1.4, -0.75, "m"]],
+     "35000": [[0.55, -0.577, "m"], [0.6, -0.601, "i"], [0.7, -0.632, "m"], [0.8, -0.644, "m"], [0.85, -0.65, "m"], [0.9, -0.656, "i"], [0.95, -0.663, "m"], [1.0, -0.687, "m"], [1.05, -0.719, "m"], [1.1, -0.746, "m"], [1.15, -0.778, "m"], [1.2, -0.789, "i"], [1.3, -0.808, "m"], [1.4, -0.805, "m"], [1.5, -0.789, "m"], [1.6, -0.757, "m"], [1.7, -0.724, "m"], [1.8, -0.686, "m"], [1.9, -0.667, "m"], [2.0, -0.651, "m"]],
+     "55000": [[1.05, -0.68, "m"], [1.1, -0.721, "m"], [1.15, -0.755, "m"], [1.2, -0.791, "m"], [1.3, -0.833, "m"], [1.4, -0.829, "m"], [1.5, -0.795, "m"], [1.6, -0.757, "m"], [1.7, -0.724, "m"], [1.8, -0.693, "k"]]
+    },
+    "isolated_markers": {"4 (15,000 ft, M .9)": -0.69, "9 (45,000 ft, M 2.15)": -0.625}
+   },
+   "Cn_beta": {
+    "pdf_page": 83,
+    "printed_page": 77,
+    "units": "1/rad",
+    "axis": "stability",
+    "header": "as Cy_beta",
+    "reading_error": "+/-0.003",
+    "curves": {
+     "SL": [[0.5, 0.1157, "m"], [0.6, 0.1163, "m"], [0.7, 0.115, "m"], [0.8, 0.1159, "i"], [0.85, 0.1171, "m"], [0.9, 0.1214, "m"], [0.95, 0.1242, "m"], [1.0, 0.1316, "m"], [1.05, 0.1438, "m"], [1.1, 0.1459, "i"], [1.15, 0.1494, "m"], [1.2, 0.1458, "m"], [1.3, 0.1268, "m"]],
+     "35000": [[0.55, 0.1113, "m"], [0.6, 0.1146, "i"], [0.7, 0.1205, "m"], [0.8, 0.1233, "m"], [0.85, 0.1242, "m"], [0.9, 0.1289, "i"], [0.95, 0.1337, "m"], [1.0, 0.1415, "m"], [1.05, 0.1493, "m"], [1.1, 0.1591, "m"], [1.15, 0.1656, "m"], [1.2, 0.169, "i"], [1.3, 0.1683, "m"], [1.4, 0.1571, "m"], [1.5, 0.1466, "m"], [1.6, 0.1306, "m"], [1.7, 0.1083, "m"], [1.8, 0.0904, "m"], [1.9, 0.0795, "m"], [2.0, 0.0719, "m"], [2.1, 0.0637, "m"], [2.15, 0.0603, "m"]],
+     "55000": [[1.0, 0.1312, "m"], [1.05, 0.1477, "m"], [1.1, 0.1591, "m"], [1.15, 0.1792, "m"], [1.2, 0.1895, "m"], [1.3, 0.1846, "m"], [1.4, 0.1695, "m"], [1.5, 0.1538, "m"], [1.6, 0.1306, "m"], [1.7, 0.1122, "m"], [1.8, 0.0963, "i"], [1.9, 0.0828, "m"], [2.0, 0.0719, "m"], [2.1, 0.0637, "m"], [2.15, 0.0647, "m"]]
+    },
+    "isolated_markers": {"4 (15,000 ft, M .9)": 0.12}
+   },
+   "Cl_beta": {
+    "pdf_page": 83,
+    "printed_page": 77,
+    "units": "1/rad",
+    "axis": "stability",
+    "header": "as Cy_beta",
+    "reading_error": "+/-0.003",
+    "curves": {
+     "SL": [[0.25, -0.0554, "m"], [0.3, -0.0636, "m"], [0.4, -0.0641, "m"], [0.5, -0.0514, "m"], [0.6, -0.042, "m"], [0.7, -0.038, "m"], [0.8, -0.0363, "i"], [0.85, -0.0362, "m"], [0.9, -0.0361, "m"], [0.95, -0.0353, "m"], [1.0, -0.0352, "m"], [1.05, -0.0352, "m"], [1.1, -0.0351, "i"], [1.15, -0.0352, "m"]],
+     "35000": [[0.6, -0.0913, "k"], [0.7, -0.087, "m"], [0.8, -0.0818, "m"], [0.85, -0.0787, "m"], [0.9, -0.0751, "i"], [0.95, -0.0712, "m"], [1.0, -0.0675, "m"], [1.05, -0.0639, "m"], [1.1, -0.0592, "m"], [1.15, -0.0481, "m"], [1.2, -0.0384, "i"], [1.3, -0.024, "m"], [1.4, -0.0222, "m"], [1.5, -0.0247, "m"], [1.6, -0.0237, "m"]],
+     "55000": [[0.9, -0.0996, "m"], [0.95, -0.1017, "m"], [1.0, -0.1028, "m"], [1.05, -0.102, "m"], [1.1, -0.0973, "m"], [1.15, -0.0849, "m"], [1.2, -0.058, "m"], [1.3, -0.0325, "m"], [1.4, -0.0294, "m"], [1.5, -0.0247, "m"], [1.6, -0.0237, "m"], [1.7, -0.0212, "m"], [1.8, -0.0185, "i"], [1.9, -0.0161, "m"]]
+    },
+    "isolated_markers": {"4 (15,000 ft, M .9)": -0.049, "9 (45,000 ft, M 2.15)": -0.007}
+   },
+   "Cl_p": {
+    "pdf_page": 84,
+    "printed_page": 78,
+    "units": "1/rad",
+    "axis": "stability",
+    "header": "F-4C 38924 lb Stability Axis Flexible; five altitudes",
+    "reading_error": "+/-0.004",
+    "curves": {
+     "SL": [[0.6, -0.1895, "m"], [0.7, -0.1837, "m"], [0.8, -0.1791, "i"], [0.85, -0.1752, "m"], [0.9, -0.1728, "m"], [0.95, -0.1664, "m"], [1.0, -0.1568, "m"], [1.05, -0.1466, "m"], [1.1, -0.1381, "i"], [1.15, -0.129, "m"], [1.2, -0.1224, "m"], [1.3, -0.1111, "m"]],
+     "15000": [[0.8, -0.1994, "m"], [0.85, -0.2002, "m"], [0.9, -0.2009, "i"], [0.95, -0.1987, "m"], [1.0, -0.1915, "i"], [1.05, -0.1846, "i"], [1.1, -0.1751, "m"], [1.15, -0.1671, "m"], [1.2, -0.1599, "m"], [1.3, -0.1465, "m"], [1.4, -0.1347, "m"], [1.5, -0.124, "m"], [1.6, -0.1145, "m"]],
+     "35000": [[0.6, -0.2187, "k"], [0.7, -0.222, "m"], [0.8, -0.2258, "m"], [0.85, -0.2282, "m"], [0.9, -0.2329, "i"], [0.95, -0.2325, "m"], [1.0, -0.2378, "m"], [1.05, -0.2285, "m"], [1.1, -0.2173, "m"], [1.15, -0.209, "m"], [1.2, -0.2017, "i"], [1.3, -0.1886, "m"], [1.4, -0.1773, "m"], [1.5, -0.1717, "m"], [1.6, -0.1585, "m"], [1.7, -0.1502, "m"], [1.8, -0.1418, "m"], [1.9, -0.1345, "m"], [2.0, -0.1264, "m"], [2.1, -0.1189, "m"], [2.2, -0.1119, "m"]],
+     "45000": [[1.3, -0.2098, "m"], [1.4, -0.1999, "m"], [1.5, -0.19, "i"], [1.6, -0.1804, "m"], [1.7, -0.1724, "m"], [1.8, -0.1639, "m"], [1.9, -0.1561, "m"], [2.0, -0.1495, "m"], [2.1, -0.1443, "m"], [2.2, -0.139, "m"]],
+     "55000": [[0.9, -0.2377, "m"], [0.95, -0.2485, "m"], [1.0, -0.256, "m"], [1.05, -0.2476, "m"], [1.1, -0.2383, "m"], [1.15, -0.2424, "i"], [1.2, -0.2423, "m"], [1.3, -0.2334, "m"], [1.4, -0.2251, "m"], [1.5, -0.2169, "m"], [1.6, -0.2089, "m"], [1.7, -0.2011, "m"], [1.8, -0.193, "i"], [1.9, -0.1837, "m"], [2.0, -0.1731, "m"], [2.1, -0.1628, "m"]]
+    },
+    "note": "the 55,000 ft curve as given starts at M 0.9; between M 0.9 and 1.2 the line style is not clear in the print (it may belong to the 35,000 ft family)"
+   },
+   "Cn_p": {
+    "pdf_page": 84,
+    "printed_page": 78,
+    "units": "1/rad",
+    "axis": "stability",
+    "header": "as Cl_p",
+    "reading_error": "+/-0.001 (+/-0.006 on the near-vertical left ends, where each curve climbs steeply to about +0.05)",
+    "curves": {
+     "SL": [[0.27, 0.0342, "m"], [0.28, 0.0041, "m"], [0.3, -0.0151, "m"], [0.33, -0.0305, "m"], [0.37, -0.0359, "m"], [0.4, -0.0358, "m"], [0.5, -0.0299, "m"], [0.6, -0.0179, "m"], [0.7, -0.0053, "m"], [0.8, 0.0026, "i"], [0.85, 0.0055, "m"], [0.9, 0.0074, "m"], [0.95, 0.01, "m"], [1.0, 0.012, "m"], [1.05, 0.014, "m"], [1.1, 0.0158, "i"], [1.15, 0.0178, "m"], [1.2, 0.02, "m"]],
+     "15000": [[0.36, 0.0198, "m"], [0.37, -0.0057, "m"], [0.38, -0.0232, "m"], [0.4, -0.0375, "m"], [0.5, -0.0445, "m"], [0.6, -0.0384, "m"], [0.7, -0.0246, "m"], [0.8, -0.009, "m"], [0.85, -0.002, "m"], [0.9, 0.0032, "i"], [0.95, 0.0073, "m"], [1.0, 0.0108, "m"], [1.05, 0.013, "m"], [1.1, 0.0131, "m"], [1.15, 0.0167, "m"], [1.2, 0.0183, "m"], [1.3, 0.0185, "m"], [1.4, 0.0199, "m"]],
+     "35000": [[0.57, 0.0311, "m"], [0.58, 0.0093, "m"], [0.6, -0.0103, "m"], [0.62, -0.0243, "m"], [0.7, -0.0402, "m"], [0.8, -0.0402, "m"], [0.85, -0.039, "m"], [0.9, -0.0367, "m"], [0.93, -0.0311, "m"], [0.95, -0.0263, "m"], [0.96, -0.0247, "m"], [1.0, -0.0208, "m"], [1.05, -0.021, "m"], [1.1, -0.0228, "m"], [1.15, -0.0211, "m"], [1.2, -0.0181, "i"], [1.3, -0.011, "m"], [1.4, -0.004, "m"], [1.5, 0.0021, "m"], [1.6, 0.0071, "m"], [1.7, 0.0112, "m"], [1.8, 0.0145, "m"], [1.9, 0.0177, "m"], [2.0, 0.0202, "m"], [2.05, 0.0215, "m"]],
+     "45000": [[1.2, -0.0381, "m"], [1.3, -0.0265, "m"], [1.4, -0.0165, "i"], [1.5, -0.0082, "i"], [1.6, -0.0012, "m"], [1.7, 0.0046, "m"], [1.8, 0.0095, "m"], [1.9, 0.014, "m"], [2.0, 0.0177, "m"], [2.1, 0.0204, "m"], [2.2, 0.0221, "m"]],
+     "55000": [[0.9, 0.0354, "m"], [0.92, 0.0154, "m"], [0.95, -0.0149, "m"], [0.98, -0.0379, "m"], [1.0, -0.0557, "m"], [1.03, -0.0779, "m"], [1.05, -0.0884, "m"], [1.08, -0.1005, "m"], [1.1, -0.1041, "m"], [1.13, -0.1056, "m"], [1.15, -0.1044, "m"], [1.2, -0.0991, "m"], [1.3, -0.0807, "m"], [1.4, -0.0607, "m"], [1.5, -0.0406, "m"], [1.6, -0.0229, "m"], [1.7, -0.0094, "m"], [1.8, -0.0004, "i"], [1.9, 0.0059, "m"], [2.0, 0.0104, "m"], [2.05, 0.0122, "m"]]
+    }
+   },
+   "Cl_r": {
+    "pdf_page": 85,
+    "printed_page": 79,
+    "units": "1/rad",
+    "axis": "stability",
+    "header": "F-4C 38924 lb Stability Axis Flexible; five altitudes",
+    "reading_error": "+/-0.003",
+    "curves": {
+     "SL": [[0.5, 0.0404, "m"], [0.6, 0.0512, "m"], [0.7, 0.0547, "m"], [0.8, 0.053, "i"], [0.85, 0.0505, "m"], [0.9, 0.0483, "m"], [0.95, 0.0448, "m"], [1.0, 0.0421, "m"], [1.05, 0.0394, "m"], [1.1, 0.0389, "k"]],
+     "15000": [[0.5, 0.0424, "m"], [0.6, 0.0629, "m"], [0.7, 0.0652, "m"], [0.8, 0.0605, "m"], [0.85, 0.059, "m"], [0.9, 0.058, "i"], [0.95, 0.0568, "m"], [1.0, 0.0536, "m"], [1.05, 0.049, "m"], [1.1, 0.044, "m"], [1.15, 0.0401, "m"], [1.2, 0.04, "m"], [1.3, 0.0412, "m"], [1.4, 0.0495, "m"], [1.5, 0.0586, "m"], [1.55, 0.0607, "m"]],
+     "35000": [[0.6, 0.0889, "k"], [0.7, 0.0928, "m"], [0.8, 0.0857, "m"], [0.85, 0.0827, "m"], [0.9, 0.0811, "i"], [0.95, 0.0788, "m"], [1.0, 0.0748, "m"], [1.05, 0.0681, "m"], [1.1, 0.0616, "m"], [1.15, 0.0546, "m"], [1.2, 0.0514, "i"], [1.3, 0.0482, "m"], [1.4, 0.0495, "m"], [1.5, 0.0572, "m"], [1.6, 0.0633, "m"], [1.7, 0.0558, "m"], [1.8, 0.0508, "m"], [1.9, 0.0446, "m"], [2.0, 0.038, "m"], [2.1, 0.0348, "m"], [2.2, 0.0314, "m"]],
+     "55000": [[0.9, 0.1454, "m"], [0.95, 0.1395, "m"], [1.0, 0.1202, "m"], [1.03, 0.1051, "m"], [1.05, 0.0945, "m"], [1.1, 0.0791, "m"], [1.15, 0.0696, "m"], [1.2, 0.0642, "m"], [1.3, 0.0591, "m"], [1.4, 0.0603, "m"], [1.5, 0.0626, "m"], [1.6, 0.0633, "m"], [1.7, 0.0558, "m"], [1.8, 0.0505, "i"], [1.9, 0.0446, "m"], [2.0, 0.038, "m"], [2.1, 0.0348, "m"], [2.2, 0.0314, "m"]]
+    },
+    "note": "above M 1.5 all curves (15,000 ft to 55,000 ft; the 45,000 ft long-dash line is drawn only there) merge into one line: use '35000'/'55000' values for 45,000 ft"
+   },
+   "Cn_r": {
+    "pdf_page": 85,
+    "printed_page": 79,
+    "units": "1/rad",
+    "axis": "stability",
+    "header": "as Cl_r; curve labelled 'All Altitudes'",
+    "reading_error": "+/-0.003",
+    "curves": {
+     "ALL": [[0.5, -0.2376, "m"], [0.6, -0.2382, "i"], [0.7, -0.2425, "m"], [0.8, -0.2515, "i"], [0.85, -0.2577, "m"], [0.9, -0.2684, "i"], [0.95, -0.2781, "m"], [1.0, -0.2871, "m"], [1.05, -0.2915, "m"], [1.1, -0.3001, "i"], [1.15, -0.3059, "m"], [1.2, -0.3262, "i"], [1.3, -0.3505, "m"], [1.4, -0.3468, "m"], [1.5, -0.3324, "i"], [1.6, -0.3112, "m"], [1.7, -0.2869, "m"], [1.8, -0.2632, "i"], [1.9, -0.2417, "m"], [2.0, -0.2236, "m"], [2.1, -0.2089, "m"], [2.2, -0.1975, "m"]]
+    }
+   },
+   "Cy_delta_a": {
+    "pdf_page": 86,
+    "printed_page": 80,
+    "units": "1/rad",
+    "header": "F-4C 38924 lb Stability Axis Flexible; 'Combined aileron and spoiler effect per unit aileron deflection'",
+    "reading_error": "+/-0.0004",
+    "curves": {
+     "ALL": [[0.4, -0.0158, "m"], [0.5, -0.0158, "m"], [0.6, -0.0158, "i"], [0.7, -0.0157, "m"], [0.8, -0.0157, "i"], [0.85, -0.0157, "m"], [0.9, -0.0156, "i"], [0.95, -0.0155, "m"], [1.0, -0.0155, "m"], [1.05, -0.0156, "m"], [1.1, -0.0156, "i"], [1.15, -0.0158, "m"], [1.2, -0.0164, "i"], [1.3, -0.0177, "m"], [1.4, -0.0166, "m"], [1.5, -0.0138, "i"], [1.6, -0.0112, "m"], [1.7, -0.0095, "m"], [1.8, -0.008, "i"], [1.9, -0.0065, "m"], [2.0, -0.005, "m"], [2.1, -0.0036, "m"], [2.15, -0.0035, "k"]]
+    },
+    "note": "a single line is drawn for all altitudes"
+   },
+   "Cl_delta_a": {
+    "pdf_page": 86,
+    "printed_page": 80,
+    "units": "1/rad",
+    "axis": "stability",
+    "header": "as Cy_delta_a",
+    "reading_error": "+/-0.0005",
+    "curves": {
+     "SL": [[0.4, 0.0398, "m"], [0.5, 0.0378, "m"], [0.6, 0.0355, "m"], [0.7, 0.0324, "m"], [0.8, 0.0282, "i"], [0.85, 0.0257, "m"], [0.9, 0.0227, "m"], [0.95, 0.0196, "m"], [1.0, 0.0164, "m"], [1.05, 0.0133, "m"], [1.1, 0.0101, "i"], [1.15, 0.007, "m"], [1.2, 0.0038, "m"]],
+     "35000": [[0.6, 0.045, "k"], [0.7, 0.0442, "m"], [0.8, 0.0435, "m"], [0.85, 0.0431, "m"], [0.9, 0.0434, "i"], [0.95, 0.0423, "m"], [1.0, 0.0418, "m"], [1.05, 0.0401, "m"], [1.1, 0.0348, "m"], [1.15, 0.0299, "m"], [1.2, 0.0269, "i"], [1.3, 0.0206, "m"], [1.4, 0.0165, "m"], [1.5, 0.0131, "m"], [1.6, 0.0103, "m"], [1.7, 0.0085, "m"], [1.8, 0.007, "m"], [1.9, 0.006, "m"], [2.0, 0.0054, "m"], [2.1, 0.0053, "m"], [2.15, 0.0057, "m"]],
+     "55000": [[1.4, 0.0249, "m"], [1.5, 0.0209, "m"], [1.6, 0.0177, "m"], [1.7, 0.0152, "m"], [1.8, 0.0132, "i"], [1.9, 0.0117, "m"], [2.0, 0.0104, "m"], [2.1, 0.0094, "m"], [2.2, 0.0084, "m"]]
+    },
+    "isolated_markers": {"4 (15,000 ft, M .9)": 0.0315, "8 (45,000 ft, M 1.5)": 0.017, "9 (45,000 ft, M 2.15)": 0.0063},
+    "note": "the line given as '35000' continues to marker 9 (45,000 ft) with a change of dash style near M 1.75: beyond M 1.75 it is probably the 45,000 ft curve"
+   },
+   "Cn_delta_a": {
+    "pdf_page": 86,
+    "printed_page": 80,
+    "units": "1/rad",
+    "axis": "stability",
+    "header": "as Cy_delta_a",
+    "reading_error": "+/-0.0003 (+/-0.001 on the steep left ends)",
+    "curves": {
+     "SL": [[0.28, -0.0086, "m"], [0.3, -0.0068, "m"], [0.4, -0.0021, "m"], [0.5, 0.0004, "m"], [0.6, 0.0021, "m"], [0.7, 0.0032, "m"], [0.8, 0.0041, "i"], [0.85, 0.0047, "m"], [0.9, 0.005, "m"], [0.95, 0.0059, "m"], [1.0, 0.0067, "m"], [1.05, 0.0075, "m"], [1.1, 0.0084, "i"], [1.15, 0.0092, "m"], [1.2, 0.0097, "m"]],
+     "15000": [[0.45, -0.0036, "m"], [0.5, -0.002, "m"], [0.6, 0.0003, "m"], [0.7, 0.0019, "m"], [0.8, 0.0033, "m"], [0.85, 0.0039, "m"], [0.9, 0.0047, "k"]],
+     "35000": [[0.52, -0.0114, "m"], [0.6, -0.0065, "i"], [0.7, -0.0036, "m"], [0.8, -0.0023, "m"], [0.85, -0.0019, "m"], [0.865, -0.0016, "m"], [0.9, -0.0005, "i"], [0.935, 0.0003, "m"], [0.95, 0.001, "m"], [1.0, 0.0026, "m"], [1.05, 0.0041, "m"], [1.1, 0.0052, "m"], [1.15, 0.0059, "m"], [1.2, 0.0062, "i"], [1.3, 0.0059, "m"], [1.4, 0.0051, "m"], [1.5, 0.0044, "m"], [1.6, 0.0039, "m"], [1.7, 0.0035, "m"], [1.8, 0.0031, "m"], [1.85, 0.003, "m"]],
+     "45000": [[1.4, 0.0034, "m"], [1.5, 0.0029, "i"], [1.6, 0.0025, "m"], [1.7, 0.0023, "m"], [1.8, 0.0021, "m"], [1.9, 0.0019, "m"], [2.0, 0.0018, "m"], [2.1, 0.0016, "m"], [2.15, 0.0018, "k"]],
+     "55000": [[1.05, -0.0024, "m"], [1.1, -0.0019, "m"], [1.15, -0.0015, "m"], [1.2, -0.0012, "m"], [1.3, -0.0009, "m"], [1.4, -0.0007, "m"], [1.5, -0.0007, "m"], [1.6, -0.0008, "m"], [1.7, -0.0009, "m"], [1.8, -0.0009, "i"], [1.9, -0.001, "m"], [2.0, -0.0012, "m"]]
+    }
+   },
+   "Cy_delta_r": {
+    "pdf_page": 87,
+    "printed_page": 81,
+    "units": "1/rad",
+    "header": "F-4C 38924 lb Stability Axis Flexible; legend SL, 15,000 ft, 35,000 ft, 55,000 ft",
+    "reading_error": "+/-0.003",
+    "curves": {
+     "SL": [[0.1, 0.1227, "m"], [0.2, 0.1214, "m"], [0.3, 0.1202, "m"], [0.4, 0.1186, "m"], [0.5, 0.1159, "m"], [0.6, 0.1114, "m"], [0.7, 0.1049, "m"], [0.8, 0.0952, "i"], [0.85, 0.0891, "m"], [0.9, 0.0819, "m"], [0.95, 0.0742, "m"], [1.0, 0.0656, "m"], [1.05, 0.0568, "m"], [1.1, 0.0478, "i"], [1.15, 0.0394, "m"], [1.2, 0.0315, "m"], [1.3, 0.0206, "m"], [1.4, 0.0126, "m"]],
+     "15000": [[0.85, 0.099, "m"], [0.9, 0.0913, "i"], [0.95, 0.0842, "m"], [1.0, 0.0771, "m"], [1.05, 0.0696, "m"], [1.1, 0.0646, "m"], [1.15, 0.0592, "m"], [1.2, 0.0545, "m"], [1.3, 0.0457, "m"], [1.4, 0.0384, "m"], [1.5, 0.0313, "m"], [1.6, 0.0247, "m"]],
+     "35000": [[0.6, 0.1185, "k"], [0.7, 0.1132, "m"], [0.8, 0.1082, "m"], [0.85, 0.1049, "m"], [0.9, 0.1001, "i"], [0.95, 0.0951, "m"], [1.0, 0.0897, "m"], [1.05, 0.084, "m"], [1.1, 0.0785, "m"], [1.15, 0.0758, "m"], [1.2, 0.0729, "i"], [1.3, 0.069, "m"], [1.4, 0.0655, "m"], [1.5, 0.0614, "m"], [1.6, 0.059, "m"], [1.7, 0.0554, "m"], [1.8, 0.0493, "m"], [1.9, 0.0459, "m"], [1.95, 0.0427, "m"]],
+     "55000": [[0.8, 0.1128, "m"], [0.85, 0.1092, "m"], [0.9, 0.108, "m"], [0.95, 0.0996, "m"], [1.0, 0.0927, "m"], [1.05, 0.084, "m"], [1.1, 0.0833, "m"], [1.15, 0.0806, "m"], [1.2, 0.0785, "m"], [1.3, 0.0738, "m"], [1.4, 0.0701, "m"], [1.5, 0.0688, "m"], [1.6, 0.0651, "m"], [1.7, 0.0618, "m"], [1.8, 0.0583, "i"], [1.9, 0.0549, "m"], [2.0, 0.051, "m"], [2.05, 0.049, "m"]]
+    },
+    "isolated_markers": {"9 (45,000 ft, M 2.15)": 0.041}
+   },
+   "Cn_delta_r": {
+    "pdf_page": 87,
+    "printed_page": 81,
+    "units": "1/rad",
+    "axis": "stability",
+    "header": "as Cy_delta_r",
+    "reading_error": "+/-0.001",
+    "curves": {
+     "SL": [[0.05, -0.0798, "m"], [0.1, -0.0794, "m"], [0.2, -0.0782, "m"], [0.3, -0.0762, "m"], [0.4, -0.0737, "m"], [0.5, -0.071, "m"], [0.6, -0.0673, "m"], [0.7, -0.063, "m"], [0.8, -0.0573, "i"], [0.85, -0.054, "m"], [0.9, -0.0505, "m"], [0.95, -0.0469, "m"], [1.0, -0.043, "m"], [1.05, -0.0384, "m"], [1.1, -0.0336, "i"], [1.15, -0.0287, "m"], [1.2, -0.0239, "m"], [1.3, -0.015, "m"], [1.35, -0.0105, "m"]],
+     "15000": [[0.45, -0.0749, "m"], [0.5, -0.0739, "m"], [0.6, -0.0716, "m"], [0.7, -0.0678, "m"], [0.8, -0.0634, "m"], [0.85, -0.0607, "m"], [0.9, -0.0574, "i"], [0.95, -0.0538, "m"], [1.0, -0.0503, "m"], [1.05, -0.0464, "m"], [1.1, -0.0425, "m"], [1.15, -0.0385, "m"], [1.2, -0.0344, "m"], [1.3, -0.0263, "m"], [1.4, -0.019, "m"], [1.5, -0.0128, "m"], [1.6, -0.0078, "m"]],
+     "35000": [[0.6, -0.0748, "k"], [0.7, -0.0722, "m"], [0.8, -0.0688, "m"], [0.85, -0.0676, "m"], [0.9, -0.065, "i"], [0.95, -0.0631, "m"], [1.0, -0.0585, "m"], [1.05, -0.0543, "m"], [1.1, -0.051, "m"], [1.15, -0.0476, "m"], [1.2, -0.0437, "i"], [1.3, -0.0368, "m"], [1.4, -0.0309, "m"], [1.5, -0.0258, "m"], [1.6, -0.0219, "m"], [1.7, -0.0184, "m"], [1.8, -0.0157, "m"], [1.85, -0.0142, "m"]],
+     "55000": [[0.8, -0.0688, "m"], [0.85, -0.0676, "m"], [0.9, -0.0663, "m"], [0.95, -0.0631, "m"], [1.0, -0.0605, "m"], [1.05, -0.0579, "m"], [1.1, -0.0548, "m"], [1.15, -0.0518, "m"], [1.2, -0.0483, "m"], [1.3, -0.0423, "m"], [1.4, -0.0362, "m"], [1.5, -0.0301, "m"], [1.6, -0.0261, "m"], [1.7, -0.0227, "m"], [1.8, -0.02, "i"], [1.9, -0.0177, "m"], [2.0, -0.0157, "m"], [2.1, -0.0139, "m"]]
+    },
+    "note": "marker 8 (45,000 ft) lies on the 55,000 ft line at M 1.5 (-0.029); marker 9 at M 2.15 is about -0.013"
+   },
+   "Cl_delta_r": {
+    "pdf_page": 87,
+    "printed_page": 81,
+    "units": "1/rad",
+    "axis": "stability",
+    "header": "as Cy_delta_r",
+    "reading_error": "+/-0.0003 (+/-0.001 on the steep left ends)",
+    "curves": {
+     "SL": [[0.28, -0.0076, "m"], [0.3, -0.0043, "m"], [0.33, -0.0009, "m"], [0.4, 0.0037, "m"], [0.5, 0.0067, "m"], [0.6, 0.0082, "m"], [0.7, 0.0092, "m"], [0.8, 0.0097, "i"], [0.85, 0.0098, "m"], [0.9, 0.0095, "m"], [0.95, 0.0094, "m"], [1.0, 0.0089, "m"], [1.05, 0.0077, "m"], [1.1, 0.0068, "i"], [1.15, 0.0055, "m"], [1.2, 0.0045, "m"], [1.3, 0.0026, "m"], [1.4, 0.001, "m"]],
+     "15000": [[0.35, -0.0095, "m"], [0.37, -0.0064, "m"], [0.4, -0.0033, "m"], [0.5, 0.0024, "m"], [0.6, 0.0057, "m"], [0.7, 0.0077, "m"], [0.8, 0.0091, "m"], [0.85, 0.0093, "m"], [0.9, 0.0095, "i"], [0.95, 0.0094, "m"], [1.0, 0.0089, "m"], [1.05, 0.0086, "m"], [1.1, 0.008, "m"], [1.15, 0.0071, "m"], [1.2, 0.007, "m"], [1.3, 0.0054, "m"], [1.4, 0.0037, "m"], [1.5, 0.0028, "m"]],
+     "35000": [[0.55, -0.0093, "m"], [0.56, -0.0076, "m"], [0.6, -0.0041, "i"], [0.7, 0.002, "m"], [0.8, 0.0051, "m"], [0.85, 0.006, "m"], [0.9, 0.0065, "i"], [0.95, 0.0068, "m"], [1.0, 0.007, "m"], [1.05, 0.007, "m"], [1.1, 0.0073, "m"], [1.15, 0.0069, "m"], [1.2, 0.0066, "i"], [1.3, 0.006, "m"], [1.4, 0.0054, "m"], [1.5, 0.0046, "m"], [1.6, 0.0045, "m"], [1.7, 0.0041, "m"], [1.8, 0.0038, "m"]],
+     "55000": [[0.9, -0.0045, "m"], [0.92, -0.0029, "m"], [0.95, -0.0016, "m"], [1.0, -0.0002, "m"], [1.05, 0.0003, "m"], [1.1, 0.0009, "m"], [1.15, 0.0013, "m"], [1.2, 0.0016, "m"], [1.3, 0.0019, "m"], [1.4, 0.0021, "m"], [1.5, 0.0027, "m"], [1.6, 0.0025, "m"], [1.7, 0.0026, "m"], [1.8, 0.0026, "i"], [1.9, 0.0027, "m"], [2.0, 0.0029, "m"]]
+    },
+    "isolated_markers": {"8 (45,000 ft, M 1.5)": 0.0039, "9 (45,000 ft, M 2.15)": 0.0032}
+   }
+  },
+  "legend": "Each curve is a list of [Mach, value, flag]. flag m = measured (pixel centre of the drawn line against the axis ticks), i = interpolated between measured neighbours (dash gap, or under a circled flight-condition marker), e = eyeballed (read off a gridded enlargement; line could not be isolated), k = measured under a marker. Curve keys are altitudes in feet ('SL' = sea level). Points every 0.1 Mach, every 0.05 from 0.8 to 1.2, plus the ends of each drawn curve (ends are good to about 0.02 Mach)."
+ },
+ "cross_check": {
+  "method": ["Reference quantities: S = 530 ft^2, c-bar = 16.04 ft, b = 38.67 ft, m = W/g with g = 32.174 ft/sec^2, q = Q(PSF) and V = VTO(FPS) of Table IV-2, IY, IX, IZ, IXZ of Table IV-2.", "Body-axis derivatives of Table IV-3 are first rotated to stability axes through alpha0 (inverse of the report's Appendix B transformation): Zw_s = Zw cos^2(a) - (Zu + Xw) sin(a) cos(a) + Xu sin^2(a);  Mw_s = Mw cos(a) - Mu sin(a);  Zd_s = Zd cos(a) - Xd sin(a).", "CL_alpha = -Zw_s m V/(q S) - CD (CD from the digitised CD curve);  Cm_alpha = Mw_s IY V/(q S c);  Cm_q = 2 V IY Mq/(q S c^2);  Cm_alpha_dot = 2 V^2 IY Mwd/(q S c^2);  CL_delta_s = -Zd_s m/(q S);  Cm_delta_s = Md IY/(q S c).", "Lateral (extra): Cy_beta = Yv m V/(q S). L = L' - (IXZ/IX) N', N = N' - (IXZ/IZ) L' (unpriming); body-axis Cl = L IX/(q S b), Cn = N IZ/(q S b); rotated to stability axes: Cl_s = Cl cos(a) + Cn sin(a), Cn_s = Cn cos(a) - Cl sin(a).", "Plotted values are the digitised curves interpolated at the flight-condition Mach number (the curve there lies under the circled marker, so it is an interpolation between neighbours)."],
+  "flight_conditions": {
+   "2": {
+    "mach": 0.8,
+    "altitude": "SL",
+    "alpha0_deg": 0.3,
+    "q_psf": 948.0,
+    "V_fps": 893.0,
+    "m_slugs": 1209.8,
+    "CD_used": 0.0175,
+    "note": null,
+    "derivatives": {
+     "CL_alpha": {"from_tables": 3.293, "plotted": 3.331, "difference": -0.038, "percent": -1.1},
+     "Cm_alpha": {"from_tables": -0.2693, "plotted": -0.29, "difference": 0.021, "percent": 7.1},
+     "Cm_q": {"from_tables": -2.296, "plotted": -2.335, "difference": 0.039, "percent": 1.7},
+     "Cm_alpha_dot": {"from_tables": -0.9995, "plotted": -1.0, "difference": 0.00046, "percent": 0.0},
+     "CL_delta_s": {"from_tables": 0.3395, "plotted": 0.339, "difference": 0.00052, "percent": 0.2},
+     "Cm_delta_s": {"from_tables": -0.4897, "plotted": -0.486, "difference": -0.0037, "percent": -0.8},
+     "Cy_beta": {"from_tables": -0.7203, "plotted": -0.72, "difference": -0.00034, "percent": -0.0},
+     "Cl_beta": {"from_tables": -0.03499, "plotted": -0.0363, "difference": 0.0013, "percent": 3.6},
+     "Cn_beta": {"from_tables": 0.1154, "plotted": 0.1159, "difference": -0.00055, "percent": -0.5},
+     "Cl_delta_a": {"from_tables": 0.02849, "plotted": 0.0282, "difference": 0.00029, "percent": 1.0},
+     "Cn_delta_a": {"from_tables": 0.004003, "plotted": 0.0041, "difference": -9.7e-05, "percent": -2.4},
+     "Cl_delta_r": {"from_tables": 0.009995, "plotted": 0.0097, "difference": 0.0003, "percent": 3.0},
+     "Cn_delta_r": {"from_tables": -0.05698, "plotted": -0.0573, "difference": 0.00032, "percent": 0.6},
+     "Cy_delta_r": {"from_tables": 0.09504, "plotted": 0.0952, "difference": -0.00016, "percent": -0.2},
+     "Cy_delta_a": {"from_tables": -0.016, "plotted": -0.0157, "difference": -0.0003, "percent": -1.9}
+    }
+   },
+   "6": {
+    "mach": 0.9,
+    "altitude": "35000",
+    "alpha0_deg": 2.6,
+    "q_psf": 283.0,
+    "V_fps": 876.0,
+    "m_slugs": 1209.8,
+    "CD_used": 0.0336,
+    "note": "L'DA taken as 10.0 (printed 0.00)",
+    "derivatives": {
+     "CL_alpha": {"from_tables": 3.801, "plotted": 3.857, "difference": -0.056, "percent": -1.5},
+     "Cm_alpha": {"from_tables": -0.4001, "plotted": -0.405, "difference": 0.0049, "percent": 1.2},
+     "Cm_q": {"from_tables": -2.702, "plotted": -2.706, "difference": 0.0043, "percent": 0.2},
+     "Cm_alpha_dot": {"from_tables": -1.298, "plotted": -1.285, "difference": -0.013, "percent": -1.0},
+     "CL_delta_s": {"from_tables": 0.4005, "plotted": 0.399, "difference": 0.0015, "percent": 0.4},
+     "Cm_delta_s": {"from_tables": -0.579, "plotted": -0.583, "difference": 0.004, "percent": 0.7},
+     "Cy_beta": {"from_tables": -0.6508, "plotted": -0.656, "difference": 0.0052, "percent": 0.8},
+     "Cl_beta": {"from_tables": -0.07492, "plotted": -0.0751, "difference": 0.00018, "percent": 0.2},
+     "Cn_beta": {"from_tables": 0.1302, "plotted": 0.1289, "difference": 0.0013, "percent": 1.0},
+     "Cl_delta_a": {"from_tables": 0.04303, "plotted": 0.0434, "difference": -0.00037, "percent": -0.8},
+     "Cn_delta_a": {"from_tables": -0.001007, "plotted": -0.0005, "difference": -0.00051, "percent": -101.5},
+     "Cl_delta_r": {"from_tables": 0.006489, "plotted": 0.0065, "difference": -1.1e-05, "percent": -0.2},
+     "Cn_delta_r": {"from_tables": -0.06399, "plotted": -0.065, "difference": 0.001, "percent": 1.6},
+     "Cy_delta_r": {"from_tables": 0.1003, "plotted": 0.1001, "difference": 0.00024, "percent": 0.2},
+     "Cy_delta_a": {"from_tables": -0.01604, "plotted": -0.0156, "difference": -0.00044, "percent": -2.8}
+    }
+   }
+  },
+  "other_identities": ["Table IV-2: VTO(KTAS) = M x a(h) (1962 standard atmosphere) reproduces all ten values to the knot; Q = 0.7 p M^2 reproduces Q within 0.4% (the 45,000 and 55,000 ft columns imply a static pressure 0.3% above the 1962 standard; F/C 1 prints 62.6 against 62.9); QC follows the subsonic isentropic / supersonic Rayleigh pitot formulas within 0.3%.", "Table IV-13: YB = VTO x YV in all ten columns (within rounding).", "Tables IV-4 and IV-5 recomputed from IV-2/IV-3 with the Appendix C equations: all short-period, phugoid/tuck and numerator factors within 1.5% except (a) small phugoid-related roots sensitive to third-digit rounding (F/C 1 phugoid damping .096 computed, .102 printed; F/C 4 tuck roots -.0625/.0753 computed, -.0612/.0741 printed) and (b) the F/C 1 thrust numerators, whose printed gain implies MDTH about 3% smaller than printed.", "Tables IV-14 and IV-15 recomputed from IV-2/IV-13 (with L'DA of F/C 6 = 10.0): Dutch roll, roll and numerator factors within 1.5%; spiral roots within 8% (they are small differences of large terms).", "Table IV-12: NZA = (U0/g)(-Zw + Zd Mw/Md) reproduces all ten values within 1% (this is what fixes ZW = -.494 at F/C 9); CAP = W(DET)2^2/NZA within 1%; tuck times = ln2/|1/T|; 1/C(1/10) from Z(DET)2.", "Table IV-18: DR PERIOD and 1/C(1/2) follow from Z(DET)1, W(DET)1 of Table IV-14 in all ten columns; W(PHI)/W(D) = W(PHI)1/W(DET)1; SPIRAL(2) = ln2/.000179.", "Stick-force numerator gains (IV-6): A(THE)_FST/A(THE)_DS = -31.8 in F/C 1-7 = (-3.36/57.3) x 20 / .0369 (gearing x actuator pole / feel inertia).", "Trim CL lines of the CL-CD figure equal W/(q S) (measured/computed 1.007-1.026)."],
+  "comments": ["Agreement is 0-2% for the five requested longitudinal derivatives at both flight conditions, except Cm_alpha at F/C 2 (-0.269 from the tables against -0.29 interpolated): the sea-level Cm_alpha curve has a knee exactly under marker 2, whose centre reads about -0.27, so the table value is the better number there.", "Cn_delta_a at F/C 6 differs by 0.0005, which is the reading error of that plot (the curve crosses zero under marker 6).", "The lateral-directional comparison confirms that Table IV-13 is in body axes and primed, and that the plots are in stability axes."]
+ }
+}
