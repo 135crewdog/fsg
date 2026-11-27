@@ -48,12 +48,19 @@ import { Report } from '../jsbsim/tests/lib/harness.js';
 import { VARIANTS } from '../jsbsim/tests/lib/node.js';
 import { headTrace } from '../jsbsim/tests/lib/scenario.js';
 import { FACTORS, FADE_MACH, HEIGHTS, INCREMENTS, LEVELS, LEVEL_FADE_MACH, LEVEL_HEIGHTS, SHARED, UNCHANGED, asXml, conditions, inFile, lookup, machTables } from '../tools/f4c-mach.mjs';
-import { GROUND, atCondition, pitchRate, respond, rollRate, rudderFeet, startNear, stateOf, steadyPull, yawRate } from './checkride/conditions.js';
+import { GROUND, STRAIGHT, atCondition as atConditionOf, pitchRate, respond, rollRate, rudderFeet, startNear, stateOf, steadyPull, yawRate } from './checkride/conditions.js';
 import { moduleWith } from './checkride/files.js';
 import * as REFERENCE from './checkride/f4c-reference.js';
 import { exponential, factorsOf, measures, polynomial, respond as respondLinear, transferFunction, turningPoints } from './checkride/linear.js';
 import { SIX, snapshot, startAt, table1 } from './checkride/table1.js';
 import { JUDGED, flyNative, flyWasm } from './checkride/tape.js';
+
+/**
+ * Every flight in this file is pull request 5's airplane: the stick and the rudder straight to the surfaces,
+ * as CR-2144's tables IV-4, IV-14 and IV-15 assume (the aircraft file's test switch; pull request 6 gave the
+ * file its real flight controls, which tests/f4c-fcs.test.js flies).
+ */
+const atCondition = (module, c, options = {}) => atConditionOf(module, c, { ...options, sets: [...STRAIGHT, ...(options.sets ?? [])] });
 
 const { WING_AREA, CG_PERCENT_CHORD, CONDITION_MACH, CONDITION_HEIGHT, CONDITION_TRIM_ALPHA, CONDITION_TRIM_STABILATOR, CONDITION_DRAG, CONDITION_STABILATOR_PER_G,
   CONDITION_PITCH_DAMPING, CONDITION_PITCH_FREQUENCY, CONDITION_DUTCH_ROLL_DAMPING, CONDITION_DUTCH_ROLL_FREQUENCY, CONDITION_SPIRAL_ROOT, TUCK_SECONDS_TO_DOUBLE } = REFERENCE;
@@ -470,10 +477,12 @@ test('f4c: "A two-minute flight\'s tape replays in native JSBSim by milestone 1\
     assert.equal(diveDeg, 0, 'the engines hold condition 6 level');
     const hold = { ...twin.trimmed }, alpha = twin.get('aero/alpha-deg'), turning = twin.get('propulsion/engine[0]/n2');
     twin.dispose();
+    // The copilot holds the trim the twin's start kept (src/sim/game.js, `airborneTrim`).
+    const assists = { ...F4C.assists, trim: { ...F4C.assists.trim, sets: [['fcs/pitch-trim-cmd-norm', hold.heldPitchTrim]] } };
     const flight = Flight.start(module, F4C, {
-      record: true, settleSeconds: 0, terrain: GROUND, controls: { gear: false, flaps: false, brake: false, throttle: hold.throttle, pitch: hold.pitch, roll: hold.roll },
+      record: true, settleSeconds: 0, terrain: GROUND, assists, controls: { gear: false, flaps: false, brake: false, throttle: hold.throttle, pitch: hold.pitch, roll: hold.roll },
       // The speed before the angle of attack: with no speed JSBSim has no flight path to raise the nose from.
-      sets: [['ic/h-sl-ft', c.heightFt], ['ic/mach', c.mach], ['ic/alpha-deg', alpha], ['propulsion/engine[0]/n2', turning], ['propulsion/engine[1]/n2', turning]],
+      sets: [['ic/h-sl-ft', c.heightFt], ['ic/mach', c.mach], ['ic/alpha-deg', alpha], ['propulsion/engine[0]/n2', turning], ['propulsion/engine[1]/n2', turning], ...STRAIGHT],
     });
     // Read back: it starts at the condition, level and steady.
     assert.ok(Math.abs(flight.value('velocities/mach') - c.mach) < 1e-6 && Math.abs(feet(flight) - c.heightFt) < 0.01 && Math.abs(flight.get('aero/alpha-deg') - alpha) < 1e-9, `Mach ${flight.value('velocities/mach')} at ${feet(flight)} ft`);

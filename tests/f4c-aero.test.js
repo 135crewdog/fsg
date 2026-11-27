@@ -27,6 +27,7 @@ import { bitEqual, classA, classB, classN, describeN, fmt } from '../jsbsim/test
 import { Report } from '../jsbsim/tests/lib/harness.js';
 import { VARIANTS } from '../jsbsim/tests/lib/node.js';
 import { headTrace } from '../jsbsim/tests/lib/scenario.js';
+import { STRAIGHT } from './checkride/conditions.js';
 import { bytesOf, moduleWith } from './checkride/files.js';
 import * as REFERENCE from './checkride/f4c-reference.js';
 import { JUDGED, flyNative, flyWasm } from './checkride/tape.js';
@@ -83,7 +84,9 @@ const SPEEDS = [250, 300, 400];
 
 /** In the air by JSBSim's own trim (as tests/assists.test.js), read back: the F-4C's one weight, gear up, level and steady at that speed and height. */
 function inTheAir(module, at, options = {}) {
-  const flight = Flight.start(module, F4C, { airborne: at, ...options });
+  // Pull request 5's airplane: the stick and the rudder straight to the surfaces (the aircraft file's test
+  // switch, tests/checkride/conditions.js); tests/f4c-fcs.test.js flies the real controls.
+  const flight = Flight.start(module, F4C, { airborne: at, ...options, sets: [...STRAIGHT, ...(options.sets ?? [])] });
   assert.ok(Math.abs(knots(flight) - at.knots) < 0.5 && Math.abs(feet(flight) - at.heightFt) < 1, `${knots(flight)} kt at ${feet(flight)} ft`);
   assert.ok(Math.abs(flight.value('accelerations/Nz') - 1) < 0.02 && Math.abs(flight.value('velocities/v-down-fps')) < 0.5 && Math.abs(bank(flight)) < 0.5,
     `level and steady: ${flight.value('accelerations/Nz')} g, sinking ${flight.value('velocities/v-down-fps')} ft/s, bank ${bank(flight)} degrees`);
@@ -132,7 +135,11 @@ test('f4c: every table of AFWAL\'s in the aircraft file is its listing as read, 
   const every = [...aerodynamics.matchAll(/<function name="([^"]+)">\s*<table>([^]*?)<\/table>\s*<\/function>/g)];
   const tables = every.filter(([, name]) => name.startsWith('aero/table/')), others = every.filter(([, name]) => !name.startsWith('aero/table/'));
   assert.equal(tables.length, USED.length);
-  assert.equal(file.split('<table>').length - 1, every.length, 'there is no table anywhere else in the file');
+  // Pull request 6 added the flight controls' own four tables (CR-2144's feel system, figure IV-5, three; its
+  // rudder flexure, figure IV-6), which tests/f4c-fcs.test.js holds to their record: none anywhere else.
+  const controls = file.slice(file.indexOf('<flight_control'), file.indexOf('</flight_control>'));
+  assert.equal(controls.split('<table>').length - 1, 4, 'the flight controls have the feel system\'s three and the flexure\'s one');
+  assert.equal(file.split('<table>').length - 1, every.length + 4, 'there is no table anywhere else in the file');
   assert.ok(others.length === 22 && others.every(([, name]) => /^aero\/(factor|increment)\//.test(name)), 'every other table is a factor or an increment of what Mach changes');
   const marked = file.slice(file.indexOf('<!-- MACH TABLES'), file.indexOf('<!-- END OF MACH TABLES -->'));
   assert.equal(marked.split('<table>').length - 1, others.length, 'and they are all between the two marks');
@@ -198,7 +205,7 @@ test('f4c: every table of AFWAL\'s in the aircraft file is its listing as read, 
   assert.match(file, /<aerosurface_scale name="fcs\/stabilator">\s*<input> fcs\/pitch-stick-and-trim <\/input>\s*<range>\s*<min> -21 <\/min>\s*<max> 9 <\/max>/);
   assert.deepEqual(STABILATOR_TRAVEL.value, DATA.table_6.rows[0].range_deg);
   assert.deepEqual([AILERON_TRAVEL.value, RUDDER_TRAVEL.value], [DATA.table_6.rows[1].range_deg[1], DATA.table_6.rows[3].range_deg[1]]);
-  assert.equal(DATA.control_system.spoiler_aileron_relation.as_printed, `delta_sp = ${SPOILER_PER_AILERON.value} delta_a`);
+  assert.equal(DATA.control_system.spoiler_aileron_relation.as_printed, `delta_sp = ${REFERENCE.AFWAL_SPOILER_PER_AILERON.value} delta_a`);
 });
 
 for (const variant of VARIANTS) {
@@ -206,7 +213,7 @@ for (const variant of VARIANTS) {
 
   // ---- The controls, straight to the surfaces ----
 
-  test(`${variant}, f4c: the stick straight to the surfaces: full back is the stabilator 21 degrees up and full forward 9 down; full right is the left aileron 30 degrees down and the right spoiler up 1.433 times as far, the other pair flush; the rudder 30 degrees each way`, async () => {
+  test(`${variant}, f4c: the stick straight to the surfaces: full back is the stabilator 21 degrees up and full forward 9 down; full right is the left aileron 30 degrees down and the right spoiler up 1.5 times as far (45 degrees), the other pair flush; the rudder 30 degrees each way`, async () => {
     const module = await moduleWith(F4C, variant);
     const surfaces = (controls, rudder = 0) => {
       const flight = startAt(module, { alpha: 2, beta: 0, ...controls, rudder });
@@ -375,10 +382,13 @@ for (const variant of VARIANTS) {
     const stored = new Map(trim.sets), own = flight.trimmed.jsbsim;
     assert.ok(Math.abs(own.pitchTrim - stored.get('fcs/pitch-trim-cmd-norm')) <= 0.002, `pitch trim: JSBSim's ${own.pitchTrim}, stored ${stored.get('fcs/pitch-trim-cmd-norm')}`);
     assert.ok(Math.abs(own.rollStick) <= 0.002 && !stored.has('fcs/roll-trim-cmd-norm'), `no roll trim: JSBSim's roll stick is ${own.rollStick}`);
-    flight.fly({ pitch: 0, roll: 0 });
+    // The stored trim with the stick in the middle: the copilot holds JSBSim's own (src/sim/game.js,
+    // `airborneTrim`), so with the stick straight the stick makes up the difference, as the stored trim would.
+    flight.fly({ pitch: F4C.controls.pitch.sign * (stored.get('fcs/pitch-trim-cmd-norm') - flight.trimmed.heldPitchTrim), roll: 0 });
     const seen = { slow: Infinity, fast: -Infinity, low: Infinity, high: -Infinity, bank: 0 };
     run(flight, 60, (t) => {
-      if (t > 0) for (const [command, value] of trim.sets) assert.equal(flight.get(command), value, `${command} at ${t} s`);
+      // The copilot holds the trim the airborne start kept: JSBSim's own, within 0.002 of the stored one (above; src/sim/game.js, `airborneTrim`).
+      if (t > 0) assert.equal(flight.get('fcs/pitch-trim-cmd-norm'), flight.trimmed.heldPitchTrim, `the pitch trim at ${t} s`);
       seen.slow = Math.min(seen.slow, knots(flight)); seen.fast = Math.max(seen.fast, knots(flight));
       seen.low = Math.min(seen.low, feet(flight)); seen.high = Math.max(seen.high, feet(flight));
       seen.bank = Math.max(seen.bank, Math.abs(bank(flight)));
@@ -413,7 +423,9 @@ for (const variant of VARIANTS) {
       const heightLine = LINES.heightSwings * 2 * trueFps * (0.1 * trueFps) / G;
       for (const share of [1.1, 0.9]) {
         const flight = inTheAir(module, { heightFt: AFWAL_REFERENCE_HEIGHT.value, knots: speed * share });
-        flight.fly({ throttle: hold.throttle, pitch: hold.pitch, roll: hold.roll });
+        // The stick that puts the stabilator where the level flight had it: this flight's copilot holds the trim
+        // its own start found (src/sim/game.js, `airborneTrim`), and with the stick straight, stick and trim add.
+        flight.fly({ throttle: hold.throttle, pitch: hold.pitch + F4C.controls.pitch.sign * (hold.heldPitchTrim - flight.trimmed.heldPitchTrim), roll: hold.roll });
         const from = feet(flight), speeds = [];
         const seen = { slow: Infinity, fast: -Infinity, low: Infinity, high: -Infinity };
         // Five minutes: the first minute is judged, the rest is for the swing's period, which is only reported.
@@ -583,10 +595,12 @@ test('f4c: "A two-minute flight\'s tape replays in native JSBSim by milestone 1\
     const twin = inTheAir(module, { heightFt: AFWAL_REFERENCE_HEIGHT.value, knots: 300 });
     const hold = { ...twin.trimmed }, alpha = twin.get('aero/alpha-deg'), turning = twin.get('propulsion/engine[0]/n2');
     twin.dispose();
+    // The copilot holds the trim the twin's start kept (src/sim/game.js, `airborneTrim`).
+    const assists = { ...F4C.assists, trim: { ...F4C.assists.trim, sets: [['fcs/pitch-trim-cmd-norm', hold.heldPitchTrim]] } };
     const flight = Flight.start(module, F4C, {
-      record: true, settleSeconds: 0, controls: { gear: false, flaps: false, brake: false, throttle: hold.throttle, pitch: hold.pitch, roll: hold.roll },
+      record: true, settleSeconds: 0, assists, controls: { gear: false, flaps: false, brake: false, throttle: hold.throttle, pitch: hold.pitch, roll: hold.roll },
       // The speed before the angle of attack: with no speed JSBSim has no flight path to raise the nose from.
-      sets: [['ic/h-sl-ft', AFWAL_REFERENCE_HEIGHT.value], ['ic/vc-kts', 300], ['ic/alpha-deg', alpha], ['propulsion/engine[0]/n2', turning], ['propulsion/engine[1]/n2', turning]],
+      sets: [['ic/h-sl-ft', AFWAL_REFERENCE_HEIGHT.value], ['ic/vc-kts', 300], ['ic/alpha-deg', alpha], ['propulsion/engine[0]/n2', turning], ['propulsion/engine[1]/n2', turning], ...STRAIGHT],
     });
     // Read back: it starts where the twin stood, level and steady.
     assert.ok(Math.abs(knots(flight) - 300) < 0.01 && Math.abs(feet(flight) - AFWAL_REFERENCE_HEIGHT.value) < 0.01 && Math.abs(flight.get('aero/alpha-deg') - alpha) < 1e-9, `${knots(flight)} kt at ${feet(flight)} ft`);

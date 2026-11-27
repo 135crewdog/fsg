@@ -224,18 +224,32 @@ export class Flight {
         // one that goes with that. Its pitch trim is replaced by the game's at the first step, and the stick
         // that then holds the same flight is the difference: in both aircraft files the trim adds to the
         // stick, one for one (tests/assists.test.js flies it to show it).
+        //
+        // An airplane whose pitch stick is a force (`airborneTrim` in its settings: the F-4C's feel system)
+        // is different: its trim and its stick do not add. There the aircraft file's own switch holds the
+        // feel system still while JSBSim trims (JSBSim settles its filters for only a few steps), and
+        // afterwards the trim JSBSim found is the one the copilot holds, with no force on the stick.
         const held = new Map(flight.assists ? flight.assists.startSets : []);
         const [pitchTo, rollTo] = [aircraft.controls.pitch, aircraft.controls.roll];
         const [pitchTrimName, rollTrimName] = ['fcs/pitch-trim-cmd-norm', 'fcs/roll-trim-cmd-norm'];
         for (const name of held.keys()) if (name !== pitchTrimName && name !== rollTrimName) throw new Error(`an airborne start does not know the trim ${name}`);
+        const keeps = aircraft.airborneTrim;
+        if (keeps) fdm.setByName(keeps.holding, 1);
         fdm.setByName('simulation/do_simple_trim', 1);
+        if (keeps) fdm.setByName(keeps.holding, 0);
         const pitchTrim = fdm.getByName(pitchTrimName), rollStick = fdm.getByName(rollTo.to[0]);
         flight.trimmed = {
           throttle: fdm.getByName(aircraft.controls.throttle.to[0]),
-          pitch: (pitchTo.sign ?? 1) * (fdm.getByName(pitchTo.to[0]) + pitchTrim - (held.get(pitchTrimName) ?? pitchTrim)),
+          pitch: keeps ? 0 : (pitchTo.sign ?? 1) * (fdm.getByName(pitchTo.to[0]) + pitchTrim - (held.get(pitchTrimName) ?? pitchTrim)),
           roll: (rollTo.sign ?? 1) * rollStick,
           jsbsim: { pitchTrim, rollStick: rollStick + (held.get(rollTrimName) ?? 0) },
+          /** The pitch trim the copilot holds from here on. */
+          heldPitchTrim: keeps ? pitchTrim : held.get(pitchTrimName) ?? pitchTrim,
         };
+        if (keeps && flight.assists) {
+          const settings = { ...assists, trim: { ...assists.trim, sets: assists.trim.sets.map(([name, value]) => [name, name === pitchTrimName ? pitchTrim : value]) } };
+          flight.assists = new Assists(settings, (name) => flight.#at.get(name), inputAt, wheels, DT);
+        }
         Object.assign(flight.controls, { throttle: flight.trimmed.throttle, pitch: flight.trimmed.pitch, roll: flight.trimmed.roll });
         // The state was read at the start, before the trim changed it: read it again, without a step.
         fdm.bindOutputs(flight.stateNames);

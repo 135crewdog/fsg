@@ -97,8 +97,14 @@ const { S_ft2: S, b_ft: SPAN, c_bar_ft: CHORD } = CR.general_arrangement.printed
 const XREF = AFWAL.table_5.rows.find((row) => row.symbol === 'Xref').value;
 /** CR-2144's thrust line: tilted nose-up by this, and passing this far above the centre of gravity (Table IV-2: ITH, LTH). */
 const THRUST_TILT = 5.25, THRUST_ARM_FT = 0.37;
-/** AFWAL's spoiler for each degree of aileron: CR-2144's aileron derivatives have the spoiler in them, and AFWAL's are apart. */
-const SPOILER = 1.433;
+/**
+ * The spoiler for each degree of aileron: CR-2144's aileron derivatives have the spoiler in them, and AFWAL's
+ * are apart. The F-4C's own: its flight manual (T.O. 1F-4C-1, section I) gives the ailerons 30 degrees down
+ * and the spoilers 45 up, so 45/30 = 1.5, which the aircraft file's flight controls use (pull request 6).
+ * AFWAL's F-4J has 1.433 (43 up, its Table 6; its own Figure 4 limits the spoiler at 45). It was 1.433 here
+ * until pull request 6.
+ */
+const SPOILER = 1.5;
 /** The Mach number at and below which the airplane is AFWAL's model alone. */
 export const FADE_MACH = 0.5;
 /** The tables' two columns, feet: CR-2144 has two heights at one Mach number only (0.9), 15,000 and 35,000 ft. */

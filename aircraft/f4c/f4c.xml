@@ -6,9 +6,10 @@
 
   So far: weight, balance and inertias; the wheels and the airframe's contact points; two J79-GE-15 engines
   with their afterburners and the throttle system that lights them (pull request 3); and the aerodynamics,
-  gear and flaps up, across the Mach range, with the stick straight to the surfaces (pull request 5: at
-  low speed in its first half, 5a; what Mach changes in its second). Still to come: the jet's own flight
-  controls (6), and the flaps, the speedbrakes, the gear's drag and ground effect (7).
+  gear and flaps up, across the Mach range (pull request 5: at low speed in its first half, 5a; what Mach
+  changes in its second); and the jet's own flight controls: the feel system, the stability augmentation,
+  the aileron-rudder interconnect and the actuators (pull request 6). Still to come: the flaps, the
+  speedbrakes, the gear's drag and ground effect (7).
 
   Where each number comes from. Every number below names one of these.
     CR-2144   NASA CR-2144, Heffley and Jewell, "Aircraft Handling Qualities Data", 1972, section IV (the
@@ -38,8 +39,8 @@
  <fileheader>
   <author> FSG (135crewdog/fsg), written by Claude Code </author>
   <filecreationdate> 2026-11-26 </filecreationdate>
-  <version> milestone 3, pull request 5 </version>
-  <description> McDonnell F-4C Phantom II: mass, gear, engines, and the aerodynamics with the gear and flaps up. </description>
+  <version> milestone 3, pull request 6 </version>
+  <description> McDonnell F-4C Phantom II: mass, gear, engines, the aerodynamics with the gear and flaps up, and its own flight controls. </description>
   <reference refID="NASA CR-2144" author="R. K. Heffley and W. F. Jewell" title="Aircraft Handling Qualities Data" date="1972"/>
   <reference refID="T.O. 1F-4C-1" author="USAF" title="Flight Manual, F-4C, F-4D and F-4E" date="1970-10-01"/>
   <reference refID="AFWAL-TR-80-3141 Part III" author="D. G. Mitchell, T. T. Myers, G. L. Teper and D. E. Johnston" title="Investigation of High-Angle-of-Attack Maneuver-Limiting Factors, Part III: Appendices - Aerodynamic Models" date="1980-12"/>
@@ -361,8 +362,7 @@
 
  <!--
   The airplane's own systems (its FCS, in the owner's words): what the real jet does between the cockpit
-  and the airplane. So far the throttles, the gear, and the stick and pedals straight to the surfaces; the
-  feel system, the stability augmentation and the real flight controls come in pull request 6.
+  and the airplane: the throttles, the gear, and (pull request 6) the flight controls, below.
  -->
  <flight_control name="F-4C">
 
@@ -477,23 +477,77 @@
   </channel>
 
   <!--
-   The stick and the pedals, straight to the surfaces (pull request 5a: "stick straight to the surfaces
-   for now"). No feel system, no stability augmentation, no actuators: those are the real jet's, from
-   CR-2144, and come in pull request 6. What is here is only each surface's travel and which way it goes.
+   ==== The jet's own flight controls (pull request 6) ====
 
-   Which way is positive is JSBSim's own, and it is AFWAL's too (its Table 6, PDF p.36), so a surface's
-   degrees go into AFWAL's tables as they are:
-     stabilator   trailing edge down positive: a positive fcs/elevator-cmd-norm is the stick forward
-     ailerons     a positive fcs/aileron-cmd-norm rolls to the right
-     rudder       trailing edge left positive: a positive fcs/rudder-cmd-norm is the left pedal
+   What the real F-4C has between the cockpit and its surfaces, from NASA CR-2144's own diagrams of it
+   (aircraft/f4c/data/cr2144-f4c.json: "control_system", figure IV-3, PDF p.71; "feel_system_schematic",
+   figure IV-4, p.72; figure IV-5, its feel parameters, p.73; "stability_augmentation", figure IV-7, p.75),
+   with the flight manual (T.O. 1F-4C-1, section I, "Flight control system", and section IV, "Automatic
+   flight control system") where it says more. All of it is the airplane's (its FCS): the game's copilot
+   only works the cockpit controls (src/sim/aircraft/f4c.js).
 
-   The stabilator: 21 degrees trailing edge up to 9 down (AFWAL Table 6: "21 up, 9 down"; the owner's
-   model moves the same, docs/models.md). The stick and JSBSim's pitch trim add, one for one, and the sum
-   moves it: nothing at the middle, 21 degrees up at full back, 9 down at full forward. So the stick has
-   more travel aft of the middle than forward of it, for now. JSBSim calls the pitch surface the elevator;
-   the game's state reads fcs/elevator-pos-rad.
+     pitch   the stick is a pull in pounds; the feel system (bellows springs, viscous damper, bobweight;
+             the stick's own mass and damping left out, see "The stick itself") turns it into stick travel, the gearing into stabilator, the pitch damper adds to it, and the
+             power actuator moves the stabilator.
+     roll    the stick is a position (the F-4's roll feel is a plain spring: figure IV-3, 2.96 lb/in);
+             the roll damper adds to it; the ailerons and spoilers each have their actuator.
+     yaw     the copilot's feet as before; the yaw damper and, with the flaps down and slow, the
+             aileron-rudder interconnect add to them; the rudder's actuator.
+
+   Signs are JSBSim's, as before: stabilator trailing edge down positive; a positive fcs/elevator-cmd-norm
+   is the stick forward; aileron positive rolls right; rudder trailing edge left (nose left) positive.
+   CR-2144's own signs (its appendix A) are the same for the surfaces; its stick force is aft positive.
+
+   Test-only switches. Each is a property here with the real jet as its default. The game never writes
+   them (tests/f4c-fcs.test.js reads the game's inputs to show it); a test sets them in its start, as
+   CR-2144 itself switches channels out for its tables.
+     fcs/test/straight       1: the stick and pedals straight to the surfaces, as pull request 5 flew
+                             the airplane (no feel system, no augmentation, no actuators): what CR-2144's
+                             tables IV-4, IV-14 and IV-15 assume. Default 0.
+     fcs/test/pitch-damper   0: the pitch damper out. Default 1.
+     fcs/test/roll-damper    0: the roll damper out. Default 1.
+     fcs/test/yaw-damper     0: the yaw damper out (and the interconnect at its augmentation-off gain
+                             and limit, as figure IV-3 and the flight manual have it). Default 1.
+     fcs/test/bobweight      0: the bobweight out. Default 1.
   -->
+  <property value="0"> fcs/test/straight </property>
+  <property value="1"> fcs/test/pitch-damper </property>
+  <property value="1"> fcs/test/roll-damper </property>
+  <property value="1"> fcs/test/yaw-damper </property>
+  <property value="1"> fcs/test/bobweight </property>
+
+  <!--
+   1 only while JSBSim's own trim runs in an airborne start (src/sim/game.js, `airborneTrim` in
+   src/sim/aircraft/f4c.js; tests only, the game always starts on the runway). JSBSim's trim
+   (src/initialization/FGTrim.cpp, FGTrimAxis.cpp) runs the flight controls once for each of its tries,
+   with the airplane put back each time, so a filter never settles and a loop through the airplane's
+   own motion is a loop through the trim's guesses. Found by trying: with the bobweight in, the trim failed
+   at 350 knots at 2,000 ft and at Mach 1.5 at 45,000 ft; with the dampers in, in condition 3's dive.
+   So while it is 1: the stick stands at the static answer to its force (no stick dynamics), the bobweight
+   is held out and the 1 g it feels at the end is kept as its zero (below), and the three dampers are out.
+   In steady level flight with no force on the stick every one of them gives nothing anyway, so the trim
+   found is the flight controls' own (tests/f4c-fcs.test.js trims all nine conditions and compares).
+  -->
+  <property value="0"> fcs/stick/trimming </property>
+
+  <!--
+   The pilot's pull. The game sends the stick as fcs/elevator-cmd-norm, -1 (full back) to 1 (full
+   forward). Here it becomes a force on the stick, aft positive, pounds:
+     full back      fcs/stick/full-pull-lbs: sized so that full back tilt holds 8.5 g at 480 knots at sea
+                    level (docs/milestones/3.md, pull request 6: "Full back tilt holds 8.5 g within 0.5 at
+                    480 knots at sea level"; the flight manual's limit at this weight). The plan's own
+                    estimate was about 95 lb. tests/f4c-fcs.test.js flies it.
+     full forward   fcs/stick/full-push-lbs: sized so that full forward tilt holds -3 g there (the same
+                    plan: "-3 g within 0.5 at 480 knots at sea level", Wings' figure).
+   Between, the force is in proportion to the tilt. Both are engineering numbers, Supported by the test;
+   they are the one place the game's tilt meets the jet, and a feel round on the phone may change them.
+  -->
+  <property value="100"> fcs/stick/full-pull-lbs </property>
+  <property value="44"> fcs/stick/full-push-lbs </property>
+
   <channel name="Pitch">
+
+   <!-- Pull request 5's straight path, kept for fcs/test/straight: stick and trim add, and the sum moves the stabilator, 21 degrees up to 9 down (AFWAL Table 6). -->
    <summer name="fcs/pitch-stick-and-trim">
     <input> fcs/elevator-cmd-norm </input>
     <input> fcs/pitch-trim-cmd-norm </input>
@@ -508,25 +562,523 @@
      <min> -21 </min>
      <max> 9 </max>
     </range>
-    <output> fcs/elevator-pos-deg </output>
    </aerosurface_scale>
+
+   <!--
+    The trimmed stabilator, degrees: where the stabilator stands with no force on the stick. The trim
+    actuator moves the feel system's neutral (the flight manual: "Actuating the trim switch causes the
+    stabilator trim actuator to move, balancing the forces ... thereby eliminating force on the control
+    sticks"; CR-2144 counts its stabilator "from trim"). The trim command keeps pull request 5's scale
+    (-1 is 21 degrees up, 1 is 9 down), so the copilot's neutral trim means the same stabilator as before.
+   -->
+   <fcs_function name="fcs/stick/trim-stabilator-deg">
+    <function>
+     <ifthen>
+      <lt>
+       <property> fcs/pitch-trim-cmd-norm </property>
+       <value> 0 </value>
+      </lt>
+      <product>
+       <value> 21 </value>
+       <property> fcs/pitch-trim-cmd-norm </property>
+      </product>
+      <product>
+       <value> 9 </value>
+       <property> fcs/pitch-trim-cmd-norm </property>
+      </product>
+     </ifthen>
+    </function>
+    <clipto>
+     <min> -21 </min>
+     <max> 9 </max>
+    </clipto>
+   </fcs_function>
+
+   <!-- The pilot's force, pounds, aft positive (CR-2144's F_ST). -->
+   <fcs_function name="fcs/stick/pilot-force-lbs">
+    <function>
+     <ifthen>
+      <lt>
+       <property> fcs/elevator-cmd-norm </property>
+       <value> 0 </value>
+      </lt>
+      <product>
+       <value> -1 </value>
+       <property> fcs/stick/full-pull-lbs </property>
+       <property> fcs/elevator-cmd-norm </property>
+      </product>
+      <product>
+       <value> -1 </value>
+       <property> fcs/stick/full-push-lbs </property>
+       <property> fcs/elevator-cmd-norm </property>
+      </product>
+     </ifthen>
+    </function>
+   </fcs_function>
+
+   <!--
+    The bellows: CR-2144's "qB PBF", pounds: the ram-air pressure at the bellows, qB, times the bellows'
+    area through its bellcrank, PBF (figure IV-5). qB/q is one curve against Mach (no height shows on the
+    plot); PBF is three nearly level lines, by height: sea level (on which 15,000 ft's condition 4 is drawn
+    too), 35,000 ft, and 45,000 to 55,000 ft. Read from the record point by point; where a line stops, it
+    is held at its end (Reasoned: the lines are level to within 0.01 ft2 where drawn). Below Mach 0.2 qB/q
+    is held at 0.202, the plot's first point (Reasoned; low and slow is pull request 7's).
+   -->
+   <fcs_function name="fcs/stick/qB-PBF-lbs">
+    <function>
+     <product>
+      <property> aero/qbar-psf </property>
+      <table>
+       <independentVar lookup="row"> velocities/mach </independentVar>
+       <tableData>
+      0.2   0.202
+      0.3   0.285
+      0.4   0.353
+      0.5   0.397
+      0.6   0.427
+      0.7   0.439
+      0.8   0.421
+      0.85  0.41
+      0.9   0.402
+      0.95  0.397
+      1.0   0.397
+      1.05  0.4
+      1.1   0.405
+      1.15  0.416
+      1.2   0.427
+      1.3   0.451
+      1.4   0.474
+      1.5   0.498
+      1.6   0.522
+      1.7   0.545
+      1.8   0.569
+      1.9   0.591
+      1.95  0.602
+       </tableData>
+      </table>
+      <table>
+       <independentVar lookup="row"> velocities/mach </independentVar>
+       <independentVar lookup="column"> position/h-sl-ft </independentVar>
+       <tableData>
+              0      15000  35000  45000
+      0.15  0.92   0.92   0.932  0.92
+      0.2   0.925  0.925  0.932  0.92
+      0.3   0.935  0.935  0.932  0.92
+      0.4   0.944  0.944  0.932  0.92
+      0.5   0.952  0.952  0.932  0.92
+      0.6   0.957  0.957  0.932  0.92
+      0.7   0.96   0.96   0.936  0.92
+      0.8   0.959  0.959  0.94   0.92
+      0.85  0.959  0.959  0.941  0.92
+      0.9   0.957  0.957  0.943  0.92
+      0.95  0.955  0.955  0.947  0.92
+      1.0   0.959  0.959  0.942  0.92
+      1.05  0.959  0.959  0.943  0.922
+      1.1   0.96   0.96   0.943  0.923
+      1.15  0.959  0.959  0.943  0.925
+      1.2   0.96   0.96   0.947  0.927
+      1.3   0.96   0.96   0.947  0.93
+      1.4   0.96   0.96   0.947  0.932
+      1.5   0.962  0.962  0.947  0.936
+      1.6   0.96   0.96   0.947  0.937
+      1.7   0.96   0.96   0.947  0.939
+      1.8   0.96   0.96   0.947  0.94
+      1.9   0.96   0.96   0.947  0.942
+      2.0   0.96   0.96   0.947  0.943
+      2.1   0.96   0.96   0.947  0.943
+      2.2   0.96   0.96   0.947  0.943
+      2.3   0.96   0.96   0.947  0.943
+       </tableData>
+      </table>
+     </product>
+    </function>
+   </fcs_function>
+
+   <!--
+    The viscous damper (figure IV-4: 3.03 lb/in/s, in series with the bellows-pressure spring) is "on its
+    stop" below the boundary curve of figure IV-5 and free above it (the boundary drawn from Mach 0.97 at
+    55,500 ft to Mach 1.6 at 32,100 ft). On its stop it is rigid, and the bellows-pressure spring is a
+    plain spring; free, that spring relaxes through the damper, and a held pull is borne by the bellows
+    spring alone. 1 while free. Below Mach 0.97 the boundary is above any height the jet reaches; beyond
+    Mach 1.6 it is held at 32,100 ft (Reasoned: where the plot stops).
+   -->
+   <fcs_function name="fcs/stick/damper-free">
+    <function>
+     <ifthen>
+      <gt>
+       <property> position/h-sl-ft </property>
+       <table>
+        <independentVar lookup="row"> velocities/mach </independentVar>
+        <tableData>
+      0.969 1000000
+      0.97  55500
+      1.0   51200
+      1.05  45600
+      1.1   42400
+      1.15  40600
+      1.2   38900
+      1.25  37600
+      1.3   36200
+      1.35  35500
+      1.4   34400
+      1.45  33600
+      1.5   33100
+      1.55  32600
+      1.6   32100
+        </tableData>
+       </table>
+      </gt>
+      <value> 1 </value>
+      <value> 0 </value>
+     </ifthen>
+    </function>
+   </fcs_function>
+
+   <!--
+    The feel springs, lb/in (figure IV-4): the bellows spring 0.0157 qB PBF and the bellows-pressure
+    spring 0.0569 qB PBF.
+      quick    both together: what the stick feels in a quick move, and always while the damper is on its stop
+      static   what a held pull feels: both on the stop, the bellows spring alone off it
+    With no air the bellows give nothing (the flight manual: "Stick force on the ground (no bellows air) is
+    very light"). A floor of 0.5 lb/in keeps the arithmetic a number standing still; at 150 knots the
+    springs are about 1 lb/in. Reasoned.
+   -->
+   <fcs_function name="fcs/stick/quick-lbs_in">
+    <function>
+     <max>
+      <product>
+       <sum>
+        <value> 0.0157 </value>
+        <value> 0.0569 </value>
+       </sum>
+       <property> fcs/stick/qB-PBF-lbs </property>
+      </product>
+      <value> 0.5 </value>
+     </max>
+    </function>
+   </fcs_function>
+   <fcs_function name="fcs/stick/static-lbs_in">
+    <function>
+     <max>
+      <product>
+       <sum>
+        <value> 0.0157 </value>
+        <product>
+         <value> 0.0569 </value>
+         <difference>
+          <value> 1 </value>
+          <property> fcs/stick/damper-free </property>
+         </difference>
+        </product>
+       </sum>
+       <property> fcs/stick/qB-PBF-lbs </property>
+      </product>
+      <value> 0.5 </value>
+     </max>
+    </function>
+   </fcs_function>
+
+   <!--
+    The bobweight (figures IV-3, IV-4): 5.35 lb for each g felt where it is, 39.3 ft ahead of the centre of
+    gravity, pushing the stick forward (fed back with a minus sign). JSBSim's own accelerometer
+    (src/models/flight_control/FGAccelerometer.cpp) gives what is felt there, the pitching acceleration's
+    share included, in ft/s2 along the airplane's z axis (down): minus 32 in level flight. The force is
+    taken from 1 g of the local gravity, so that trimmed level flight needs no force on the stick (the
+    flight manual: "When the aircraft is in trim, the ram air force on the bellows is balanced by the bob
+    weight"). CR-2144's gain is 5.35/32.2 lb per ft/s2. The station: 39.3 ft = 471.6 in ahead (x aft).
+   -->
+   <accelerometer name="fcs/stick/bobweight-accel-fps2">
+    <location unit="IN">
+     <x> -471.6 </x>
+     <y> 0 </y>
+     <z> 0 </z>
+    </location>
+    <axis> Z </axis>
+   </accelerometer>
+   <switch name="fcs/stick/trimmed-one-g-fps2">
+    <default value="fcs/stick/trimmed-one-g-fps2"/>
+    <test value="-fcs/stick/bobweight-accel-fps2">
+     fcs/stick/trimming eq 1
+    </test>
+   </switch>
+   <fcs_function name="fcs/stick/one-g-fps2">
+    <function>
+     <ifthen>
+      <gt>
+       <property> fcs/stick/trimmed-one-g-fps2 </property>
+       <value> 0 </value>
+      </gt>
+      <property> fcs/stick/trimmed-one-g-fps2 </property>
+      <property> accelerations/gravity-ft_sec2 </property>
+     </ifthen>
+    </function>
+   </fcs_function>
+   <fcs_function name="fcs/stick/bobweight-lbs">
+    <function>
+     <product>
+      <property> fcs/test/bobweight </property>
+      <difference>
+       <value> 1 </value>
+       <property> fcs/stick/trimming </property>
+      </difference>
+      <quotient>
+       <value> 5.35 </value>
+       <value> 32.2 </value>
+      </quotient>
+      <difference>
+       <product>
+        <value> -1 </value>
+        <property> fcs/stick/bobweight-accel-fps2 </property>
+       </product>
+       <property> fcs/stick/one-g-fps2 </property>
+      </difference>
+     </product>
+    </function>
+   </fcs_function>
+
+   <!--
+    The stick's travel is the stabilator's: 3.36 degrees for each inch (figure IV-3's gearing), from the
+    trimmed stabilator to 21 degrees up aft and 9 down forward. The force the stick can be held at is kept
+    to what holds it there against its static spring, so that the feel system never winds up beyond the
+    stops (Reasoned: the real stick meets a stop; the stabilator's own limit catches any overshoot).
+   -->
+   <fcs_function name="fcs/stick/aft-stop-in">
+    <function>
+     <quotient>
+      <sum>
+       <property> fcs/stick/trim-stabilator-deg </property>
+       <value> 21 </value>
+      </sum>
+      <value> 3.36 </value>
+     </quotient>
+    </function>
+   </fcs_function>
+   <fcs_function name="fcs/stick/forward-stop-in">
+    <function>
+     <quotient>
+      <difference>
+       <property> fcs/stick/trim-stabilator-deg </property>
+       <value> 9 </value>
+      </difference>
+      <value> 3.36 </value>
+     </quotient>
+    </function>
+   </fcs_function>
+   <fcs_function name="fcs/stick/aft-stop-lbs">
+    <function>
+     <product>
+      <property> fcs/stick/aft-stop-in </property>
+      <property> fcs/stick/static-lbs_in </property>
+     </product>
+    </function>
+   </fcs_function>
+   <fcs_function name="fcs/stick/forward-stop-lbs">
+    <function>
+     <product>
+      <property> fcs/stick/forward-stop-in </property>
+      <property> fcs/stick/static-lbs_in </property>
+     </product>
+    </function>
+   </fcs_function>
+
+   <!--
+    The bellows-pressure spring's far end, inches, while the damper is free: it follows the stick at the
+    damper's pace, 3.03 lb/in/s against the spring's 0.0569 qB PBF lb/in (a lag of b / k seconds). On the
+    stop it is held where it is, and it settles back to the middle (its input is the stick only while free).
+    It is read a step late (the stick's travel is worked out below), which a lag of a quarter of a second
+    does not notice. The force that spring then gives back to the stick, k times this, is added to the push.
+   -->
+   <fcs_function name="fcs/stick/damper-follows-in">
+    <function>
+     <product>
+      <property> fcs/stick/damper-free </property>
+      <property> fcs/stick/deflection-in </property>
+     </product>
+    </function>
+   </fcs_function>
+   <fcs_function name="fcs/stick/damper-rate">
+    <function>
+     <quotient>
+      <max>
+       <product>
+        <value> 0.0569 </value>
+        <property> fcs/stick/qB-PBF-lbs </property>
+       </product>
+       <value> 0.01 </value>
+      </max>
+      <value> 3.03 </value>
+     </quotient>
+    </function>
+   </fcs_function>
+   <lag_filter name="fcs/stick/damper-end-in">
+    <input> fcs/stick/damper-follows-in </input>
+    <c1> fcs/stick/damper-rate </c1>
+   </lag_filter>
+
+   <!--
+    What moves the stick, pounds: the pilot's pull, less the bobweight's, kept within the stops; plus,
+    while the damper is free, what the relaxed spring gives back.
+   -->
+   <fcs_function name="fcs/stick/held-lbs">
+    <function>
+     <max>
+      <min>
+       <difference>
+        <property> fcs/stick/pilot-force-lbs </property>
+        <property> fcs/stick/bobweight-lbs </property>
+       </difference>
+       <property> fcs/stick/aft-stop-lbs </property>
+      </min>
+      <property> fcs/stick/forward-stop-lbs </property>
+     </max>
+    </function>
+   </fcs_function>
+   <fcs_function name="fcs/stick/push-lbs">
+    <function>
+     <sum>
+      <property> fcs/stick/held-lbs </property>
+      <product>
+       <property> fcs/stick/damper-free </property>
+       <value> 0.0569 </value>
+       <property> fcs/stick/qB-PBF-lbs </property>
+       <property> fcs/stick/damper-end-in </property>
+      </product>
+     </sum>
+    </function>
+   </fcs_function>
+
+   <!--
+    The stick itself. CR-2144 gives it 0.0369 lb s2/in of inertia and 0.208 lb s/in of damping (figure IV-3),
+    and those are left out here: the stick stands at once where its springs balance the push. The plan's own
+    fallback (docs/milestones/3.md, Risks: "The feel system is unsteady at 120 steps a second, or with the
+    bobweight ... The stick's own quick dynamics are left out (its stiffness and the bobweight stay)"), for
+    this measured reason. With them in (written as JSBSim's second-order filter), the stick's own swing, a
+    quarter of a second long, is barely damped wherever the air is thick: the bobweight, 39.3 ft ahead,
+    feels the pitching acceleration the stabilator itself makes, and feeds it back to the stick. CR-2144's
+    own model has the same: its table IV-6 gives that swing a damping ratio of 0.019 at sea level and Mach
+    0.8 and 0.0004 at Mach 1.1. JSBSim reads the bobweight's accelerometer a step late (its accelerations
+    are worked out after the flight controls), which takes that little damping away: flown hands-off at
+    condition 3 (Mach 1.1 at sea level) the swing grew about three and a half times every 2 s until the
+    stick hit its stops; reading the accelerometer a step ahead by extrapolating did not cure it. (Supported:
+    a throwaway run of tests/f4c-fcs.test.js during pull request 6; the flight manual tells of the same
+    edge on the real jet: "the bob weight is reduced to 3 pounds per G and the viscous damper is removed.
+    This improves pitch stability in low altitude, high speed, aft CG configurations.") The stick's
+    natural period it would have had is reported by the test.
+   -->
+   <fcs_function name="fcs/stick/deflection-in">
+    <function>
+     <ifthen>
+      <eq>
+       <property> fcs/stick/trimming </property>
+       <value> 1 </value>
+      </eq>
+      <quotient>
+       <property> fcs/stick/held-lbs </property>
+       <property> fcs/stick/static-lbs_in </property>
+      </quotient>
+      <quotient>
+       <property> fcs/stick/push-lbs </property>
+       <property> fcs/stick/quick-lbs_in </property>
+      </quotient>
+     </ifthen>
+    </function>
+   </fcs_function>
+
+   <!--
+    The pitch damper (figure IV-7): the pitch rate through 0.15 s / (s + 1), radians of stabilator for
+    each radian a second, trailing edge down for the nose rising, added in series after the gearing.
+    CR-2144's input is the pitch attitude's rate; a rate gyro feels the pitch rate, which is the same
+    in wings-level flight. Its authority: no source read gives it (CR-2144 gives none; the flight manual
+    gives the yaw damper's alone, 5 degrees of the rudder's 30). Taken the same share of the stabilator's
+    larger travel: 3.5 degrees. Reasoned; the F-4's own servo data would settle it.
+   -->
+   <washout_filter name="fcs/pitch-damper/washout">
+    <input> velocities/q-rad_sec </input>
+    <c1> 1 </c1>
+   </washout_filter>
+   <fcs_function name="fcs/pitch-damper/stabilator-deg">
+    <function>
+     <product>
+      <property> fcs/test/pitch-damper </property>
+      <difference>
+       <value> 1 </value>
+       <property> fcs/stick/trimming </property>
+      </difference>
+      <max>
+       <min>
+        <product>
+         <value> 0.15 </value>
+         <value> 57.29577951308232 </value>
+         <property> fcs/pitch-damper/washout </property>
+        </product>
+        <value> 3.5 </value>
+       </min>
+       <value> -3.5 </value>
+      </max>
+     </product>
+    </function>
+   </fcs_function>
+
+   <!-- The stabilator asked for: trim, the stick through the gearing (-3.36 degrees an inch: aft is trailing edge up), and the damper. -->
+   <fcs_function name="fcs/stabilator-cmd-deg">
+    <function>
+     <sum>
+      <property> fcs/stick/trim-stabilator-deg </property>
+      <product>
+       <value> -3.36 </value>
+       <property> fcs/stick/deflection-in </property>
+      </product>
+      <property> fcs/pitch-damper/stabilator-deg </property>
+     </sum>
+    </function>
+    <clipto>
+     <min> -21 </min>
+     <max> 9 </max>
+    </clipto>
+   </fcs_function>
+
+   <!--
+    The power actuator: 1 / (0.05 s + 1) (figure IV-3; AFWAL's figure 4 has the same lag on every surface).
+    Its rate: no source read gives one for the F-4 (CR-2144 and AFWAL show none). 60 degrees a second,
+    the stabilator's of Stevens and Lewis's F-16 model (Aircraft Control and Simulation, the F-16 of its
+    chapter 3, the model JSBSim's own f16.xml follows): another jet's number. Reasoned; full travel in
+    half a second.
+   -->
+   <actuator name="fcs/stabilator-actuator">
+    <input> fcs/stabilator-cmd-deg </input>
+    <lag> 20 </lag>
+    <rate_limit> 60 </rate_limit>
+    <clipto>
+     <min> -21 </min>
+     <max> 9 </max>
+    </clipto>
+   </actuator>
+
+   <switch name="fcs/stabilator-pos-deg">
+    <default value="fcs/stabilator-actuator"/>
+    <test value="fcs/stabilator">
+     fcs/test/straight eq 1
+    </test>
+    <output> fcs/elevator-pos-deg </output>
+   </switch>
   </channel>
 
   <!--
-   The lateral control (AFWAL, PDF p.34: "The ailerons deflect downward only; the spoilers deflect upward
-   only. The left aileron and right spoiler operate simultaneously, as do the right aileron and left
-   spoiler."). For a roll to the right the left aileron goes down, up to 30 degrees (Table 6: "0 up, 30
-   down"), and the right spoiler comes up 1.433 times as far ("delta sp = 1.433 delta a": 43 degrees, Table
-   6's "43 up"); the right aileron and the left spoiler stay flush. The other way round for a roll to the left.
+   The roll control. The stick is a position: fcs/aileron-cmd-norm, 1 full right. Full stick is 30
+   degrees of aileron (AFWAL Table 6; the flight manual: "The ailerons travel downward 30 degrees"). The
+   ailerons go down only and the spoilers up only (AFWAL PDF p.34, as pull request 5 had it): for a roll to
+   the right the left aileron goes down and the right spoiler comes up 1.5 times as far.
 
-   Two sources disagree about the spoilers. CR-2144's figure IV-3 has the spoiler 1.87 times the aileron,
-   and the owner's model opens its spoilers 45 degrees. AFWAL's 1.433 is used because the spoiler tables
-   below are AFWAL's and were made with it. Pull request 6, which writes the F-4C's controls from CR-2144,
-   settles it.
+   The spoilers. Three sources: AFWAL's F-4J (1.433 times the aileron, 43 degrees at full stick, Table 6
+   and PDF p.34, though its own Figure 4 limits the spoiler at 45); CR-2144's F-4C (figure IV-3: 1.87 times
+   the aileron); the F-4C's flight manual, section I: "The ailerons travel downward 30 degrees from a full
+   trail position. Upward travel is limited to 1 degree. The spoilers travel 45 degrees upward". The
+   travels are the F-4C's own, so full stick is 30 degrees of aileron and 45 of spoiler, and in between
+   the spoiler is 45/30 = 1.5 times the aileron (CR-2144's 1.87 would put the spoiler on its stop at
+   three quarters of the stick). The Mach factors are made with the same 1.5 (tools/f4c-mach.mjs, SPOILER).
 
-   Each aileron's position is JSBSim's own number for it, trailing edge down positive
-   (fcs/left-aileron-pos-rad and -deg, and the right one's); each spoiler's is this file's, in degrees up
-   (fcs/left-spoiler-pos-deg, fcs/right-spoiler-pos-deg).
+   The lateral feel (figure IV-3): a spring of 2.96 lb/in and 6.25 degrees of aileron an inch, so full stick
+   is 4.8 in and 14.2 lb, and the pilot's sideways force is the stick times that.
   -->
   <channel name="Roll">
    <summer name="fcs/roll-stick-and-trim">
@@ -537,7 +1089,157 @@
      <max> 1 </max>
     </clipto>
    </summer>
-   <fcs_function name="fcs/left-aileron">
+   <fcs_function name="fcs/stick/lateral-force-lbs">
+    <function>
+     <product>
+      <property> fcs/aileron-cmd-norm </property>
+      <value> 30 </value>
+      <quotient>
+       <value> 2.96 </value>
+       <value> 6.25 </value>
+      </quotient>
+     </product>
+    </function>
+   </fcs_function>
+
+   <!--
+    The roll damper (figure IV-7): the roll rate times -0.265, radians of aileron for each radian a second
+    (degrees for degrees), in series. CR-2144: "Roll SAS faded out with lateral control out of neutral";
+    the flight manual says how: "A lateral stick force of approximately 1.5 pounds closes a force switch.
+    When a roll force switch closes the roll rate gyro signal in stab aug ... [is] cut out". So it is in
+    while the sideways force is 1.5 lb or less: a tenth of full stick (1.5 / 14.2 = 0.106). Its authority:
+    none read (as the pitch damper's); 5 degrees of the ailerons' 30, the yaw damper's share. Reasoned.
+   -->
+   <fcs_function name="fcs/roll-damper/in">
+    <function>
+     <product>
+      <property> fcs/test/roll-damper </property>
+      <difference>
+       <value> 1 </value>
+       <property> fcs/stick/trimming </property>
+      </difference>
+      <ifthen>
+       <le>
+        <abs>
+         <property> fcs/stick/lateral-force-lbs </property>
+        </abs>
+        <value> 1.5 </value>
+       </le>
+       <value> 1 </value>
+       <value> 0 </value>
+      </ifthen>
+     </product>
+    </function>
+   </fcs_function>
+   <fcs_function name="fcs/roll-damper/aileron-deg">
+    <function>
+     <product>
+      <property> fcs/roll-damper/in </property>
+      <max>
+       <min>
+        <product>
+         <value> -0.265 </value>
+         <value> 57.29577951308232 </value>
+         <property> velocities/p-rad_sec </property>
+        </product>
+        <value> 5 </value>
+       </min>
+       <value> -5 </value>
+      </max>
+     </product>
+    </function>
+   </fcs_function>
+
+   <!-- The aileron asked for, degrees, positive to roll right (AFWAL's and CR-2144's delta a). -->
+   <fcs_function name="fcs/aileron-cmd-deg">
+    <function>
+     <sum>
+      <product>
+       <value> 30 </value>
+       <property> fcs/roll-stick-and-trim </property>
+      </product>
+      <property> fcs/roll-damper/aileron-deg </property>
+     </sum>
+    </function>
+    <clipto>
+     <min> -30 </min>
+     <max> 30 </max>
+    </clipto>
+   </fcs_function>
+
+   <!-- Each surface asked for: the aileron on the side going down, its spoiler on the other side going up. -->
+   <fcs_function name="fcs/left-aileron-cmd-deg">
+    <function>
+     <max>
+      <property> fcs/aileron-cmd-deg </property>
+      <value> 0 </value>
+     </max>
+    </function>
+   </fcs_function>
+   <fcs_function name="fcs/right-aileron-cmd-deg">
+    <function>
+     <max>
+      <product>
+       <value> -1 </value>
+       <property> fcs/aileron-cmd-deg </property>
+      </product>
+      <value> 0 </value>
+     </max>
+    </function>
+   </fcs_function>
+   <pure_gain name="fcs/right-spoiler-cmd-deg">
+    <input> fcs/left-aileron-cmd-deg </input>
+    <gain> 1.5 </gain>
+   </pure_gain>
+   <pure_gain name="fcs/left-spoiler-cmd-deg">
+    <input> fcs/right-aileron-cmd-deg </input>
+    <gain> 1.5 </gain>
+   </pure_gain>
+
+   <!--
+    The actuators: 1 / (0.05 s + 1) on every lateral surface (AFWAL Figure 4, PDF p.37; CR-2144 gives none
+    for them). Rate: none read; 80 degrees a second, the aileron's of Stevens and Lewis's F-16 (as the
+    stabilator's). Reasoned.
+   -->
+   <actuator name="fcs/left-aileron-actuator">
+    <input> fcs/left-aileron-cmd-deg </input>
+    <lag> 20 </lag>
+    <rate_limit> 80 </rate_limit>
+    <clipto>
+     <min> 0 </min>
+     <max> 30 </max>
+    </clipto>
+   </actuator>
+   <actuator name="fcs/right-aileron-actuator">
+    <input> fcs/right-aileron-cmd-deg </input>
+    <lag> 20 </lag>
+    <rate_limit> 80 </rate_limit>
+    <clipto>
+     <min> 0 </min>
+     <max> 30 </max>
+    </clipto>
+   </actuator>
+   <actuator name="fcs/right-spoiler-actuator">
+    <input> fcs/right-spoiler-cmd-deg </input>
+    <lag> 20 </lag>
+    <rate_limit> 80 </rate_limit>
+    <clipto>
+     <min> 0 </min>
+     <max> 45 </max>
+    </clipto>
+   </actuator>
+   <actuator name="fcs/left-spoiler-actuator">
+    <input> fcs/left-spoiler-cmd-deg </input>
+    <lag> 20 </lag>
+    <rate_limit> 80 </rate_limit>
+    <clipto>
+     <min> 0 </min>
+     <max> 45 </max>
+    </clipto>
+   </actuator>
+
+   <!-- Pull request 5's straight path, for fcs/test/straight: the stick and trim straight to the surfaces. -->
+   <fcs_function name="fcs/straight/left-aileron-deg">
     <function>
      <product>
       <value> 30 </value>
@@ -547,9 +1249,8 @@
       </max>
      </product>
     </function>
-    <output> fcs/left-aileron-pos-deg </output>
    </fcs_function>
-   <fcs_function name="fcs/right-aileron">
+   <fcs_function name="fcs/straight/right-aileron-deg">
     <function>
      <product>
       <value> -30 </value>
@@ -559,30 +1260,288 @@
       </min>
      </product>
     </function>
-    <output> fcs/right-aileron-pos-deg </output>
    </fcs_function>
-   <pure_gain name="fcs/right-spoiler-pos-deg">
-    <input> fcs/left-aileron-pos-deg </input>
-    <gain> 1.433 </gain>
+
+   <switch name="fcs/left-aileron">
+    <default value="fcs/left-aileron-actuator"/>
+    <test value="fcs/straight/left-aileron-deg">
+     fcs/test/straight eq 1
+    </test>
+    <output> fcs/left-aileron-pos-deg </output>
+   </switch>
+   <switch name="fcs/right-aileron">
+    <default value="fcs/right-aileron-actuator"/>
+    <test value="fcs/straight/right-aileron-deg">
+     fcs/test/straight eq 1
+    </test>
+    <output> fcs/right-aileron-pos-deg </output>
+   </switch>
+   <!-- Each spoiler's position, degrees up (this file's own property, as before). -->
+   <pure_gain name="fcs/straight/right-spoiler-deg">
+    <input> fcs/straight/left-aileron-deg </input>
+    <gain> 1.5 </gain>
    </pure_gain>
-   <pure_gain name="fcs/left-spoiler-pos-deg">
-    <input> fcs/right-aileron-pos-deg </input>
-    <gain> 1.433 </gain>
+   <pure_gain name="fcs/straight/left-spoiler-deg">
+    <input> fcs/straight/right-aileron-deg </input>
+    <gain> 1.5 </gain>
    </pure_gain>
+   <switch name="fcs/right-spoiler-pos-deg">
+    <default value="fcs/right-spoiler-actuator"/>
+    <test value="fcs/straight/right-spoiler-deg">
+     fcs/test/straight eq 1
+    </test>
+   </switch>
+   <switch name="fcs/left-spoiler-pos-deg">
+    <default value="fcs/left-spoiler-actuator"/>
+    <test value="fcs/straight/left-spoiler-deg">
+     fcs/test/straight eq 1
+    </test>
+   </switch>
   </channel>
 
-  <!-- The rudder: 30 degrees each way (AFWAL Table 6; the owner's model moves the same). -->
+  <!--
+   The rudder: 30 degrees each way (AFWAL Table 6). The game has no pedals: the copilot's feet send
+   fcs/rudder-cmd-norm, 1 the left pedal full (30 degrees trailing edge left), as before.
+
+   Rudder flexure. CR-2144's figure IV-3 multiplies the summed rudder command (pedals, interconnect and yaw
+   damper together) by a flexure factor, K FLEX (its figure IV-6: 0.71 at sea level and Mach 0.8, falling to
+   0.36 at Mach 1.2), to give the rudder deflection its derivatives (table IV-13) are per: the rudder bends
+   back under its air load. The report's own tables show it is applied there: with the yaw damper in, the
+   rudder's numerators of table IV-17 are table IV-15's over (1 + K), and that K is the damper's feedthrough
+   of figure IV-7 times figure IV-6's factor at each condition (tests/f4c-fcs.test.js works it out). So the
+   factor is here, after the actuator, and the aerodynamics read the flexed rudder (fcs/rudder-pos-deg).
+   The picture reads the same property (the game's state, fcs/rudder-pos-rad): it is where the rudder is.
+    -->
   <channel name="Yaw">
-   <pure_gain name="fcs/rudder">
+   <pure_gain name="fcs/rudder-pedal-deg">
     <input> fcs/rudder-cmd-norm </input>
     <gain> 30 </gain>
     <clipto>
      <min> -30 </min>
      <max> 30 </max>
     </clipto>
-    <output> fcs/rudder-pos-deg </output>
    </pure_gain>
+
+   <!--
+    The yaw damper (figure IV-7): the yaw-rate gyro, tilted 1.5 degrees nose down from the fuselage line
+    (rG = r cos(-1.5 deg) + p sin(-1.5 deg)), through 3 s / (s + 0.5); plus 0.0168 radians of rudder for
+    each ft/s2 of the lateral accelerometer, which is at F.S. 198.0 and W.L. 23.0: 9.9 ft ahead of the
+    centre of gravity (F.S. 316.7) and, by the figure's own a'y = ay + 9.9 r-dot - 0.39 p-dot, 0.39 ft
+    below it. JSBSim's accelerometer there gives exactly that sum. Both paths add rudder trailing edge left
+    (nose left) for a nose swinging right and for a slip to the left. Its authority: 5 degrees (the flight
+    manual, section I, "Aileron rudder interconnect": "the yaw stab aug (5°) rudder authority").
+    The record notes that "3 s" could be ".3 s" on the scan: the rudder pulse against CR-2144's table IV-17
+    (tests/f4c-fcs.test.js) is what settles it.
+   -->
+   <fcs_function name="fcs/yaw-damper/gyro-rad_sec">
+    <function>
+     <sum>
+      <product>
+       <property> velocities/r-rad_sec </property>
+       <cos>
+        <value> -0.02617993877991494 </value>
+       </cos>
+      </product>
+      <product>
+       <property> velocities/p-rad_sec </property>
+       <sin>
+        <value> -0.02617993877991494 </value>
+       </sin>
+      </product>
+     </sum>
+    </function>
+   </fcs_function>
+   <washout_filter name="fcs/yaw-damper/washout">
+    <input> fcs/yaw-damper/gyro-rad_sec </input>
+    <c1> 0.5 </c1>
+   </washout_filter>
+   <accelerometer name="fcs/yaw-damper/lateral-accel-fps2">
+    <location unit="IN">
+     <x> -118.8 </x>
+     <y> 0 </y>
+     <z> -4.68 </z>
+    </location>
+    <axis> Y </axis>
+   </accelerometer>
+   <fcs_function name="fcs/yaw-damper/rudder-deg">
+    <function>
+     <product>
+      <property> fcs/test/yaw-damper </property>
+      <difference>
+       <value> 1 </value>
+       <property> fcs/stick/trimming </property>
+      </difference>
+      <max>
+       <min>
+        <product>
+         <value> 57.29577951308232 </value>
+         <sum>
+          <product>
+           <value> 3 </value>
+           <property> fcs/yaw-damper/washout </property>
+          </product>
+          <product>
+           <value> 0.0168 </value>
+           <property> fcs/yaw-damper/lateral-accel-fps2 </property>
+          </product>
+         </sum>
+        </product>
+        <value> 5 </value>
+       </min>
+       <value> -5 </value>
+      </max>
+     </product>
+    </function>
+   </fcs_function>
+
+   <!--
+    The aileron-rudder interconnect (figure IV-3; the flight manual, section I and section IV): with the
+    flaps down and below about 230 knots ("When the flap control switch is down, and airspeed is below
+    approximately 230 knots"), the rudder follows the aileron, -0.69 radians of rudder for each radian of
+    aileron with the augmentation on and -0.46 with it off (figure IV-3: right aileron, right rudder), up to
+    15 degrees of rudder with the augmentation on and 10 with it off (the flight manual: "The limits of the
+    system are 15° of rudder displacement when the automatic flight control system is in the stability
+    augmentation ... mode, and 10° rudder displacement when the stab aug switch is disengaged"). Here the
+    augmentation is the yaw damper's switch. The file has no flaps yet (pull request 7): "down" is read as
+    fcs/flap-pos-norm above one half, until the flap switch is written. Reasoned.
+   -->
+   <fcs_function name="fcs/interconnect/in">
+    <function>
+     <ifthen>
+      <and>
+       <gt>
+        <property> fcs/flap-pos-norm </property>
+        <value> 0.5 </value>
+       </gt>
+       <lt>
+        <property> velocities/vc-kts </property>
+        <value> 230 </value>
+       </lt>
+      </and>
+      <value> 1 </value>
+      <value> 0 </value>
+     </ifthen>
+    </function>
+   </fcs_function>
+   <fcs_function name="fcs/interconnect/rudder-deg">
+    <function>
+     <product>
+      <property> fcs/interconnect/in </property>
+      <ifthen>
+       <eq>
+        <property> fcs/test/yaw-damper </property>
+        <value> 1 </value>
+       </eq>
+       <max>
+        <min>
+         <product>
+          <value> -0.69 </value>
+          <property> fcs/aileron-cmd-deg </property>
+         </product>
+         <value> 15 </value>
+        </min>
+        <value> -15 </value>
+       </max>
+       <max>
+        <min>
+         <product>
+          <value> -0.46 </value>
+          <property> fcs/aileron-cmd-deg </property>
+         </product>
+         <value> 10 </value>
+        </min>
+        <value> -10 </value>
+       </max>
+      </ifthen>
+     </product>
+    </function>
+   </fcs_function>
+
+   <fcs_function name="fcs/rudder-cmd-deg">
+    <function>
+     <sum>
+      <property> fcs/rudder-pedal-deg </property>
+      <property> fcs/yaw-damper/rudder-deg </property>
+      <property> fcs/interconnect/rudder-deg </property>
+     </sum>
+    </function>
+    <clipto>
+     <min> -30 </min>
+     <max> 30 </max>
+    </clipto>
+   </fcs_function>
+
+   <!-- The actuator: 1 / (0.05 s + 1) (AFWAL Figure 4); rate 120 degrees a second, the rudder's of Stevens and Lewis's F-16. Reasoned. -->
+   <actuator name="fcs/rudder-actuator">
+    <input> fcs/rudder-cmd-deg </input>
+    <lag> 20 </lag>
+    <rate_limit> 120 </rate_limit>
+    <clipto>
+     <min> -30 </min>
+     <max> 30 </max>
+    </clipto>
+   </actuator>
+
+   <!--
+    Figure IV-6, K FLEX against Mach (rows) and height (columns), from the record's points (PDF p.74),
+    straight lines between them; 1 at Mach 0 (no air load). A cell the figure does not plot (its curves
+    stop at different Mach numbers) takes the nearest height's in its row that is plotted there; beyond
+    every curve, its own end is held. tests/f4c-fcs.test.js holds every cell to the record.
+   -->
+   <fcs_function name="fcs/rudder-flexure">
+    <function>
+     <table>
+      <independentVar lookup="row"> velocities/mach </independentVar>
+      <independentVar lookup="column"> position/h-sl-ft </independentVar>
+      <tableData>
+              0       15000   35000   45000   55000
+      0       1.0     1.0     1.0     1.0     1.0   
+      0.45    0.89    0.89    0.965   0.965   0.965 
+      0.5     0.868   0.868   0.955   0.955   0.955 
+      0.6     0.822   0.865   0.939   0.959   0.959 
+      0.7     0.771   0.825   0.917   0.944   0.944 
+      0.8     0.71    0.78    0.895   0.933   0.933 
+      0.85    0.674   0.754   0.879   0.926   0.926 
+      0.9     0.637   0.731   0.869   0.911   0.911 
+      0.95    0.595   0.699   0.849   0.902   0.902 
+      1.0     0.547   0.656   0.826   0.885   0.885 
+      1.05    0.48    0.6     0.793   0.86    0.86  
+      1.1     0.402   0.529   0.738   0.817   0.817 
+      1.15    0.445   0.445   0.642   0.749   0.749 
+      1.2     0.362   0.362   0.6     0.685   0.685 
+      1.3     0.521   0.521   0.521   0.626   0.626 
+      1.4     0.5     0.5     0.5     0.611   0.611 
+      1.5     0.493   0.493   0.493   0.608   0.721 
+      1.6     0.486   0.486   0.486   0.608   0.725 
+      1.7     0.483   0.483   0.483   0.61    0.724 
+      1.8     0.482   0.482   0.482   0.611   0.723 
+      1.9     0.48    0.48    0.48    0.608   0.72  
+      1.95    0.479   0.479   0.479   0.607   0.719 
+      2.0     0.606   0.606   0.606   0.606   0.718 
+      2.1     0.605   0.605   0.605   0.605   0.605 
+      2.2     0.603   0.603   0.603   0.603   0.603
+      </tableData>
+     </table>
+    </function>
+   </fcs_function>
+   <fcs_function name="fcs/rudder-flexed-deg">
+    <function>
+     <product>
+      <property> fcs/rudder-actuator </property>
+      <property> fcs/rudder-flexure </property>
+     </product>
+    </function>
+   </fcs_function>
+
+   <switch name="fcs/rudder">
+    <default value="fcs/rudder-flexed-deg"/>
+    <test value="fcs/rudder-pedal-deg">
+     fcs/test/straight eq 1
+    </test>
+    <output> fcs/rudder-pos-deg </output>
+   </switch>
   </channel>
+
 
   <!--
    The landing gear: up or down in 4 seconds. Wings' time; the flight manual gives none. The way of
@@ -823,8 +1782,8 @@
        are kept, scaled, and the levels are added whatever the angle. CR-2144's own plot has the most
        lift falling with Mach (0.96 at Mach 0.2 to 0.48 at Mach 1), which a scaled AFWAL curve does not do.
      - CR-2144 bends the rudder's command at speed (its "rudder flexure coefficient", figure IV-6: 0.71 at
-       Mach 0.8 at sea level). That is in its control system, not its derivatives, and comes with the
-       jet's flight controls in pull request 6.
+       Mach 0.8 at sea level). That is in its control system, not its derivatives: the flight controls
+       apply it (pull request 6, "Rudder flexure"), and the rudder these tables read is the flexed one.
    Terms CR-2144 has no derivative for keep a factor of 1: the drag's shape, what sideslip adds to the
    pitching moment, and the aileron's and spoiler's pitching moment. The spoiler shares the aileron's
    factor: CR-2144's aileron derivatives have the spoiler in them. Left out, as AFWAL leaves them out:
@@ -904,14 +1863,14 @@
     <tableData>
                    15000        35000
         0.5            1            1
-        0.6        1.102        1.102
-        0.8        1.104        1.104
-        0.9        1.105        1.107
-        1.1        1.101        1.101
-        1.2        1.103        1.103
-        1.5       0.9306       0.9306
-        1.8        0.207        0.207
-       2.15       0.5517       0.5517
+        0.6        1.085        1.085
+        0.8        1.086        1.086
+        0.9        1.088        1.089
+        1.1        1.084        1.084
+        1.2        1.086        1.086
+        1.5        0.916        0.916
+        1.8       0.2038       0.2038
+       2.15        0.543        0.543
     </tableData>
    </table>
   </function>
@@ -999,14 +1958,14 @@
     <tableData>
                    15000        35000
         0.5            1            1
-        0.6        1.377        1.377
-        0.8       0.7813       0.7813
-        0.9        0.861         1.16
-        1.1       0.2763       0.2763
-        1.2       0.7144       0.7144
-        1.5       0.4537       0.4537
-        1.8       0.3499       0.3499
-       2.15       0.1759       0.1759
+        0.6        1.362        1.362
+        0.8       0.7707       0.7707
+        0.9       0.8493        1.144
+        1.1       0.2726       0.2726
+        1.2       0.7046       0.7046
+        1.5       0.4475       0.4475
+        1.8       0.3451       0.3451
+       2.15       0.1735       0.1735
     </tableData>
    </table>
   </function>
@@ -1189,14 +2148,14 @@
     <tableData>
                    15000        35000
         0.5            0            0
-        0.6   0.00002348   0.00002348
-        0.8   0.00004158   0.00004158
-        0.9   0.00005313 -0.000007342
-        1.1    0.0001163    0.0001163
-        1.2   0.00009075   0.00009075
-        1.5   0.00004236   0.00004236
-        1.8   -0.0000241   -0.0000241
-       2.15  0.000006141  0.000006141
+        0.6   0.00002144   0.00002144
+        0.8   0.00003805   0.00003805
+        0.9   0.00004962  -0.00001056
+        1.1    0.0001128    0.0001128
+        1.2   0.00008739   0.00008739
+        1.5   0.00003913   0.00003913
+        1.8  -0.00002722  -0.00002722
+       2.15  0.000002758  0.000002758
     </tableData>
    </table>
   </function>
