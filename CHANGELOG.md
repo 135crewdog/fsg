@@ -2,6 +2,10 @@
 
 What changed in each version a player can see, newest first.
 
+## 0.0.21
+
+- Buffet: the view shakes as the F-4C nears the stall, from about 40 knots above it, and hardest at the stall.
+
 ## 0.0.20
 
 - Afterburner plumes: a short orange flame behind each engine, which lights only once that engine's afterburner does, grows with it, and goes out at MIL or below.

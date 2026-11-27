@@ -8,6 +8,7 @@ import { F4C } from '../../src/sim/aircraft/f4c.js';
 import { Flight } from '../../src/sim/game.js';
 import { flatSource } from '../../src/sim/ground.js';
 import { AFWAL_REFERENCE_HEIGHT, WING_AREA, WING_CHORD, WING_SPAN } from './f4c-reference.js';
+import { BETAS, CRB1_AT_ZERO, sideslipTables } from '../../tools/f4c-sideslip.mjs';
 
 const DEG = 180 / Math.PI;
 const S = WING_AREA.value, SPAN = WING_SPAN.value, CHORD = WING_CHORD.value;
@@ -46,20 +47,32 @@ function readIncrement(alpha, beta) {
  * the value of each of the aircraft file's factors and increments at the state's Mach number and height.
  * Left out, every factor is 1 and every increment 0: Table 1 as AFWAL prints it.
  */
+/**
+ * The large-sideslip bend (pull request 10, round 3; tools/f4c-sideslip.mjs): its tables read as JSBSim reads a
+ * table, straight lines between rows and columns and the end values held beyond them.
+ */
+const BEND = sideslipTables();
+function readBend(file, alpha, beta) {
+  const rows = BEND[file];
+  return along(rows.map(([a]) => a), rows.map(([, row]) => along(BETAS, row, beta)), alpha);
+}
+const rollShareBelowZero = (alpha) => along(BEND.ratio.map(([a]) => a), BEND.ratio.map(([, r]) => r), alpha);
+
 export function table1({ alpha, beta, vt, p, q, r, alphaDot, stabilator, aileron, spoiler, rudder }, cg, { stores = false, mach = null } = {}) {
   const f = (term) => (mach ? mach.factor(term) : 1), plus = (name) => (mach ? mach.increment(name) : 0);
   const a = Math.abs(alpha), sign = alpha >= 0 ? 1 : -1, slip = Math.abs(beta), slipHeld = Math.min(slip, 30);
   const b2v = SPAN / (2 * vt), c2v = CHORD / (2 * vt);
   const lift = f('lift-basic') * (alpha >= 0 ? read('CLBAS', a) : 2 * read('CLBAS', 0) - read('CLBAS', a)) + f('lift-stabilator') * read('CLSTAB', a) * stabilator + plus('lift');
   const drag = f('drag-basic') * read('CDBAS', a) + (stores ? constant('Delta_CD_STORES') : 0) + plus('drag');
-  const side = f('side-sideslip') * read('CYB', a) * beta + f('side-aileron') * constant('Cy_delta_a') * aileron + f('side-spoiler') * constant('Cy_delta_sp') * spoiler + f('side-rudder') * read('CYDR', a) * rudder;
-  const roll = f('roll-sideslip') * read('CRB1', a) * beta + b2v * (f('roll-roll-rate') * read('CRP1', a) * p + f('roll-yaw-rate') * read('CRR', a) * r)
+  const side = f('side-sideslip') * (read('CYB', a) * beta + readBend('side', alpha, beta)) + f('side-aileron') * constant('Cy_delta_a') * aileron + f('side-spoiler') * constant('Cy_delta_sp') * spoiler + f('side-rudder') * read('CYDR', a) * rudder;
+  // Below zero angle of attack the rolling moment from sideslip is AFWAL's value at zero times TN D-6425's share (round 3).
+  const roll = f('roll-sideslip') * ((alpha < 0 ? CRB1_AT_ZERO * rollShareBelowZero(alpha) : read('CRB1', a)) * beta + readBend('roll', alpha, beta)) + b2v * (f('roll-roll-rate') * read('CRP1', a) * p + f('roll-yaw-rate') * read('CRR', a) * r)
     + f('roll-aileron') * read('CRDA', a) * aileron + f('roll-spoiler') * read('CRDSP', a) * spoiler + f('roll-rudder') * read('CRDR', a) * rudder;
   const pitchAtReference = f('pitch-basic') * read('CMBAS', a) * sign + f('pitch-sideslip') * readIncrement(a, slipHeld)
     + c2v * (f('pitch-pitch-rate') * read('CMQ', a) * q + f('pitch-alpha-rate') * read('CMAD', a) * alphaDot)
     + f('pitch-stabilator') * (read('CMSTAB', a) + constant('K_beta^(Cm_delta_stab)') * slip) * stabilator
     + f('pitch-aileron') * read('CMDA', a) * Math.abs(aileron) + f('pitch-spoiler') * read('CMDSP', a) * Math.abs(spoiler) + plus('pitch');
-  const yawAtReference = f('yaw-sideslip') * read('CNB1', a) * beta + b2v * ((f('yaw-roll-rate') * read('CNP', a) + plus('yaw-roll-rate')) * p + f('yaw-yaw-rate') * read('CNR', a) * r)
+  const yawAtReference = f('yaw-sideslip') * (read('CNB1', a) * beta + readBend('yaw', alpha, beta)) + b2v * ((f('yaw-roll-rate') * read('CNP', a) + plus('yaw-roll-rate')) * p + f('yaw-yaw-rate') * read('CNR', a) * r)
     + (f('yaw-aileron') * read('CNDA', a) + plus('yaw-aileron')) * aileron + f('yaw-spoiler') * read('CNDSP', a) * spoiler + f('yaw-rudder') * read('CNDR', a) * rudder;
   // The last lines of the pitch and yaw blocks: from the reference centre to the centre of gravity.
   const shift = (cg - dimension('Xref')) / 100;

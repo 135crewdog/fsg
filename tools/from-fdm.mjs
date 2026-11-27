@@ -60,6 +60,9 @@ export const FILES = [
   // The afterburner plumes, from the same commit (milestone 3, pull request 9): Wings' plume, and the airplane on
   // screen that puts one at each engine's exit (FSG's own version since milestone 2, brought up to that commit).
   ...['src/render/plume.js', 'src/render/aircraft.js'].map((f) => adapted('wings', f, f, WINGS_0_0_62)),
+  // The chase camera and its buffet shake, from the same commit (milestone 3, pull request 10; FSG's own version since
+  // milestone 2, brought up to that commit: Wings' file is the same there as at 557a8d0).
+  adapted('wings', 'src/render/camera.js', 'src/render/camera.js', WINGS_0_0_62),
   // The look-around, from Wings (itself from Rage, as it is), with a line at its top saying so.
   adapted('wings', 'src/input/look.js'),
   // The HUD, its readouts and their tests, from Wings' main at 0.0.62 (milestone 2, pull request 6).
