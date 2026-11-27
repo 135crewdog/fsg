@@ -21,6 +21,14 @@ const DEG = 180 / Math.PI;
 export const PARKED = { pitch: 0, roll: 0, throttle: 0, gear: true, flaps: true, speedbrake: false, brake: true };
 
 /**
+ * The controls `aircraft` is parked with. An airplane with flap settings (`flaps` in its settings file, as
+ * src/sim/aircraft/c172p.js has) starts at its takeoff setting, not fully down: the real F-4C takes off on half
+ * flaps (milestone 3, PR F). Its flaps control is then a number, 0 to 1: the setting's `at`. An airplane
+ * with none starts as it always has, flaps down.
+ */
+export const parkedFor = (aircraft) => (aircraft.flaps ? { ...PARKED, flaps: aircraft.flaps.settings[aircraft.flaps.takeoff].at } : PARKED);
+
+/**
  * How long a new flight is run before it is handed over, seconds of its own time (a few thousandths of a
  * second of ours). JSBSim starts a running engine at full power: the Cessna's takes 8 seconds to come down
  * to idle and dips the nose 1.7 degrees on the way (measured, docs/milestones/1.md). Flaps travel in this time too.
@@ -70,7 +78,10 @@ export const STATE = [
   ['propulsion/total-fuel-lbs', 'lb', 'fuel on board'],
 ];
 
-/** The value JSBSim gets for each command the seven controls drive, as [name, value] pairs, in a fixed order. */
+/**
+ * The value JSBSim gets for each command the seven controls drive, as [name, value] pairs, in a fixed order.
+ * A control that is true or false sends 1 or 0; a number goes as it is (the stick, the throttle, a flap setting).
+ */
 export function commandsFor(aircraft, controls) {
   const out = [];
   for (const [control, { to, sign = 1 }] of Object.entries(aircraft.controls)) {
@@ -127,7 +138,8 @@ export class Flight {
 
   /**
    * Starts a flight: `aircraft` (src/sim/aircraft/) parked at `at` (metres north and east, heading in degrees
-   * true), on its wheels, engine running at idle, brakes on, gear and flaps down, and settled.
+   * true), on its wheels, engine running at idle, brakes on, gear down, flaps down or at its takeoff setting
+   * if it has settings (parkedFor), and settled.
    * `terrain` is the ground it is over, a terrain source (src/sim/ground.js; the flat test field if left out);
    * `module` is a loaded FdmModule holding the aircraft's files. Returns null if the ground at the start has
    * not loaded: a flight never starts over ground that is not there.
@@ -160,7 +172,7 @@ export class Flight {
     try {
       fdm.loadModel(aircraft.model);
       const { lat, lon } = toLatLon(at.north, at.east);
-      flight.controls = { ...PARKED, ...(airborne ? { gear: false, flaps: false, brake: false } : null), ...controls };
+      flight.controls = { ...parkedFor(aircraft), ...(airborne ? { gear: false, flaps: false, brake: false } : null), ...controls };
       const commands = commandsFor(aircraft, flight.controls);
       // The inputs: the commands the seven controls drive, then any the assists alone write.
       flight.inputNames = [...new Set([...commands.map(([name]) => name), ...(assists ? assistWrites(assists) : [])])];

@@ -227,6 +227,7 @@ export function startFlight(canvas, aircraft = C172P, field = FIELD, { onReadout
         out.camera = chase.camera.position.toArray();
         out.propellerTurn = airplane.getObjectByName('propeller')?.rotation.z ?? null;
         out.discShown = airplane.getObjectByName('propeller_disc')?.visible ?? null;
+        out.model = airplane.shown();   // where the model's own motions stand, 0 to 1: its flaps, elevator, ailerons and rudder as drawn
       }
       if (newest) {
         const s = newest.state, place = toWorld(s[at.lat], s[at.lon]);

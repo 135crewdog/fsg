@@ -2,6 +2,11 @@
 
 What changed in each version a player can see, newest first.
 
+## 0.0.18
+
+- Flaps you can set. The Cessna has four flap settings, so where the Flaps button was there are now two, Flaps Up and Flaps Down, pushed together, with a small pill between them that reads the setting: 0°, 10°, 20° or 30°. Each press moves the flaps one setting. At the last setting that button goes dim.
+- Every flight now starts with the flaps at the takeoff setting, 10°, not fully down. Restart puts them back there.
+
 ## 0.0.17
 
 - The takeoff roll, after the owner's Cessna notes: tilt is always the ailerons, so your hands hold the wings. The copilot's feet do the rest. They turn the airplane with the nosewheel as the tilt asks, less and less as the speed builds, and they hold the nose straight against the engine's pull. Picking up a wing at 60 knots no longer swings the nose off the centreline.
