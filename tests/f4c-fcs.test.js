@@ -38,7 +38,7 @@ import { GROUND, STRAIGHT, atCondition, rudderFeet } from './checkride/condition
 import { pitchModel } from './checkride/cr2144-pitch.js';
 import { moduleWith } from './checkride/files.js';
 import * as REFERENCE from './checkride/f4c-reference.js';
-import { factorsOf, measures, respond as respondLinear, transferFunction } from './checkride/linear.js';
+import { factorsOf, measures, respond as respondLinear, transferFunction, measuresBeside } from './checkride/linear.js';
 import { JUDGED, flyNative, flyWasm } from './checkride/tape.js';
 
 const { STICK_INERTIA, BELLOWS_SPRING, BELLOWS_PRESSURE_SPRING, BOBWEIGHT, PITCH_GEARING, ACTUATOR_LAG, LATERAL_FEEL, LATERAL_GEARING,
@@ -376,7 +376,7 @@ function pullPulse(m, c, table) {
   flight.dispose();
   // CR-2144's theta / F_ST is in radians per pound: times s for the pitch rate, and in degrees.
   const theirs = crResponse(table, 'N(THE/FST)', c.fc, pulse(pounds * DEG, PUSH.seconds), PUSH.record, true);
-  return { ours: measures(out, PUSH.seconds), theirs: measures(theirs, PUSH.seconds), pounds, diveDeg, record: out };
+  return { ...measuresBeside(out, theirs, PUSH.seconds), pounds, diveDeg, record: out };
 }
 
 function rudderPulse(m, c) {
@@ -394,7 +394,7 @@ function rudderPulse(m, c) {
   }
   flight.dispose();
   const theirs = crResponse('IV-17', 'N(R /DR)', c.fc, pulse(KICK.degrees, KICK.seconds), KICK.record, false);
-  return { ours: measures(out, KICK.seconds), theirs: measures(theirs, KICK.seconds), diveDeg, flexure };
+  return { ...measuresBeside(out, theirs, KICK.seconds), diveDeg, flexure };
 }
 
 const PULL_LINES = [
@@ -472,8 +472,8 @@ test('f4c fcs, reported (no pass or fail): the plan\'s lines as written, the pul
 
 test('f4c fcs, reported: the model\'s airframe alone, a quarter degree of stabilator for a second, beside CR-2144\'s table IV-4 (which its equations should give)', () => {
   for (const c of NINE) {
-    const model = pitchModel(c.fc), ours = measures(model.airframe(pulse(PUSH.degrees, PUSH.seconds), DT, PUSH.record), PUSH.seconds);
-    const theirs = measures(crResponse('IV-4', 'N(THE/DS)', c.fc, pulse(PUSH.degrees, PUSH.seconds), PUSH.record, true), PUSH.seconds);
+    const model = pitchModel(c.fc);
+    const { ours, theirs } = measuresBeside(model.airframe(pulse(PUSH.degrees, PUSH.seconds), DT, PUSH.record), crResponse('IV-4', 'N(THE/DS)', c.fc, pulse(PUSH.degrees, PUSH.seconds), PUSH.record, true), PUSH.seconds);
     say(`${nameOf(c)}: the model's airframe, first peak ${ours.peak.toFixed(4)} deg/s at ${ours.peakTime.toFixed(3)} s, to half in ${ours.halfTime.toFixed(2)} s; table IV-4 ${theirs.peak.toFixed(4)} at ${theirs.peakTime.toFixed(3)}, ${theirs.halfTime.toFixed(2)} s (${percent(ours.peak, theirs.peak)}, ${percent(ours.peakTime, theirs.peakTime)})`);
   }
 });
@@ -482,8 +482,7 @@ for (const [table, damper] of [['IV-6', false], ['IV-10', true]]) {
   for (const c of NINE) {
     test(`f4c fcs at ${nameOf(c)}, N1: CR-2144's own linear model, the stick's mass and damping in, augmentation ${damper ? 'on' : 'off'}, against the printed table ${table}: the time to the first peak within 10%, the peak within 10%`, () => {
       const model = pitchModel(c.fc, { stick: true, damper }), pounds = -(PUSH.degrees / -PITCH_GEARING.value) * model.staticStiffness;
-      const ours = measures(model.respond(pulse(pounds, PUSH.seconds), DT, PUSH.record), PUSH.seconds);
-      const theirs = measures(crResponse(table, 'N(THE/FST)', c.fc, pulse(pounds * DEG, PUSH.seconds), PUSH.record, true), PUSH.seconds);
+      const { ours, theirs } = measuresBeside(model.respond(pulse(pounds, PUSH.seconds), DT, PUSH.record), crResponse(table, 'N(THE/FST)', c.fc, pulse(pounds * DEG, PUSH.seconds), PUSH.record, true), PUSH.seconds);
       say(`N1, ${nameOf(c)}, ${table}: a push of ${(-pounds).toFixed(2)} lb for ${PUSH.seconds} s: the model ${ours.peak.toFixed(4)} deg/s at ${ours.peakTime.toFixed(3)} s; printed ${theirs.peak.toFixed(4)} at ${theirs.peakTime.toFixed(3)}; the time ${percent(ours.peakTime, theirs.peakTime)}, the peak ${percent(ours.peak, theirs.peak)}; within 10%`);
       assert.ok(within(ours.peakTime, theirs.peakTime, 0.1), `time to the first peak: ${ours.peakTime} s, printed ${theirs.peakTime}`);
       assert.ok(within(ours.peak, theirs.peak, 0.1), `the peak: ${ours.peak}, printed ${theirs.peak}`);
@@ -496,7 +495,7 @@ for (const [table, damper] of [['IV-6', false], ['IV-10', true]]) {
     const model = () => pitchModel(c.fc, { stick: false, damper });
     const both = async () => {
       const { record, pounds } = await flyLine(table, pullPulse, c);
-      return { ours: measures(record, PUSH.seconds), theirs: measures(model().respond(pulse(pounds, PUSH.seconds), DT, PUSH.record), PUSH.seconds), pounds };
+      return { ...measuresBeside(record, model().respond(pulse(pounds, PUSH.seconds), DT, PUSH.record), PUSH.seconds), pounds };
     };
     test(`f4c fcs at ${nameOf(c)}, N2: a pull, augmentation ${damper ? 'on' : 'off'}, beside CR-2144's model with the stick's mass and damping out: "time to the first peak within 15%, the peak within 15%"`, async () => {
       const { ours, theirs, pounds } = await both();
