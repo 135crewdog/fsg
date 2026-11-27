@@ -34,7 +34,7 @@ const DEG = 180 / Math.PI, KT = 1.6878;
 const ENGINES = [0, 1];
 const thrust = (flight, n) => flight.get(`propulsion/engine[${n}]/thrust-lbs`);
 const rpm = (flight, n) => flight.get(`propulsion/engine[${n}]/n2`);
-/** What the afterburner gives, 0 to 1: the aircraft file's own number, the one the plumes will read. */
+/** What the afterburner gives, 0 to 1: the aircraft file's own number, the one the plumes read (tests/plume.test.js). */
 const burner = (flight, n) => flight.get(`fcs/afterburner-norm${n ? `[${n}]` : ''}`);
 const toEngine = (flight, n) => flight.get(`fcs/throttle-pos-norm${n ? `[${n}]` : ''}`);
 /** A reference number, as text: its value, and where it is from. */

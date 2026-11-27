@@ -1,14 +1,19 @@
 // The airplane on screen. Any model built to docs/models.md works: the app knows no airplane's hinges, only
 // the named motions a model carries, each one second long, where the time is the position.
-// After 135crewdog/wings, src/render/aircraft.js, commit 557a8d0 (itself after Rage's). Changed for FSG: the
-// model's file is handed in; Wings' afterburner plumes and map silhouette are left out until the F-4C and
-// Hawaii need them; and a propeller is turned, as docs/models.md has it.
+// After 135crewdog/wings, src/render/aircraft.js, commits 557a8d0 and, for its afterburner plumes, commit 6d689b7
+// (itself after Rage's). Changed for FSG: the aircraft's settings are handed in (src/sim/aircraft/), with its
+// model's file and its plumes; each plume is lit by its own engine's afterburner, as JSBSim gives it, where
+// Wings lit all of them from one number; Wings' map silhouette is left out until Hawaii needs it; and a
+// propeller is turned, as docs/models.md has it.
 
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+import { createPlume } from './plume.js';
+
+const FT = 0.3048;
 
 /**
- * Returns the airplane's group at once, empty until the model at `url` has loaded; `ready` resolves with the
+ * Returns the airplane's group at once, empty until the model at `aircraft.glb` has loaded; `ready` resolves with the
  * group when it has, and `size` is then the larger of the model's length and span, in metres (the chase
  * camera stands off by it).
  * `set({ flaps, elevator, aileron, rudder, gear })` puts each motion the model has at a position from 0 to 1:
@@ -16,13 +21,23 @@ import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
  * back or right. Motions left out stay where they are; one the model lacks (a fixed gear) is passed over.
  * `shown()` reads the motions back from the model: where each one it has stands, 0 to 1 (for the browser checks).
  * `propeller(rpm, dt)` turns the propeller, if it has one, for a frame `dt` seconds long.
+ * `burner(afterburners, dt)` lights the plume at each engine's exit (the settings' `plumes`) from what that
+ * engine's afterburner gives, in the engines' order: 0 at dry power, up to 1 at full afterburner. `plumes` is
+ * the plumes themselves (src/render/plume.js), for what they show. An airplane with no plumes has none.
  */
-export function createAircraft(url) {
+export function createAircraft(aircraft) {
   const airplane = new THREE.Group();
+  // Feet in body axes (forward, right, down) to metres in the model's (right, up, aft), as Wings has it.
+  const model = ([x, y, z]) => [y * FT, -z * FT, -x * FT];
+  const { exits = [], radiusFt = 0, flame = null } = aircraft.plumes ?? {};
+  const plumes = exits.map((at) => createPlume(model(at), radiusFt * FT, flame));
+  for (const plume of plumes) airplane.add(plume.mesh);
+  airplane.plumes = plumes;
+  airplane.burner = (afterburners, dt) => { plumes.forEach((plume, k) => plume.update(afterburners?.[k] ?? 0, dt)); };
   const actions = {};
   let mixer = null, hub = null, blades = null, disc = null;
   airplane.size = 0;
-  airplane.ready = new GLTFLoader().loadAsync(url).then((gltf) => {
+  airplane.ready = new GLTFLoader().loadAsync(aircraft.glb).then((gltf) => {
     mixer = new THREE.AnimationMixer(gltf.scene);
     for (const clip of gltf.animations) {
       const action = mixer.clipAction(clip);

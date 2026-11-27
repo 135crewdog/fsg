@@ -5,7 +5,8 @@
 // since pull request 6 its own flight controls (feel system, stability augmentation, interconnect), and
 // since pull request 7 its flaps, gear drag, speedbrakes and ground effect: it flies a circuit, headless.
 // Since pull request 8 it is the airplane in the app, in the Cessna's place: its picture (`glb`, `surfaces`)
-// and the engines' numbers sent beside the state (`engines`). Everything here is about the game; the airplane
+// and the engines' numbers sent beside the state (`engines`); since pull request 9 its afterburner plumes
+// (`plumes`). Everything here is about the game; the airplane
 // itself, with its own throttle system and afterburner, is the aircraft file.
 import { WINGS_CRASH_FPM } from '../rules.js';
 
@@ -168,10 +169,41 @@ export const F4C = {
    * the state's own list is the same for every aircraft (milestone 1's tests fix it at 34 numbers, with the
    * first engine's thrust), so both engines' go here. `thrust`, each engine's, lb; `afterburner`, what each
    * engine's afterburner gives, 0 to 1 (the aircraft file's own number: 0 at any dry power, and 0 until the
-   * engine is at MIL speed), which the plumes will read (pull request 9).
+   * engine is at MIL speed), which the plumes read (pull request 9).
    */
   engines: {
     thrust: ['propulsion/engine[0]/thrust-lbs', 'propulsion/engine[1]/thrust-lbs'],
     afterburner: ['fcs/afterburner-norm', 'fcs/afterburner-norm[1]'],
+  },
+  /**
+   * The afterburner plumes (src/render/plume.js; pull request 9), one for each engine, in the engines' order,
+   * each lit by that engine's `afterburner` above. As Wings' card had them (135crewdog/wings,
+   * src/sim/cards/f4c.js, nozzles_ft and nozzle_radius_ft, commit 6d689b7), with this repo's measure of the
+   * same model:
+   *   exits     the middle of each engine's exit, ft forward, right and down from the centre of gravity: the
+   *             model's, as models/measure.mjs finds them (docs/models.md). tests/model.test.js holds them to
+   *             the model within an inch. Engine 0 is the left one, as in the aircraft file.
+   *   radiusFt  the exit's opening, the same way
+   *   flame     the J79's flame, Wings' own (its src/render/plume.js, J79, commit 6d689b7), as the owner
+   *             approved it on his phone there: from photographs of QF-4s climbing out in afterburner, a
+   *             glowing orange-yellow nozzle, a short yellow-white core, and a salmon-orange flame about as
+   *             wide as the nozzle and four to five metres long at full burner, the shock diamonds faint
+   *             (an F-16's F100, Rage's, is long, pale and blue-white). Lengths in metres, at the least and
+   *             the most afterburner; `coreLength` a share of the flame's; `diamonds` how bright the shock
+   *             diamonds are against the flame, 0 to 1; `body` how solid the flame looks face-on, 0 (only
+   *             its edges glow) to 1.
+   */
+  plumes: {
+    exits: [[-16.16, -2.14, 0.60], [-16.16, 2.14, 0.60]],
+    radiusFt: 1.2,
+    flame: {
+      minLength: 1.5, maxLength: 4.5,
+      sheath: 0xff6a3a,     // the flame's body: salmon-orange
+      core: 0xffd890,       // the hot core at the nozzle: yellow-white
+      coreLength: 0.4,
+      glow: 0xffa040,       // the nozzle's hot inside, seen from behind
+      diamonds: 0.25,
+      body: 0.6,
+    },
   },
 };

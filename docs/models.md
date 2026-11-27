@@ -47,7 +47,7 @@ Rules for the motions:
 
 ## The engines' exits
 
-A jet's exits need nothing named: Claude Code measures the middle and the opening of each one from the model (`models/measure.mjs` finds them by their shape). Fore and aft and sideways, the aircraft file's thrust points are written there, and `tests/model.test.js` holds the two together, within an inch; the afterburner plumes will start there too. In height the thrust line is the real airplane's, from its data, and the test reports how far that is from the model's exits.
+A jet's exits need nothing named: Claude Code measures the middle and the opening of each one from the model (`models/measure.mjs` finds them by their shape). Fore and aft and sideways, the aircraft file's thrust points are written there, and `tests/model.test.js` holds the two together, within an inch. The afterburner plumes start there too: the aircraft's settings carry the same measure (`plumes` in `src/sim/aircraft/`), and `tests/plume.test.js` holds each plume to its exit within an inch. In height the thrust line is the real airplane's, from its data, and the test reports how far that is from the model's exits.
 
 An exit must be a round rim, open at the back, with nothing of the airframe inside the opening for the first metre behind it, or the flame would come out through the skin.
 
