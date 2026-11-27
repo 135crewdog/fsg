@@ -4,8 +4,9 @@
 // So far the file has weight, wheels, engines, its aerodynamics across its Mach range (pull request 5),
 // since pull request 6 its own flight controls (feel system, stability augmentation, interconnect), and
 // since pull request 7 its flaps, gear drag, speedbrakes and ground effect: it flies a circuit, headless.
-// It is not in the app yet (the Cessna still flies there); pull request 8 puts it in. Everything here is about the game; the airplane itself,
-// with its own throttle system and afterburner, is the aircraft file.
+// Since pull request 8 it is the airplane in the app, in the Cessna's place: its picture (`glb`, `surfaces`)
+// and the engines' numbers sent beside the state (`engines`). Everything here is about the game; the airplane
+// itself, with its own throttle system and afterburner, is the aircraft file.
 import { WINGS_CRASH_FPM } from '../rules.js';
 
 const DEG = Math.PI / 180;
@@ -51,6 +52,8 @@ export const F4C = {
     'aircraft/f4c/Engines/J79-GE-15.xml',
     'aircraft/f4c/Engines/direct.xml',
   ],
+  /** Its picture: the owner's own model, built to docs/models.md, as the app's page finds it (models/CREDITS.md). */
+  glb: './models/f4c.glb',
   /** Height of its centre of gravity above the ground when it stands on its wheels, ft (read back from a parked flight; the model's wheels are 6.4 ft below its origin). */
   standingFt: 6.403,
   /** How far its nose is up as it stands there, degrees (read back the same way): level, but for the idle thrust leaning it on its nose leg. */
@@ -136,4 +139,39 @@ export const F4C = {
   crash: { closingFpm: WINGS_CRASH_FPM },
   /** Limits, reported and not enforced. Placeholders until pull request 11: 8.5 g and 750 knots, Wings' card's g limit and a round speed. */
   limits: { g: 8.5, knots: 750 },
+  /**
+   * The model's moving parts (src/render/surfaces.js), as c172p.js has them: for each of the model's six
+   * motions (docs/models.md), the number of the state that drives it and that number's values where the
+   * motion is at 0, 0.5 and 1. Each is JSBSim's own position of the part, after the aircraft file's actuators,
+   * so the picture shows what the flight model's surfaces are doing, not what the stick asks (pull request 8):
+   *   elevator    the stabilator, 9 degrees trailing edge down (JSBSim's positive) to 21 up: the file's stops
+   *               and the model's travel
+   *   aileron     the left aileron less the right: each only goes down, 30 degrees, the left one for a right
+   *               roll. The model's one motion moves both ailerons and both spoilers; the file's spoilers go
+   *               up 1.5 degrees for each degree of the other wing's aileron, as the model's do (45 to 30)
+   *   rudder      the rudder as the file's flexure lets it go at speed, 30 degrees each way; JSBSim counts its
+   *               trailing edge left as positive
+   *   flaps       the flaps, up 0, 1/2 at 0.5 and full at 1: the model's flaps at half their travel at 1/2
+   *   gear, speedbrake   their positions, 0 up or in, 1 down or out
+   * tests/f4c-app.test.js moves each control and reads the motion.
+   */
+  surfaces: {
+    gear: { from: 'gear/gear-pos-norm', at: [0, 0.5, 1] },
+    flaps: { from: 'fcs/flap-pos-norm', at: [0, 0.5, 1] },
+    speedbrake: { from: 'fcs/speedbrake-pos-norm', at: [0, 0.5, 1] },
+    elevator: { from: 'fcs/elevator-pos-rad', at: [9 * DEG, 0, -21 * DEG] },
+    aileron: { from: 'fcs/left-aileron-pos-rad', minus: 'fcs/right-aileron-pos-rad', at: [-30 * DEG, 0, 30 * DEG] },
+    rudder: { from: 'fcs/rudder-pos-rad', at: [30 * DEG, 0, -30 * DEG] },
+  },
+  /**
+   * The engines' numbers, sent beside every state (src/sim/flight-run.js), as the Cessna's propeller speed is:
+   * the state's own list is the same for every aircraft (milestone 1's tests fix it at 34 numbers, with the
+   * first engine's thrust), so both engines' go here. `thrust`, each engine's, lb; `afterburner`, what each
+   * engine's afterburner gives, 0 to 1 (the aircraft file's own number: 0 at any dry power, and 0 until the
+   * engine is at MIL speed), which the plumes will read (pull request 9).
+   */
+  engines: {
+    thrust: ['propulsion/engine[0]/thrust-lbs', 'propulsion/engine[1]/thrust-lbs'],
+    afterburner: ['fcs/afterburner-norm', 'fcs/afterburner-norm[1]'],
+  },
 };

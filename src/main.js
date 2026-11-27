@@ -12,7 +12,7 @@ import { createTilt } from './input/tilt.js';
 import { createThrottle } from './ui/throttle.js';
 import { parkedFor } from './sim/game.js';
 import { readouts } from './readouts.js';
-import { C172P } from './sim/aircraft/c172p.js';
+import { F4C } from './sim/aircraft/f4c.js';
 
 const $ = (id) => document.getElementById(id);
 for (const el of document.querySelectorAll('.version')) el.textContent = APP_VERSION;
@@ -25,7 +25,8 @@ const show = (name) => {
 };
 
 // ---- the flight on screen, and the game in its Worker ----
-const AIRCRAFT = C172P;
+// The F-4C, since milestone 3's pull request 8 (the Cessna, c172p, before it; it stays a test aircraft).
+const AIRCRAFT = F4C;
 let mode = 'start';   // start, flying, paused or crashed
 // The HUD (Wings', Rage's before it), or with it off just its airspeed and altitude. Altitude reads at the
 // wheels, and below 2,000 ft above the ground it is the radar altitude, with an R.
@@ -92,7 +93,7 @@ for (const way of flapStops ? ['up', 'down'] : []) {
     send();
   });
 }
-// As every flight starts: throttle closed, gear down, flaps down (or at the takeoff setting, with a flap lever), brakes on.
+// As every flight starts: throttle closed, gear down, flaps down (or at the takeoff setting, with a flap lever), speedbrakes in, brakes on.
 const parkControls = () => {
   Object.assign(pilot, { gear: PARKED.gear, flaps: PARKED.flaps, speedbrake: PARKED.speedbrake, brake: PARKED.brake });
   throttle.set(PARKED.throttle);
@@ -161,7 +162,8 @@ function showDev() {
       `${s.stepsPerSecond.toFixed(1)} steps/s   ${s.droppedSeconds.toFixed(2)} s dropped   ${whole(s.states)} states, ${s.missing} missing`,
       `picture ${s.behindMs.toFixed(0)} ms behind (99 in 100 within ${s.behindWithinMs}, most ${s.behindMostMs.toFixed(0)})`,
       `${whole(s.northFt)} ft N, ${whole(s.eastFt)} ft E, ${whole(s.aboveGroundFt - AIRCRAFT.standingFt)} ft up, heading ${String(Math.round(s.headingDeg) % 360).padStart(3, '0')}, ${s.knots.toFixed(0)} kt` +
-        (s.propellerRpm === null ? '' : `, ${whole(s.propellerRpm)} RPM`),
+        (s.propellerRpm === null ? '' : `, ${whole(s.propellerRpm)} RPM`) +
+        (s.engines === null ? '' : `, ${whole(s.engines.thrust.reduce((a, b) => a + b, 0))} lb`),   // a jet: both engines' thrust
       `sensor β ${fixed(tilt.raw.beta)} γ ${fixed(tilt.raw.gamma)} screen ${tilt.raw.screen}   tilt ${fixed(tilt.raw.pitch)}/${fixed(tilt.raw.roll)}`,
       `stick ${fixed(tilt.stick.pitch, 2)} back, ${fixed(tilt.stick.roll, 2)} right   throttle ${fixed(pilot.throttle, 2)}`,   // the stick as held; what is sent has its middle made gentler
       touchdown ? `last touchdown: ${whole(touchdown.sinkFpm)} ft/min, ${whole(touchdown.knots)} kt, ${fixed(touchdown.g)} g` : 'last touchdown: none yet',

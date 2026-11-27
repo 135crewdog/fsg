@@ -92,17 +92,17 @@ Claude Code puts the file in `models/` and runs `tests/model.test.js`. If the te
 
 ## The models today
 
-### The stand-in Cessna, in the app
+### The stand-in Cessna, no longer in the app
 
-`models/c172p.glb` is milestone 2's stand-in: FlightGear's Cessna 172P, licence GPL version 2, converted by `models/convert-c172p.py`. It is the one exception to "models are built in a model chat": `models/CREDITS.md` says whose it is and what the script changed. It flies as JSBSim's `c172p`, which came from the same FlightGear airplane, so its wheels are where the flight model's are.
+`models/c172p.glb` is milestone 2's stand-in, in the app until the F-4C took its place (milestone 3, pull request 8, version 0.0.19); it stays in the repo for the headless tests of `c172p`: FlightGear's Cessna 172P, licence GPL version 2, converted by `models/convert-c172p.py`. It is the one exception to "models are built in a model chat": `models/CREDITS.md` says whose it is and what the script changed. It flies as JSBSim's `c172p`, which came from the same FlightGear airplane, so its wheels are where the flight model's are.
 
 Two things about it are not as this page asks, and are on record, not fixed:
 - Its gear is drawn hanging free, as FlightGear models it. So that the tyres still stand on the ground, the airplane is sat about 2° more nose-up than FlightGear draws it.
 - Its wing is 13 inches wider than a real 172's (2.9%).
 
-### The owner's F-4C, not in the app yet
+### The owner's F-4C, in the app
 
-`models/f4c.glb` is the owner's own F-4C, built in Blender with Claude in a Wings project chat: the same file as Wings', bit for bit, locked in `provenance.json`. `models/CREDITS.md` has its history. It is 17.70 m long and 11.70 m in span, 3,669 triangles, with one material and two textures of 1,024 pixels. It comes into the app in milestone 3, pull request 8.
+`models/f4c.glb` is the owner's own F-4C, built in Blender with Claude in a Wings project chat: the same file as Wings', bit for bit, locked in `provenance.json`. `models/CREDITS.md` has its history. It is 17.70 m long and 11.70 m in span, 3,669 triangles, with one material and two textures of 1,024 pixels. It has been the airplane in the app since milestone 3, pull request 8 (version 0.0.19), its six motions following JSBSim's own positions of the parts (`src/sim/aircraft/f4c.js`, `surfaces`).
 
 It has six motions, each one second, measured by `tests/model.test.js` and each exactly the travel this page asks:
 

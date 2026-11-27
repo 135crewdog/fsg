@@ -6,7 +6,6 @@
 // (src/render/between.js).
 
 import * as THREE from 'three';
-import { C172P } from './sim/aircraft/c172p.js';
 import { FIELD, FT, toWorld } from './sim/world.js';
 import { focalLength } from './hud.js';
 import { createVsi, instrumentReader } from './instruments.js';
@@ -39,7 +38,7 @@ const MOST_MS = 250;   // the picture's delay is counted in whole milliseconds u
  * `project`, which puts a north, east, down direction on the screen as the camera sees it; and the view:
  * { looking, yaw, pitch, focal }, how far it is swung and the camera's focal length in px.
  */
-export function startFlight(canvas, aircraft = C172P, field = FIELD, { onReadout } = {}) {
+export function startFlight(canvas, aircraft, field = FIELD, { onReadout } = {}) {
   const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, powerPreference: 'high-performance' });
   const scene = new THREE.Scene();
   const world = createWorld(scene, renderer, field);
@@ -51,14 +50,14 @@ export function startFlight(canvas, aircraft = C172P, field = FIELD, { onReadout
   const groundY = field.heightFt * FT;
 
   // Before any flight: parked on the numbers, on the runway's heading, its centre of gravity as high and its
-  // nose as far up as JSBSim stands it (tests/c172p.test.js holds the settings to JSBSim's own figures).
+  // nose as far up as JSBSim stands it (tests/c172p.test.js and tests/f4c.test.js hold the settings to JSBSim's own figures).
   const { north, east, headingDeg } = field.start;
   airplane.position.set(...toPicture([north, east, -(field.heightFt + aircraft.standingFt) * FT]));
   airplane.quaternion.set(...attitude(headingDeg * DEG, aircraft.standingPitchDeg * DEG, 0));
 
   // ---- the flight being shown ----
   let flight = 0, read = null, surfaces = null, at = null, newest = null, flying = false, loaded = false;
-  let instruments = null, reading = null;
+  let instruments = null, reading = null, drawnParts = null;   // drawnParts: where the moving parts were set at the last frame drawn
   const vsi = createVsi();
   // How it is running, over the whole flight: for the debug overlay. The worst of each number is kept
   // from Fly until a new flight begins, across any pause, so a slow stretch cannot be lost from a screenshot.
@@ -77,7 +76,7 @@ export function startFlight(canvas, aircraft = C172P, field = FIELD, { onReadout
     at = { time: index('simulation/sim-time-sec'), lat: index('position/lat-geod-rad'), lon: index('position/long-gc-rad'), agl: index('position/h-agl-ft'),
       heading: index('attitude/psi-rad'), knots: index('velocities/vc-kts'), vn: index('velocities/v-north-fps'), ve: index('velocities/v-east-fps'),
       wheels: start.stateNames.map((name, i) => (/^gear\/unit\[\d+\]\/WOW$/.test(name) ? i : -1)).filter((i) => i >= 0) };
-    newest = { state: start.state, propellerRpm: start.propellerRpm, ended: null, totalSteps: 0 };
+    newest = { state: start.state, propellerRpm: start.propellerRpm, engines: start.engines ?? null, ended: null, totalSteps: 0 };
     between.reset();
     between.push(start.state[at.time], start.state);
     between.hold(true);
@@ -138,7 +137,8 @@ export function startFlight(canvas, aircraft = C172P, field = FIELD, { onReadout
       airplane.position.set(...shown.position);
       airplane.quaternion.set(...shown.quaternion);
       // Its moving parts and its propeller are the newest state's: they are not blended.
-      airplane.set(surfaces(newest.state));
+      drawnParts = surfaces(newest.state);
+      airplane.set(drawnParts);
       airplane.propeller(newest.propellerRpm ?? 0, flying ? elapsed : 0);
       if (flying) {
         // For the overlay: frames a second by the half second, and how far the picture is behind the newest state.
@@ -228,6 +228,7 @@ export function startFlight(canvas, aircraft = C172P, field = FIELD, { onReadout
         out.propellerTurn = airplane.getObjectByName('propeller')?.rotation.z ?? null;
         out.discShown = airplane.getObjectByName('propeller_disc')?.visible ?? null;
         out.model = airplane.shown();   // where the model's own motions stand, 0 to 1: its flaps, elevator, ailerons and rudder as drawn
+        out.drawn = drawnParts;         // and where JSBSim had those parts in the state that frame was drawn from
       }
       if (newest) {
         const s = newest.state, place = toWorld(s[at.lat], s[at.lon]);
@@ -235,7 +236,8 @@ export function startFlight(canvas, aircraft = C172P, field = FIELD, { onReadout
         for (; within <= MOST_MS; within++) { count += run.behind[within]; if (count >= run.behindCount * 0.99) break; }
         Object.assign(out, {
           time: s[at.time], pictureTime: between.time, northFt: place.north / FT, eastFt: place.east / FT, aboveGroundFt: s[at.agl], headingDeg: s[at.heading] / DEG, knots: s[at.knots],
-          groundKt: Math.hypot(s[at.vn], s[at.ve]) / KT, wheelsDown: at.wheels.filter((i) => s[i] === 1).length, propellerRpm: newest.propellerRpm, surfaces: surfaces(s), ended: newest.ended,
+          groundKt: Math.hypot(s[at.vn], s[at.ve]) / KT, wheelsDown: at.wheels.filter((i) => s[i] === 1).length, propellerRpm: newest.propellerRpm,
+          engines: newest.engines, surfaces: surfaces(s), ended: newest.ended,
           states: run.states, missing: run.missing, outOfOrder: run.outOfOrder, steps: run.steps, seconds: run.seconds, stepsPerSecond: run.seconds > 0 ? run.steps / run.seconds : 0, droppedSeconds: run.dropped,
           fps: run.fps, leastFps: Number.isFinite(run.leastFps) ? run.leastFps : 0, behindMs: run.behindNow, behindWithinMs: run.behindCount ? within : 0, behindMostMs: run.behindMost,
           look: { yaw: look.yaw, pitch: look.pitch },
