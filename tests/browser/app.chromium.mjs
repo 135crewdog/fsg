@@ -683,8 +683,8 @@ check(!js.error && js.build === 'weh' && (await text('#dev')).includes('wasm exc
   await c.waitForTimeout(500);
   const banked = await now();
   await hold(3.5, 'level');
-  // Milestone 2's line was the Cessna's: banked 10 to 50 degrees. The F-4C rolls faster; what it does is reported.
-  check(Math.abs(level.reading.roll) < 5 && banked.reading.roll >= 10, 'turned 20 degrees right for one second, it is banked right, 10 degrees or more',
+  // Milestone 2's line, unchanged from the Cessna: banked 10 to 50 degrees. The F-4C, which rolls faster, banks 33 to 42.
+  check(Math.abs(level.reading.roll) < 5 && banked.reading.roll >= 10 && banked.reading.roll <= 50, 'turned 20 degrees right for one second, it is banked 10 to 50 degrees right',
     `from ${level.reading.roll.toFixed(1)} to ${banked.reading.roll.toFixed(1)} deg, at ${banked.knots.toFixed(0)} kt (the wings were being held level with the device ${holding.toFixed(1)} deg right)`);
   check(rolling.stick.roll > 0.3 && rolling.surfaces.aileron > 0.6 && follows(rolling, 'aileron'), 'stick right: the left aileron is down and the right spoiler up, on the model as in JSBSim', `stick ${rolling.stick.roll.toFixed(2)} right; aileron motion ${rolling.surfaces.aileron.toFixed(2)} (0.5 is neutral), the model's ${rolling.model.aileron.toFixed(2)}`);
   check(banked.behindWithinMs > 0 && banked.behindWithinMs <= 40 && banked.missing === 0, 'in the air the picture still trails the newest state as it did on the ground', `99 frames in 100 within ${banked.behindWithinMs} ms`);
