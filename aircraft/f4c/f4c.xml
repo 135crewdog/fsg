@@ -5,15 +5,16 @@
   (aircraft/f16/f16.xml, aircraft/c172p/c172p.xml) were read for the format only.
 
   So far: weight, balance and inertias; the wheels and the airframe's contact points; two J79-GE-15 engines
-  with their afterburners and the throttle system that lights them (pull request 3); and the aerodynamics
-  at low speed, gear and flaps up, with the stick straight to the surfaces (pull request 5a, the first
-  half of the plan's pull request 5). Still to come: what Mach changes (the second half of pull request
-  5), the jet's own flight controls (6), and the flaps, the speedbrakes, the gear's drag and ground
-  effect (7).
+  with their afterburners and the throttle system that lights them (pull request 3); and the aerodynamics,
+  gear and flaps up, across the Mach range, with the stick straight to the surfaces (pull request 5: at
+  low speed in its first half, 5a; what Mach changes in its second). Still to come: the jet's own flight
+  controls (6), and the flaps, the speedbrakes, the gear's drag and ground effect (7).
 
   Where each number comes from. Every number below names one of these.
     CR-2144   NASA CR-2144, Heffley and Jewell, "Aircraft Handling Qualities Data", 1972, section IV (the
-              F-4C): table IV-2 (geometry, weight, inertias, thrust line) and figure IV-2.
+              F-4C): table IV-2 (geometry, weight, inertias, thrust line) and figure IV-2; and, for what
+              Mach changes in the aerodynamics, its tables of derivatives and its plots of level flight.
+              Its tables and plots, as read, are in aircraft/f4c/data/.
               https://ntrs.nasa.gov/citations/19730003312
     T.O.      T.O. 1F-4C-1, the F-4C flight manual (1 October 1970), section I.
     AFWAL     AFWAL-TR-80-3141 Part III, Mitchell, Myers, Teper and Johnston, "Investigation of
@@ -37,8 +38,8 @@
  <fileheader>
   <author> FSG (135crewdog/fsg), written by Claude Code </author>
   <filecreationdate> 2026-11-26 </filecreationdate>
-  <version> milestone 3, pull request 5a </version>
-  <description> McDonnell F-4C Phantom II: mass, gear, engines, and the aerodynamics at low speed with the gear and flaps up. </description>
+  <version> milestone 3, pull request 5 </version>
+  <description> McDonnell F-4C Phantom II: mass, gear, engines, and the aerodynamics with the gear and flaps up. </description>
   <reference refID="NASA CR-2144" author="R. K. Heffley and W. F. Jewell" title="Aircraft Handling Qualities Data" date="1972"/>
   <reference refID="T.O. 1F-4C-1" author="USAF" title="Flight Manual, F-4C, F-4D and F-4E" date="1970-10-01"/>
   <reference refID="AFWAL-TR-80-3141 Part III" author="D. G. Mitchell, T. T. Myers, G. L. Teper and D. E. Johnston" title="Investigation of High-Angle-of-Attack Maneuver-Limiting Factors, Part III: Appendices - Aerodynamic Models" date="1980-12"/>
@@ -607,7 +608,8 @@
  </flight_control>
 
  <!--
-  The aerodynamics, gear and flaps up, at low speed (pull request 5a).
+  The aerodynamics, gear and flaps up (pull request 5: AFWAL's model at low speed in its first half, 5a,
+  and what Mach changes, from NASA CR-2144, in its second).
 
   All of it is one report's model, written out the way that report writes it:
     AFWAL   AFWAL-TR-80-3141 Part III (Systems Technology, Inc., December 1980; DTIC ADA101648), appendix
@@ -624,11 +626,11 @@
   What it is, and is not yet.
     - The F-4J is an F-4 with the same wing as the F-4C (no slats): AFWAL's wing area, span and chord
       are CR-2144's for the F-4C (530 sq ft, 38.67 ft, 16.04 ft).
-    - Low speed only. There is no Mach number in these tables: one value for each angle of attack,
-      "normalized for trim Mach number" at 15,000 ft, from data at Mach 0.2. What Mach changes comes
-      from CR-2144 in the second half of pull request 5. Every term below is already multiplied by a
-      factor of its own (aero/factor/..., all 1 for now), so that a term can be made to change with Mach
-      or height by giving its factor a table, and a new term (wave drag, say) is one more line in a sum.
+    - There is no Mach number in AFWAL's tables: one value for each angle of attack, "normalized for
+      trim Mach number" at 15,000 ft, from data at Mach 0.2. What Mach changes is NASA CR-2144's, by a
+      factor on every term and five increments ("What Mach changes", below). At and below Mach 0.5 every
+      factor is 1; at and below Mach 0.3 the three levels are 0 too, and the airplane is AFWAL's model
+      alone.
     - Clean. AFWAL's airplane carries a centreline tank and one missile, as 0.0037 of drag coefficient
       (its Table 3, "Delta CD STORES"). The owner's F-4C carries nothing, so that is left out.
     - No drag for the gear yet, and no flaps, speedbrakes or ground effect: pull request 7.
@@ -757,35 +759,537 @@
   <property value="0.00011"> aero/constant/K-beta </property>
 
   <!--
-   A factor for every term, all 1: the low-speed model as AFWAL gives it. The second half of pull request 5
-   makes a factor a function of Mach (and height) where CR-2144 says a term changes.
+   ==== What Mach changes (pull request 5, second half) ====
+
+   AFWAL's tables are one value for each angle of attack, from low-speed data. What changes with Mach is
+   NASA CR-2144's: the F-4C's stability derivatives at nine clean flight conditions (its numbers 2 to
+   10), flexible airframe, 38,925 lb, centre of gravity at 28.9% of the chord:
+     2  Mach 0.8, sea level      5  Mach 0.6, 35,000 ft      8  Mach 1.5, 45,000 ft
+     3  Mach 1.1, sea level      6  Mach 0.9, 35,000 ft      9  Mach 2.15, 45,000 ft
+     4  Mach 0.9, 15,000 ft      7  Mach 1.2, 35,000 ft     10  Mach 1.8, 55,000 ft
+   and its plots of level flight against Mach at five heights, sea level to 55,000 ft: the trim angle of
+   attack and the trim stabilator (its trim plot), and the trimmed drag (its CL and CD plot).
+   The record of all of it, as read from the scan, is aircraft/f4c/data/cr2144-f4c.json. The arithmetic
+   is tools/f4c-mach.mjs, which says which number makes which cell, and which wrote the tables below.
+   tests/f4c-conditions.test.js works them out again from the two records and holds this file to them
+   cell for cell, then flies the airplane at all nine conditions beside CR-2144's own transfer functions.
+
+   Slopes: a factor on each term (aero/factor/...).
+   Every term of AFWAL's build-up but the drag is multiplied by a factor, a table in Mach: at each of
+   the nine conditions, CR-2144's derivative there (its Tables IV-3 and IV-13, turned into coefficients
+   by its own definitions, with Table IV-2's speeds, pressures and inertias) divided by AFWAL's at the
+   condition's own trim angle of attack. So at each condition the airplane has CR-2144's derivative, and
+   everywhere it has AFWAL's shape in angle of attack and sideslip, scaled. Two derivatives are added
+   instead (aero/increment/yaw-roll-rate and yaw-aileron, CR-2144's less AFWAL's): AFWAL's are small and
+   change sign near the conditions' angles of attack, where a ratio means nothing.
+   The rows are Mach numbers. The first is 0.5, where every factor is 1 and the two increments 0: at
+   and below it the slopes are AFWAL's alone, because AFWAL's high-angle-of-attack data are low-speed
+   data and CR-2144's one low-speed condition (the power approach) has the flaps down. Then CR-2144's
+   eight Mach numbers. Above 2.15 the last row holds. The columns are heights, 15,000 and 35,000 ft, held
+   below and above: CR-2144 has two heights at one Mach number only, 0.9 (conditions 4 and 6), where the
+   flexible airframe's derivatives differ by up to a third; elsewhere both columns carry the one
+   condition CR-2144 has.
+
+   Levels: three increments (aero/increment/lift, drag and pitch).
+   A factor fixes a slope, not a level. The levels are from CR-2144's plots, point by point: at each
+   Mach number and height on them, what must be added to the lift, the drag and the pitching moment for
+   the airplane, with its factors as they are there, to fly level at CR-2144's trim angle of attack,
+   with CR-2144's trim stabilator and CR-2144's drag. So the airplane's trim follows CR-2144's curves at
+   each height, and with them how the stabilator to trim changes with speed, which is its speed
+   stability. (A first try took the levels from the nine conditions alone, one for each Mach number; at
+   sea level it trimmed a degree of stabilator off CR-2144's sea-level curve, and between Mach 0.5 and 0.6
+   its speed slowly ran away by itself.)
+   The rows are the plots' Mach numbers, from 0.3, where the three are 0, to 2.15; the columns the plots'
+   five heights. A cell the curves do not reach takes the nearest height's in its row. The levels do not
+   stop at Mach 0.5, because what they correct is not a Mach effect alone: at small angles of attack
+   AFWAL has about twice CR-2144's drag (0.035 against its minimum of 0.0174) and about 0.06 more lift
+   coefficient (a degree of angle of attack) at every Mach number CR-2144 plots, and CR-2144's are the
+   F-4C's own. Along its curves the drag's difference depends on Mach and hardly on height or angle of
+   attack, which is why it is added and not multiplied. At and below Mach 0.3, the slowest CR-2144
+   plots, the airplane is AFWAL's model alone.
+
+   Reasoned, all of it, away from the nine conditions and the plotted curves:
+     - Between conditions the factors are straight lines in Mach, through conditions flown at different
+       heights. How the flexible airframe's slopes change with height at one Mach number is known only at
+       0.9. CR-2144's plotted derivative curves, by height (in the record), are the data for doing better.
+     - CR-2144's derivatives with speed (its Table IV-3: XU, ZU, MU) are not used: how the levels change
+       with speed is its plotted trim curves', read to about a tenth of a degree. So the airplane's slow
+       speed-and-height swing is near CR-2144's but not it. The real F-4C slowly "tucks" near Mach 0.8 to
+       0.9 (CR-2144: a speed error doubles in 11 to 18 s); here that swing grows or dies far more slowly.
+       The checkride reports both side by side.
+     - Between Mach 0.5 and 0.6 the slopes go from one report's data to the other's, and they do not
+       quite meet: at the same angle of attack AFWAL has about two thirds of CR-2144's rudder power.
+     - Above about 15 degrees angle of attack nothing is known of what Mach does to the shapes. AFWAL's
+       are kept, scaled, and the levels are added whatever the angle. CR-2144's own plot has the most
+       lift falling with Mach (0.96 at Mach 0.2 to 0.48 at Mach 1), which a scaled AFWAL curve does not do.
+     - CR-2144 bends the rudder's command at speed (its "rudder flexure coefficient", figure IV-6: 0.71 at
+       Mach 0.8 at sea level). That is in its control system, not its derivatives, and comes with the
+       jet's flight controls in pull request 6.
+   Terms CR-2144 has no derivative for keep a factor of 1: the drag's shape, what sideslip adds to the
+   pitching moment, and the aileron's and spoiler's pitching moment. The spoiler shares the aileron's
+   factor: CR-2144's aileron derivatives have the spoiler in them. Left out, as AFWAL leaves them out:
+   CR-2144's lift for pitch rate and for the rate the angle of attack changes at, and the stabilator's drag.
   -->
-  <property value="1"> aero/factor/lift-basic </property>
-  <property value="1"> aero/factor/lift-stabilator </property>
   <property value="1"> aero/factor/drag-basic </property>
-  <property value="1"> aero/factor/side-sideslip </property>
-  <property value="1"> aero/factor/side-aileron </property>
-  <property value="1"> aero/factor/side-spoiler </property>
-  <property value="1"> aero/factor/side-rudder </property>
-  <property value="1"> aero/factor/roll-sideslip </property>
-  <property value="1"> aero/factor/roll-roll-rate </property>
-  <property value="1"> aero/factor/roll-yaw-rate </property>
-  <property value="1"> aero/factor/roll-aileron </property>
-  <property value="1"> aero/factor/roll-spoiler </property>
-  <property value="1"> aero/factor/roll-rudder </property>
-  <property value="1"> aero/factor/pitch-basic </property>
   <property value="1"> aero/factor/pitch-sideslip </property>
-  <property value="1"> aero/factor/pitch-pitch-rate </property>
-  <property value="1"> aero/factor/pitch-alpha-rate </property>
-  <property value="1"> aero/factor/pitch-stabilator </property>
   <property value="1"> aero/factor/pitch-aileron </property>
   <property value="1"> aero/factor/pitch-spoiler </property>
-  <property value="1"> aero/factor/yaw-sideslip </property>
   <property value="1"> aero/factor/yaw-roll-rate </property>
-  <property value="1"> aero/factor/yaw-yaw-rate </property>
   <property value="1"> aero/factor/yaw-aileron </property>
   <property value="1"> aero/factor/yaw-spoiler </property>
-  <property value="1"> aero/factor/yaw-rudder </property>
+
+  <!-- MACH TABLES: made by tools/f4c-mach.mjs from the two records in aircraft/f4c/data/. Not edited by hand. -->
+  <!-- Factor: the lift-curve slope. Rows: Mach 0.5, then CR-2144's conditions 5, 2, 4 | 6, 3, 7, 8, 10, 9. -->
+  <function name="aero/factor/lift-basic">
+   <table>
+    <independentVar lookup="row"> velocities/mach </independentVar>
+    <independentVar lookup="column"> position/h-sl-ft </independentVar>
+    <tableData>
+                   15000        35000
+        0.5            1            1
+        0.6       0.9212       0.9212
+        0.8       0.9822       0.9822
+        0.9        1.103        1.133
+        1.1        0.972        0.972
+        1.2        1.133        1.133
+        1.5       0.9825       0.9825
+        1.8       0.8489       0.8489
+       2.15       0.6848       0.6848
+    </tableData>
+   </table>
+  </function>
+  <!-- Factor: the stabilator's lift. Rows: Mach 0.5, then CR-2144's conditions 5, 2, 4 | 6, 3, 7, 8, 10, 9. -->
+  <function name="aero/factor/lift-stabilator">
+   <table>
+    <independentVar lookup="row"> velocities/mach </independentVar>
+    <independentVar lookup="column"> position/h-sl-ft </independentVar>
+    <tableData>
+                   15000        35000
+        0.5            1            1
+        0.6       0.9782       0.9782
+        0.8       0.8481       0.8481
+        0.9       0.9015        1.004
+        1.1       0.7987       0.7987
+        1.2        1.027        1.027
+        1.5       0.8268       0.8268
+        1.8       0.6526       0.6526
+       2.15       0.4757       0.4757
+    </tableData>
+   </table>
+  </function>
+  <!-- Factor: side force for sideslip. Rows: Mach 0.5, then CR-2144's conditions 5, 2, 4 | 6, 3, 7, 8, 10, 9. -->
+  <function name="aero/factor/side-sideslip">
+   <table>
+    <independentVar lookup="row"> velocities/mach </independentVar>
+    <independentVar lookup="column"> position/h-sl-ft </independentVar>
+    <tableData>
+                   15000        35000
+        0.5            1            1
+        0.6       0.9501       0.9501
+        0.8        1.143        1.143
+        0.9        1.095        1.033
+        1.1        1.206        1.206
+        1.2        1.269        1.269
+        1.5        1.269        1.269
+        1.8        1.111        1.111
+       2.15       0.9984       0.9984
+    </tableData>
+   </table>
+  </function>
+  <!-- Factor: side force for the aileron and the spoiler, which share it. Rows: Mach 0.5, then CR-2144's conditions 5, 2, 4 | 6, 3, 7, 8, 10, 9. -->
+  <function name="aero/factor/side-aileron">
+   <table>
+    <independentVar lookup="row"> velocities/mach </independentVar>
+    <independentVar lookup="column"> position/h-sl-ft </independentVar>
+    <tableData>
+                   15000        35000
+        0.5            1            1
+        0.6        1.102        1.102
+        0.8        1.104        1.104
+        0.9        1.105        1.107
+        1.1        1.101        1.101
+        1.2        1.103        1.103
+        1.5       0.9306       0.9306
+        1.8        0.207        0.207
+       2.15       0.5517       0.5517
+    </tableData>
+   </table>
+  </function>
+  <!-- Factor: side force for the rudder. Rows: Mach 0.5, then CR-2144's conditions 5, 2, 4 | 6, 3, 7, 8, 10, 9. -->
+  <function name="aero/factor/side-rudder">
+   <table>
+    <independentVar lookup="row"> velocities/mach </independentVar>
+    <independentVar lookup="column"> position/h-sl-ft </independentVar>
+    <tableData>
+                   15000        35000
+        0.5            1            1
+        0.6        1.546        1.546
+        0.8        1.102        1.102
+        0.9        1.049        1.197
+        1.1       0.5571       0.5571
+        1.2       0.8237       0.8237
+        1.5       0.7988       0.7988
+        1.8       0.6738       0.6738
+       2.15       0.4822       0.4822
+    </tableData>
+   </table>
+  </function>
+  <!-- Factor: rolling moment for sideslip (the dihedral effect). Rows: Mach 0.5, then CR-2144's conditions 5, 2, 4 | 6, 3, 7, 8, 10, 9. -->
+  <function name="aero/factor/roll-sideslip">
+   <table>
+    <independentVar lookup="row"> velocities/mach </independentVar>
+    <independentVar lookup="column"> position/h-sl-ft </independentVar>
+    <tableData>
+                   15000        35000
+        0.5            1            1
+        0.6       0.8013       0.8013
+        0.8       0.4616       0.4616
+        0.9       0.6553        0.913
+        1.1       0.4443       0.4443
+        1.2       0.4406       0.4406
+        1.5       0.3543       0.3543
+        1.8       0.2801       0.2801
+       2.15       0.1384       0.1384
+    </tableData>
+   </table>
+  </function>
+  <!-- Factor: the roll damping. Rows: Mach 0.5, then CR-2144's conditions 5, 2, 4 | 6, 3, 7, 8, 10, 9. -->
+  <function name="aero/factor/roll-roll-rate">
+   <table>
+    <independentVar lookup="row"> velocities/mach </independentVar>
+    <independentVar lookup="column"> position/h-sl-ft </independentVar>
+    <tableData>
+                   15000        35000
+        0.5            1            1
+        0.6       0.8955       0.8955
+        0.8       0.5942       0.5942
+        0.9       0.6627       0.7993
+        1.1       0.4429       0.4429
+        1.2       0.6657       0.6657
+        1.5       0.6196       0.6196
+        1.8       0.6409       0.6409
+       2.15       0.4669       0.4669
+    </tableData>
+   </table>
+  </function>
+  <!-- Factor: rolling moment for yaw rate. Rows: Mach 0.5, then CR-2144's conditions 5, 2, 4 | 6, 3, 7, 8, 10, 9. -->
+  <function name="aero/factor/roll-yaw-rate">
+   <table>
+    <independentVar lookup="row"> velocities/mach </independentVar>
+    <independentVar lookup="column"> position/h-sl-ft </independentVar>
+    <tableData>
+                   15000        35000
+        0.5            1            1
+        0.6        0.875        0.875
+        0.8        1.096        1.096
+        0.9        1.239        1.318
+        1.1       0.8199       0.8199
+        1.2       0.9282       0.9282
+        1.5        1.079        1.079
+        1.8       0.8189       0.8189
+       2.15       0.5788       0.5788
+    </tableData>
+   </table>
+  </function>
+  <!-- Factor: rolling moment for the aileron and the spoiler, which share it. Rows: Mach 0.5, then CR-2144's conditions 5, 2, 4 | 6, 3, 7, 8, 10, 9. -->
+  <function name="aero/factor/roll-aileron">
+   <table>
+    <independentVar lookup="row"> velocities/mach </independentVar>
+    <independentVar lookup="column"> position/h-sl-ft </independentVar>
+    <tableData>
+                   15000        35000
+        0.5            1            1
+        0.6        1.377        1.377
+        0.8       0.7813       0.7813
+        0.9        0.861         1.16
+        1.1       0.2763       0.2763
+        1.2       0.7144       0.7144
+        1.5       0.4537       0.4537
+        1.8       0.3499       0.3499
+       2.15       0.1759       0.1759
+    </tableData>
+   </table>
+  </function>
+  <!-- Factor: rolling moment for the rudder. Rows: Mach 0.5, then CR-2144's conditions 5, 2, 4 | 6, 3, 7, 8, 10, 9. -->
+  <function name="aero/factor/roll-rudder">
+   <table>
+    <independentVar lookup="row"> velocities/mach </independentVar>
+    <independentVar lookup="column"> position/h-sl-ft </independentVar>
+    <tableData>
+                   15000        35000
+        0.5            1            1
+        0.6        1.081        1.081
+        0.8       0.9121       0.9121
+        0.9       0.8933       0.9034
+        1.1       0.6048       0.6048
+        1.2       0.7353       0.7353
+        1.5       0.5107       0.5107
+        1.8       0.3662       0.3662
+       2.15       0.3058       0.3058
+    </tableData>
+   </table>
+  </function>
+  <!-- Factor: the pitch stiffness: where the lift acts, which moves aft as the airplane goes supersonic. Rows: Mach 0.5, then CR-2144's conditions 5, 2, 4 | 6, 3, 7, 8, 10, 9. -->
+  <function name="aero/factor/pitch-basic">
+   <table>
+    <independentVar lookup="row"> velocities/mach </independentVar>
+    <independentVar lookup="column"> position/h-sl-ft </independentVar>
+    <tableData>
+                   15000        35000
+        0.5            1            1
+        0.6        0.917        0.917
+        0.8        1.343        1.343
+        0.9        1.898        2.136
+        1.1        2.762        2.762
+        1.2        5.007        5.007
+        1.5        5.213        5.213
+        1.8         4.72         4.72
+       2.15        3.761        3.761
+    </tableData>
+   </table>
+  </function>
+  <!-- Factor: the pitch damping. Rows: Mach 0.5, then CR-2144's conditions 5, 2, 4 | 6, 3, 7, 8, 10, 9. -->
+  <function name="aero/factor/pitch-pitch-rate">
+   <table>
+    <independentVar lookup="row"> velocities/mach </independentVar>
+    <independentVar lookup="column"> position/h-sl-ft </independentVar>
+    <tableData>
+                   15000        35000
+        0.5            1            1
+        0.6       0.6827       0.6827
+        0.8       0.7362       0.7362
+        0.9       0.7993       0.8284
+        1.1       0.8664       0.8664
+        1.2       0.9683       0.9683
+        1.5       0.7963       0.7963
+        1.8       0.6197       0.6197
+       2.15       0.4709       0.4709
+    </tableData>
+   </table>
+  </function>
+  <!-- Factor: pitching moment for the rate the angle of attack changes at. Rows: Mach 0.5, then CR-2144's conditions 5, 2, 4 | 6, 3, 7, 8, 10, 9. -->
+  <function name="aero/factor/pitch-alpha-rate">
+   <table>
+    <independentVar lookup="row"> velocities/mach </independentVar>
+    <independentVar lookup="column"> position/h-sl-ft </independentVar>
+    <tableData>
+                   15000        35000
+        0.5            1            1
+        0.6       0.7584       0.7584
+        0.8       0.7646       0.7646
+        0.9       0.8778       0.9524
+        1.1       0.8411       0.8411
+        1.2       0.8955       0.8955
+        1.5       0.4764       0.4764
+        1.8       0.1447       0.1447
+       2.15      -0.1501      -0.1501
+    </tableData>
+   </table>
+  </function>
+  <!-- Factor: the stabilator's pitching moment. Rows: Mach 0.5, then CR-2144's conditions 5, 2, 4 | 6, 3, 7, 8, 10, 9. -->
+  <function name="aero/factor/pitch-stabilator">
+   <table>
+    <independentVar lookup="row"> velocities/mach </independentVar>
+    <independentVar lookup="column"> position/h-sl-ft </independentVar>
+    <tableData>
+                   15000        35000
+        0.5            1            1
+        0.6       0.9777       0.9777
+        0.8       0.8343       0.8343
+        0.9       0.9047       0.9891
+        1.1       0.8356       0.8356
+        1.2        1.009        1.009
+        1.5       0.8032       0.8032
+        1.8       0.6311       0.6311
+       2.15       0.3921       0.3921
+    </tableData>
+   </table>
+  </function>
+  <!-- Factor: yawing moment for sideslip (the weathercock stability). Rows: Mach 0.5, then CR-2144's conditions 5, 2, 4 | 6, 3, 7, 8, 10, 9. -->
+  <function name="aero/factor/yaw-sideslip">
+   <table>
+    <independentVar lookup="row"> velocities/mach </independentVar>
+    <independentVar lookup="column"> position/h-sl-ft </independentVar>
+    <tableData>
+                   15000        35000
+        0.5            1            1
+        0.6       0.7739       0.7739
+        0.8       0.8639       0.8639
+        0.9       0.9054       0.9596
+        1.1        1.123        1.123
+        1.2        1.291        1.291
+        1.5         1.06         1.06
+        1.8       0.7352       0.7352
+       2.15       0.4148       0.4148
+    </tableData>
+   </table>
+  </function>
+  <!-- Factor: the yaw damping. Rows: Mach 0.5, then CR-2144's conditions 5, 2, 4 | 6, 3, 7, 8, 10, 9. -->
+  <function name="aero/factor/yaw-yaw-rate">
+   <table>
+    <independentVar lookup="row"> velocities/mach </independentVar>
+    <independentVar lookup="column"> position/h-sl-ft </independentVar>
+    <tableData>
+                   15000        35000
+        0.5            1            1
+        0.6        0.628        0.628
+        0.8       0.6675       0.6675
+        0.9       0.7168       0.7249
+        1.1       0.7832       0.7832
+        1.2       0.8877       0.8877
+        1.5       0.8946       0.8946
+        1.8       0.7092       0.7092
+       2.15       0.5445       0.5445
+    </tableData>
+   </table>
+  </function>
+  <!-- Factor: yawing moment for the rudder. Rows: Mach 0.5, then CR-2144's conditions 5, 2, 4 | 6, 3, 7, 8, 10, 9. -->
+  <function name="aero/factor/yaw-rudder">
+   <table>
+    <independentVar lookup="row"> velocities/mach </independentVar>
+    <independentVar lookup="column"> position/h-sl-ft </independentVar>
+    <tableData>
+                   15000        35000
+        0.5            1            1
+        0.6        1.618        1.618
+        0.8        1.091        1.091
+        0.9        1.095        1.246
+        1.1       0.6537       0.6537
+        1.2       0.8513       0.8513
+        1.5       0.5588       0.5588
+        1.8       0.4055       0.4055
+       2.15       0.2464       0.2464
+    </tableData>
+   </table>
+  </function>
+  <!-- Increment: added to the yawing moment for roll rate, for each unit of p b/2V. Rows: Mach 0.5, then CR-2144's conditions 5, 2, 4 | 6, 3, 7, 8, 10, 9. -->
+  <function name="aero/increment/yaw-roll-rate">
+   <table>
+    <independentVar lookup="row"> velocities/mach </independentVar>
+    <independentVar lookup="column"> position/h-sl-ft </independentVar>
+    <tableData>
+                   15000        35000
+        0.5            0            0
+        0.6      -0.0134      -0.0134
+        0.8   -0.0004875   -0.0004875
+        0.9     0.001541     -0.02906
+        1.1       0.0123       0.0123
+        1.2     -0.01226     -0.01226
+        1.5     0.003389     0.003389
+        1.8      0.01151      0.01151
+       2.15       0.0238       0.0238
+    </tableData>
+   </table>
+  </function>
+  <!-- Increment: added to the yawing moment for the aileron with its spoiler, for each degree of aileron. Rows: Mach 0.5, then CR-2144's conditions 5, 2, 4 | 6, 3, 7, 8, 10, 9. -->
+  <function name="aero/increment/yaw-aileron">
+   <table>
+    <independentVar lookup="row"> velocities/mach </independentVar>
+    <independentVar lookup="column"> position/h-sl-ft </independentVar>
+    <tableData>
+                   15000        35000
+        0.5            0            0
+        0.6   0.00002348   0.00002348
+        0.8   0.00004158   0.00004158
+        0.9   0.00005313 -0.000007342
+        1.1    0.0001163    0.0001163
+        1.2   0.00009075   0.00009075
+        1.5   0.00004236   0.00004236
+        1.8   -0.0000241   -0.0000241
+       2.15  0.000006141  0.000006141
+    </tableData>
+   </table>
+  </function>
+  <!-- Increment: added to the lift coefficient: what makes the trim angle of attack CR-2144's plotted one. Rows: Mach 0.3, then Mach numbers on CR-2144's plots. Columns: the plots' five heights; 26 cells the curves do not reach take the nearest height's. -->
+  <function name="aero/increment/lift">
+   <table>
+    <independentVar lookup="row"> velocities/mach </independentVar>
+    <independentVar lookup="column"> position/h-sl-ft </independentVar>
+    <tableData>
+                       0        15000        35000        45000        55000
+        0.3            0            0            0            0            0
+        0.4     -0.07308     -0.08012     -0.08012     -0.08012     -0.08012
+        0.5     -0.05994     -0.06388     -0.06388     -0.06388     -0.06388
+        0.6     -0.04916     -0.04056      -0.0121      -0.0121      -0.0121
+        0.7     -0.06116     -0.05319    -0.006947     -0.05803     -0.05803
+        0.8     -0.06385     -0.05176     -0.01014     -0.01365     -0.01365
+       0.85     -0.07017     -0.05721     -0.03303     -0.03389     -0.03389
+        0.9     -0.07567     -0.05918     -0.04182     -0.04867     -0.04867
+       0.95     -0.07024     -0.05124     -0.03796     -0.02877      -0.0755
+          1     -0.06515     -0.06515     -0.03058     -0.01076    -0.007852
+       1.05     -0.06204     -0.06204     -0.03028     -0.00667      0.03105
+        1.1     -0.06133     -0.06133     -0.03078    -0.004664      0.04619
+        1.2     -0.07701     -0.07701     -0.07701     -0.06688     -0.05817
+        1.3      -0.0762      -0.0762      -0.0762     -0.07854     -0.08095
+        1.5     -0.07676     -0.07676     -0.07676     -0.08607     -0.08342
+        1.8     -0.07243     -0.07243     -0.07243     -0.08101     -0.06272
+       2.15     -0.04657     -0.04657     -0.04657     -0.04657     -0.04891
+    </tableData>
+   </table>
+  </function>
+  <!-- Increment: added to the drag coefficient: CR-2144's plotted trimmed drag, less AFWAL's at its plotted trim angle of attack. Rows: Mach 0.3, then Mach numbers on CR-2144's plots. Columns: the plots' five heights; 26 cells the curves do not reach take the nearest height's. -->
+  <function name="aero/increment/drag">
+   <table>
+    <independentVar lookup="row"> velocities/mach </independentVar>
+    <independentVar lookup="column"> position/h-sl-ft </independentVar>
+    <tableData>
+                       0        15000        35000        45000        55000
+        0.3            0            0            0            0            0
+        0.4      -0.0089    -0.001432    -0.001432    -0.001432    -0.001432
+        0.5     -0.01788     -0.01154     -0.01154     -0.01154     -0.01154
+        0.6     -0.02075     -0.02015     -0.03022     -0.03022     -0.03022
+        0.7     -0.02131     -0.02202     -0.02772     -0.02506     -0.02506
+        0.8     -0.01936     -0.02118     -0.02534     -0.01681     -0.01681
+       0.85     -0.01754     -0.02025     -0.02381     -0.01732     -0.01732
+        0.9     -0.01559      -0.0155     -0.01752     -0.01656     -0.01656
+       0.95     -0.01033     -0.01224     -0.01422     -0.01047     0.003204
+          1     -0.00385     -0.00385      -0.0033    -0.002628       0.0106
+       1.05      0.00364      0.00364     0.001492     0.003104      0.01599
+        1.1      0.00454      0.00454     0.003074      0.00584      0.01682
+        1.2      0.00378      0.00378      0.00378        0.006      0.00822
+        1.3     0.003196     0.003196     0.003196     0.001782      0.00224
+        1.5     0.001098     0.001098     0.001098     -0.00342    -0.004252
+        1.8    -0.001838    -0.001838    -0.001838    -0.006068     -0.00786
+       2.15     -0.00558     -0.00558     -0.00558     -0.00558     -0.01267
+    </tableData>
+   </table>
+  </function>
+  <!-- Increment: added to the pitching-moment coefficient: what makes the trim stabilator CR-2144's plotted one. Rows: Mach 0.3, then Mach numbers on CR-2144's plots. Columns: the plots' five heights; 26 cells the curves do not reach take the nearest height's. -->
+  <function name="aero/increment/pitch">
+   <table>
+    <independentVar lookup="row"> velocities/mach </independentVar>
+    <independentVar lookup="column"> position/h-sl-ft </independentVar>
+    <tableData>
+                       0        15000        35000        45000        55000
+        0.3            0            0            0            0            0
+        0.4     0.002469   -0.0002229   -0.0002229   -0.0002229   -0.0002229
+        0.5     0.005527     -0.00129     -0.00129     -0.00129     -0.00129
+        0.6     0.006837     0.001711    -0.004628    -0.004628    -0.004628
+        0.7     0.007583     0.004827     0.001183     0.008901     0.008901
+        0.8     0.006668     0.005216     0.004734     0.008526     0.008526
+       0.85     0.006021     0.004806      0.00491     0.003428     0.003428
+        0.9     0.005117     0.003125    0.0007823      -0.0036      -0.0036
+       0.95     0.003382     0.001326    -0.002144    -0.008256      0.00844
+          1    0.0009237    0.0009237    -0.006093     -0.01275     -0.00357
+       1.05    -0.002335    -0.002335    -0.008674     -0.01514     -0.01326
+        1.1    -0.004633    -0.004633     -0.01094      -0.0168     -0.01945
+        1.2     -0.01362     -0.01362     -0.01362      -0.0175     -0.01829
+        1.3     -0.01596     -0.01596     -0.01596     -0.01954     -0.02204
+        1.5     -0.01473     -0.01473     -0.01473     -0.01631     -0.01819
+        1.8     -0.01328     -0.01328     -0.01328     -0.01261     -0.01578
+       2.15       -0.013       -0.013       -0.013       -0.013    -0.009185
+    </tableData>
+   </table>
+  </function>
+  <!-- END OF MACH TABLES -->
+
+  <!-- The spoiler's side force and rolling moment change with Mach as the aileron's do. -->
+  <function name="aero/factor/side-spoiler">
+   <property> aero/factor/side-aileron </property>
+  </function>
+  <function name="aero/factor/roll-spoiler">
+   <property> aero/factor/roll-aileron </property>
+  </function>
 
   <!-- ==== The tables, each as AFWAL's listing has it ==== -->
 
@@ -1646,17 +2150,39 @@
    </product>
   </function>
 
-  <!-- ==== The six sums of Table 1 ==== -->
+  <!--
+   Two terms that are not in AFWAL's Table 1: what Mach adds to the yawing moment for roll rate and for
+   the aileron with its spoiler ("What Mach changes", above). Nothing at and below Mach 0.5.
+  -->
+  <function name="aero/coefficient/yaw-roll-rate-mach">
+   <product>
+    <property> aero/increment/yaw-roll-rate </property>
+    <property> aero/b-over-2v-sec </property>
+    <property> velocities/p-aero-rad_sec </property>
+   </product>
+  </function>
+  <function name="aero/coefficient/yaw-aileron-mach">
+   <product>
+    <property> aero/increment/yaw-aileron </property>
+    <property> aero/aileron-deg </property>
+   </product>
+  </function>
+
+  <!-- ==== The six sums: Table 1's, with the three levels and the two yaw terms that Mach adds ==== -->
 
   <function name="aero/coefficient/lift">
    <sum>
     <property> aero/coefficient/lift-basic </property>
     <property> aero/coefficient/lift-stabilator </property>
+    <property> aero/increment/lift </property>
    </sum>
   </function>
-  <!-- One term so far; the stores' drag is left out (above). -->
+  <!-- AFWAL's one term (its stores' drag is left out, above), and the level from CR-2144's plot. -->
   <function name="aero/coefficient/drag">
-   <property> aero/coefficient/drag-basic </property>
+   <sum>
+    <property> aero/coefficient/drag-basic </property>
+    <property> aero/increment/drag </property>
+   </sum>
   </function>
   <function name="aero/coefficient/side">
    <sum>
@@ -1686,6 +2212,7 @@
     <property> aero/coefficient/pitch-stabilator </property>
     <property> aero/coefficient/pitch-aileron </property>
     <property> aero/coefficient/pitch-spoiler </property>
+    <property> aero/increment/pitch </property>
    </sum>
   </function>
   <!-- About the reference centre: AFWAL's "Cn REF". -->
@@ -1697,6 +2224,8 @@
     <property> aero/coefficient/yaw-aileron </property>
     <property> aero/coefficient/yaw-spoiler </property>
     <property> aero/coefficient/yaw-rudder </property>
+    <property> aero/coefficient/yaw-roll-rate-mach </property>
+    <property> aero/coefficient/yaw-aileron-mach </property>
    </sum>
   </function>
 

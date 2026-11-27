@@ -1,10 +1,10 @@
 // The game's settings for the F-4C Phantom II, FSG's own aircraft file (aircraft/f4c/f4c.xml). New in FSG,
 // milestone 3 (docs/milestones/3.md, pull request 3), after c172p.js and f16.js.
 //
-// So far the file has weight, wheels, engines and, since pull request 5a (the first half of the plan's pull
-// request 5), its aerodynamics at low speed with the stick straight to the surfaces: it flies, headless. It
-// is not in the app yet (the Cessna still flies there); pull request 8 puts it in. Everything here is about
-// the game; the airplane itself, with its own throttle system and afterburner, is the aircraft file.
+// So far the file has weight, wheels, engines and, since pull request 5, its aerodynamics across its Mach
+// range with the stick straight to the surfaces: it flies, headless. It is not in the app yet (the Cessna
+// still flies there); pull request 8 puts it in. Everything here is about the game; the airplane itself,
+// with its own throttle system and afterburner, is the aircraft file.
 import { WINGS_CRASH_FPM } from '../rules.js';
 
 export const F4C = {
@@ -15,6 +15,21 @@ export const F4C = {
    * which is never edited. Inside JSBSim they go where its usual layout finds them, as any aircraft's do.
    */
   own: true,
+  /**
+   * How JSBSim steps this airplane forward, JSBSim's own setting (its numbers: rotation rates, speeds,
+   * attitude, position; 1 is rectangular Euler, 3 and 4 Adams-Bashforth of second and third order).
+   * JSBSim's default is 1, 3, 1, 4. A departure from it, for a measured reason: at the game's 120 steps a
+   * second the default takes damping off a quick swing (the damping ratio falls by about the swing's
+   * frequency in rad/s over 240), and without its stability augmentation the F-4C has little to lose high
+   * and fast: flown on the default, its pitch swing died to half 34% to 45% slower than NASA CR-2144's at
+   * Mach 1.5 to 2.15, and its Dutch roll 25% slower at 35,000 ft. With rotations stepped by the second-order
+   * rule every condition is within 9% and most within 2% (Supported: tests/f4c-conditions.test.js flies both).
+   * On its wheels nothing changes: standing and the engine run-up (tests/f4c.test.js), and in a throwaway
+   * run a full-afterburner roll to 340 knots and a firm arrival at 160 (one touch, 4.4 g on both rules);
+   * pull request 7's circuit tests the roll and the landing properly. The test aircraft keep JSBSim's
+   * default, which milestones 1 and 2 tested them on.
+   */
+  stepping: [3, 3, 3, 4],
   /**
    * The files JSBSim reads to load it, relative to the repo's root. tests/f4c.test.js shows each is needed.
    * (aircraft/f4c/data/ is the record of where the aircraft file's tables came from. JSBSim does not read it,
@@ -57,16 +72,18 @@ export const F4C = {
    * The copilot (src/sim/assists.js).
    *   trim   Neutral speed 350 knots, Wings' own for its F-4C (135crewdog/wings, src/sim/cards/f4c.js,
    *          neutral_speed_kt, commit 6d689b7): JSBSim's own pitch trim for level flight at 350 knots and
-   *          2,000 ft, set once. tests/f4c-aero.test.js re-derives it. It is the trim of pull request 5a's
-   *          airplane, stick straight to the stabilator and no Mach effects: each pull request that changes
-   *          either finds it again. The airplane is the same left and right, so there is no roll trim.
+   *          2,000 ft, set once. tests/f4c-aero.test.js re-derives it. It is the trim of pull request 5's
+   *          airplane, stick straight to the stabilator: each pull request that changes the airplane there
+   *          finds it again (5a had -0.0333; with what Mach changes, at Mach 0.53, it is -0.0191: the
+   *          stabilator 0.4 degrees trailing edge up). The airplane is the same left and right, so there
+   *          is no roll trim.
    *   feet   None yet: the rudder stays in the middle. Pull requests 6 and 7 decide what is the jet's own
    *          (its yaw damper, its aileron-rudder interconnect) and what the copilot's.
    *   steer  The nosewheel, straight from the stick with no fade, as f16.js has it for now. Pull request 7
    *          gives the jet its copilot's feet on the ground; until then no test taxis it at speed.
    */
   assists: {
-    trim: { knots: 350, heightFt: 2000, sets: [['fcs/pitch-trim-cmd-norm', -0.0333]] },
+    trim: { knots: 350, heightFt: 2000, sets: [['fcs/pitch-trim-cmd-norm', -0.0191]] },
     feet: null,
     steer: { wheel: { to: 'fcs/steer-cmd-norm', sign: 1, halfAtKt: 0 } },
   },

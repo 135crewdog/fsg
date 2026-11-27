@@ -204,6 +204,7 @@ Three words, used the same way everywhere (the owner's, 26 November 2026):
 - The stick's middle is made gentler before it is sent (`src/input/pilot.js`): half stick sends a quarter, full stick sends all of it. The owner's choice.
 - A pause menu taller than 348 points runs off an iPhone's landscape screen.
 - JSBSim v1.3.3's turbine gives full afterburner thrust the instant it is asked, has no "afterburner on" number to read, and its trim neither spools the engine nor moves the throttle beyond 0 to 1.
+- JSBSim's default stepping of rotations (rectangular Euler) takes damping off a quick swing at 120 steps a second: the F-4C's high, fast wobbles with its dampers off died away 25% to 45% slower than NASA's. The F-4C's settings ask for JSBSim's second-order rule (`stepping`), which matches NASA within 9%; the tape carries it to native JSBSim.
 
 ### iPhone platform rules (proven in Rage and Wings)
 - Motion permission is requested synchronously inside the Fly tap, over HTTPS.

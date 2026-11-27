@@ -24,6 +24,7 @@ export function scenarioOf(tape, name, outs, where = 'wasm') {
   return {
     name, root: '@data', dt: tape.dt, ground: tape.ground, model: tape.model, sets: tape.sets,
     ...(tape.own && where === 'native' ? { paths: { aircraft: OWN_AIRCRAFT, engine: 'engine', systems: 'systems' } } : null),
+    ...(tape.stepping ? { integrators: tape.stepping } : null),
     ins: tape.ins, inputs: tape.inputs, steps: tape.steps,
     outs: outs ?? tape.states.columns, outGear: outs !== undefined,
   };
