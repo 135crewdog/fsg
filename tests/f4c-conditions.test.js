@@ -30,8 +30,17 @@
 // simplest there is, at the game's 120 steps a second) takes a little damping off every swing, in proportion
 // to how fast it swings, and the F-4C's quick motions without its stability augmentation have very little
 // damping to lose. They are marked "todo" with their numbers, the assertion kept; a reported test shows the
-// same flights meeting the line when JSBSim is told to step rotations by its second-order rule. The owner
-// decides what gives. Every measured number is printed beside its reference and kept in
+// same flights meeting the line when JSBSim is told to step rotations by its second-order rule.
+//
+// What is done about it (Claude Code's choice, an engineering one): nothing yet. JSBSim stays on its own
+// defaults, the ones FlightGear flies every JSBSim airplane on at the same 120 steps a second, and the six
+// lines stay on record as not met. The game never flies the jet without its stability augmentation, which
+// adds several times the damping the stepping takes off. Reasoned; the test that settles it is pull request
+// 6's, the same pulses with the augmentation on against CR-2144's tables IV-10 and IV-16. If those fail for
+// this reason, the stepping rule is changed for the F-4C (a setting of JSBSim, src/sim/core.js
+// "integrators") and the whole checkride is flown again.
+//
+// Every measured number is printed beside its reference and kept in
 // jsbsim/build/results/checkride-f4c-conditions.txt.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
@@ -252,7 +261,7 @@ const NOT_MET = new Map([
   ['7 rudder', '3.35 s against 2.67 (+25.3%)'],
   ['8 rudder', '4.02 s against 3.21 (+25.2%)'],
 ]);
-const todo = (key) => (NOT_MET.has(key) ? { todo: `not met: ${NOT_MET.get(key)}. JSBSim's default stepping of rotations at 120 steps a second takes this much damping off; the owner decides what gives` } : {});
+const todo = (key) => (NOT_MET.has(key) ? { todo: `not met: ${NOT_MET.get(key)}. JSBSim's default stepping of rotations at 120 steps a second takes this much damping off; JSBSim stays on its defaults until pull request 6 flies the same pulses with the stability augmentation on (the top of this file)` } : {});
 
 for (const variant of VARIANTS) {
   const say = (line) => report.line(`  ${variant}: ${line}`);
@@ -422,7 +431,7 @@ test('f4c, reported (the cause of the six lines not met): the same pulses flown 
   // second, 0.017 of damping ratio at 4 rad/s. This test flies the six pulses again with both set to
   // Adams-Bashforth 2 (JSBSim's number 3; it is JSBSim's own default for the translation rates), which the
   // game's own flights cannot do: the stepping rule is given to the JSBSim instance here, by wrapping the one
-  // call that makes it, and put back after. A diagnosis, not a proposal: the owner decides.
+  // call that makes it, and put back after. A diagnosis, not a change: see the top of this file.
   const module = await moduleWith(F4C, 'weh'), say = (line) => report.line(`  ${line}`), create = Fdm.create;
   Fdm.create = (m, options) => create.call(Fdm, m, { ...options, integrators: [3, 3, 3, 4] });
   try {
