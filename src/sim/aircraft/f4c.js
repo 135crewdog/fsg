@@ -1,8 +1,9 @@
 // The game's settings for the F-4C Phantom II, FSG's own aircraft file (aircraft/f4c/f4c.xml). New in FSG,
 // milestone 3 (docs/milestones/3.md, pull request 3), after c172p.js and f16.js.
 //
-// So far the file has weight, wheels, engines and, since pull request 5, its aerodynamics across its Mach
-// range with the stick straight to the surfaces: it flies, headless. It is not in the app yet (the Cessna
+// So far the file has weight, wheels, engines, its aerodynamics across its Mach range (pull request 5) and,
+// since pull request 6, its own flight controls (feel system, stability augmentation, interconnect): it
+// flies, headless. It is not in the app yet (the Cessna
 // still flies there); pull request 8 puts it in. Everything here is about the game; the airplane itself,
 // with its own throttle system and afterburner, is the aircraft file.
 import { WINGS_CRASH_FPM } from '../rules.js';
@@ -31,6 +32,13 @@ export const F4C = {
    */
   stepping: [3, 3, 3, 4],
   /**
+   * The pitch stick is a force, not a position: the aircraft file's feel system turns it into stabilator
+   * (pull request 6), so the stick and the trim do not add. An airborne start (tests only) holds the feel
+   * system still with `holding` while JSBSim trims, then keeps the trim JSBSim found as the copilot's, with
+   * no force on the stick (src/sim/game.js).
+   */
+  airborneTrim: { holding: 'fcs/stick/trimming' },
+  /**
    * The files JSBSim reads to load it, relative to the repo's root. tests/f4c.test.js shows each is needed.
    * (aircraft/f4c/data/ is the record of where the aircraft file's tables came from. JSBSim does not read it,
    * and the app does not fetch it.)
@@ -47,10 +55,10 @@ export const F4C = {
   /**
    * Which JSBSim command each of the game's seven controls drives (as in c172x.js). The one throttle works
    * both engines. The flaps and the speedbrakes drive nothing yet: the file gets them in pull request 7.
-   * The stick's two commands are JSBSim's standard ones. For now (pull request 5a) the file takes them
-   * straight to the surfaces: full back stick is the stabilator 21 degrees trailing edge up, full right
-   * stick the left aileron 30 degrees down and the right spoiler up. The jet's own flight controls (pull
-   * request 6) will say what they mean after that.
+   * The stick's two commands are JSBSim's standard ones, and the aircraft file's flight controls say what
+   * they mean (pull request 6): the pitch stick is a pull in pounds (full back 103 lb, full forward 48: the
+   * file's fcs/stick/full-pull-lbs and full-push-lbs), which the jet's feel system turns into stabilator; the
+   * roll stick is a position, full right the left aileron 30 degrees down and the right spoiler up.
    */
   controls: {
     pitch: { to: ['fcs/elevator-cmd-norm'], sign: -1 },   // JSBSim: positive is nose down
@@ -75,10 +83,13 @@ export const F4C = {
    *          2,000 ft, set once. tests/f4c-aero.test.js re-derives it. It is the trim of pull request 5's
    *          airplane, stick straight to the stabilator: each pull request that changes the airplane there
    *          finds it again (5a had -0.0333; with what Mach changes, at Mach 0.53, it is -0.0191: the
-   *          stabilator 0.4 degrees trailing edge up). The airplane is the same left and right, so there
-   *          is no roll trim.
-   *   feet   None yet: the rudder stays in the middle. Pull requests 6 and 7 decide what is the jet's own
-   *          (its yaw damper, its aileron-rudder interconnect) and what the copilot's.
+   *          stabilator 0.4 degrees trailing edge up). With the jet's own flight controls (pull request 6)
+   *          the trim moves the feel system's neutral, so it means the trimmed stabilator with no force on
+   *          the stick: JSBSim's trim finds -0.0191 again (tests/f4c-fcs.test.js). The airplane is the same
+   *          left and right, so there is no roll trim.
+   *   feet   None yet: the pedals stay in the middle. The jet's own yaw damper and aileron-rudder
+   *          interconnect are in the aircraft file (pull request 6); pull request 7 decides what more is
+   *          the copilot's.
    *   steer  The nosewheel, straight from the stick with no fade, as f16.js has it for now. Pull request 7
    *          gives the jet its copilot's feet on the ground; until then no test taxis it at speed.
    */

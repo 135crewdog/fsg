@@ -22,6 +22,7 @@ import { bitEqual, classA, classB, classN, describeN, fmt } from '../jsbsim/test
 import { Report } from '../jsbsim/tests/lib/harness.js';
 import { VARIANTS } from '../jsbsim/tests/lib/node.js';
 import { headTrace, runNative } from '../jsbsim/tests/lib/scenario.js';
+import { STRAIGHT } from './checkride/conditions.js';
 import { bytesOf, moduleWith, rootWith } from './checkride/files.js';
 import * as REFERENCE from './checkride/f4c-reference.js';
 import { JUDGED, flyNative, flyWasm } from './checkride/tape.js';
@@ -63,7 +64,8 @@ const still = (flight) => {
 };
 /** In the air with no trim, so not in steady flight: 20,000 ft and 400 knots, gear up. Read back. */
 function inTheAir(module, controls, sets = []) {
-  const flight = Flight.start(module, F4C, { sets: [['ic/h-sl-ft', 20000], ['ic/vc-kts', 400], ...sets], settleSeconds: 0, controls: { gear: false, brake: false, ...controls } });
+  // The stick straight to the surfaces, as pull request 3 had it (the aircraft file's test switch since pull request 6).
+  const flight = Flight.start(module, F4C, { sets: [['ic/h-sl-ft', 20000], ['ic/vc-kts', 400], ...STRAIGHT, ...sets], settleSeconds: 0, controls: { gear: false, brake: false, ...controls } });
   assert.ok(Math.abs(flight.value('position/h-sl-ft') - 20000) < 1 && Math.abs(flight.value('velocities/vc-kts') - 400) < 0.5, `${flight.value('velocities/vc-kts')} kt at ${flight.value('position/h-sl-ft')} ft`);
   assert.deepEqual(flight.stateNames.filter((name, i) => name.endsWith('/WOW') && flight.state[i] !== 0), [], 'nothing touches the ground');
   assert.equal(flight.value('gear/gear-pos-norm'), 0, 'gear up');

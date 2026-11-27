@@ -43,9 +43,11 @@ export const AFWAL_REFERENCE_CENTRE = { value: 31, unit: '% of the chord', sourc
 export const AFWAL_REFERENCE_HEIGHT = { value: 15000, unit: 'ft', source: AFWAL, where: 'Table 5, PDF p.35' };
 /** The stabilator's travel, trailing edge down positive: "21 up, 9 down". */
 export const STABILATOR_TRAVEL = { value: [-21, 9], unit: 'degrees, trailing edge down positive', source: AFWAL, where: 'Table 6, PDF p.36' };
-/** Each aileron goes down only ("0 up, 30 down"), and the other wing's spoiler up 1.433 times as far ("delta sp = 1.433 delta a"; "43 up"). */
+/** Each aileron goes down only ("0 up, 30 down"); on the F-4J the other wing's spoiler goes up 1.433 times as far ("delta sp = 1.433 delta a"; "43 up"). */
 export const AILERON_TRAVEL = { value: 30, unit: 'degrees down', source: AFWAL, where: 'Table 6, PDF p.36' };
-export const SPOILER_PER_AILERON = { value: 1.433, unit: 'degrees of spoiler for each degree of aileron', source: AFWAL, where: 'section D, PDF p.34, and Table 6, PDF p.36' };
+export const AFWAL_SPOILER_PER_AILERON = { value: 1.433, unit: 'degrees of spoiler for each degree of aileron', source: AFWAL, where: 'section D, PDF p.34, and Table 6, PDF p.36' };
+/** The F-4C's own: the ailerons 30 degrees down and the spoilers 45 up (pull request 6; AFWAL's F-4J has 1.433, above). */
+export const SPOILER_PER_AILERON = { value: 1.5, unit: 'degrees of spoiler for each degree of aileron', source: FLIGHT_MANUAL, where: 'section I, "Lateral control system": the ailerons "travel downward 30 degrees", "The spoilers travel 45 degrees upward": 45/30' };
 export const RUDDER_TRAVEL = { value: 30, unit: 'degrees each way', source: AFWAL, where: 'Table 6, PDF p.36' };
 /** The clean F-4's wing rock, and the nose slice that follows it, as AFWAL quotes the F-4E's stall tests (its reference 8), in true angle of attack. */
 export const WING_ROCK_ALPHA = { value: [19, 22], unit: 'degrees of angle of attack', source: AFWAL, where: 'section G, PDF p.59' };
@@ -114,3 +116,43 @@ export const WINGS_SECONDS_TO_MIL = { value: 4.5, unit: 's', source: WINGS, wher
 export const WINGS_SECONDS_TO_FULL_AFTERBURNER = { value: 6.3, unit: 's', source: WINGS, where: 'its checkride (tests/checkride.test.js); the figure is as docs/milestones/3.md, pull request 3, has it' };
 /** The engine speed of the run-up before takeoff: above it the brakes may not hold. Not re-read from the manual for this file. */
 export const RUN_UP_RPM = { value: 85, unit: '% rpm', source: FLIGHT_MANUAL, where: 'the run-up before takeoff; the figure is as docs/milestones/3.md, pull request 3, has it, and its page is still to be read into this file' };
+
+// The jet's own flight controls (pull request 6): CR-2144's figures IV-3 to IV-7, PDF p.71 to 75 (printed 65
+// to 69), as aircraft/f4c/data/cr2144-f4c.json has them ("control_system", "feel_system_schematic",
+// "figures.feel_system_parameters", "stability_augmentation"); and the flight manual where it says more.
+const FIG_3 = 'figure IV-3 (the control system), PDF p.71';
+const FIG_4 = 'figure IV-4 (the feel system), PDF p.72';
+const FIG_7 = 'figure IV-7 (the stability augmentation), PDF p.75';
+export const STICK_INERTIA = { value: 0.0369, unit: 'lb s2/in', source: CR_2144, where: `${FIG_3} and ${FIG_4}` };
+export const STICK_DAMPING = { value: 0.208, unit: 'lb s/in', source: CR_2144, where: `${FIG_3} and ${FIG_4}` };
+export const BELLOWS_SPRING = { value: 0.0157, unit: 'lb/in for each lb of qB PBF', source: CR_2144, where: `${FIG_3} and ${FIG_4}` };
+export const BELLOWS_PRESSURE_SPRING = { value: 0.0569, unit: 'lb/in for each lb of qB PBF', source: CR_2144, where: `${FIG_3} and ${FIG_4}` };
+export const VISCOUS_DAMPER = { value: 3.03, unit: 'lb s/in, off its stop', source: CR_2144, where: FIG_4 };
+export const BOBWEIGHT = { value: 5.35, unit: 'lb/g', source: CR_2144, where: `${FIG_3} and ${FIG_4}` };
+export const BOBWEIGHT_STATION = { value: 39.3, unit: 'ft ahead of the centre of gravity', source: CR_2144, where: `${FIG_3} and ${FIG_4}` };
+export const PITCH_GEARING = { value: -3.36, unit: 'degrees of stabilator for each inch of stick, aft positive', source: CR_2144, where: FIG_3 };
+export const ACTUATOR_LAG = { value: 0.05, unit: 's', source: CR_2144, where: `${FIG_3} (the stabilator); ${AFWAL}, Figure 4, PDF p.37, has the same on every lateral surface` };
+export const LATERAL_FEEL = { value: 2.96, unit: 'lb/in', source: CR_2144, where: FIG_3 };
+export const LATERAL_GEARING = { value: 6.25, unit: 'degrees of aileron for each inch of stick', source: CR_2144, where: FIG_3 };
+export const PITCH_DAMPER = { value: [0.15, 1], unit: 'rad of stabilator for each rad/s, through K s / (s + a): [K, a]', source: CR_2144, where: FIG_7 };
+export const ROLL_DAMPER = { value: -0.265, unit: 'rad of aileron for each rad/s of roll rate', source: CR_2144, where: FIG_7 };
+export const ROLL_DAMPER_OUT_ABOVE = { value: 1.5, unit: 'lb of sideways stick force', source: FLIGHT_MANUAL, where: 'section IV, "Force transducer": "A lateral stick force of approximately 1.5 pounds closes a force switch ... the roll rate gyro signal in stab aug ... [is] cut out"' };
+export const YAW_DAMPER = { value: [3, 0.5, 0.0168], unit: 'rad of rudder: K s / (s + a) on the yaw-rate gyro [K, a], and per ft/s2 of the lateral accelerometer', source: CR_2144, where: `${FIG_7}; the record notes that the 3 could read .3 on the scan` };
+export const YAW_GYRO_TILT = { value: -1.5, unit: 'degrees', source: CR_2144, where: `${FIG_7}: rG = r cos(-1.5 deg) + p sin(-1.5 deg)` };
+export const LATERAL_ACCELEROMETER = { value: [9.9, -0.39], unit: 'a\'y = ay + 9.9 r-dot - 0.39 p-dot (ft)', source: CR_2144, where: `${FIG_7}: "lateral accelerometer at F.S. 198.0 and W.L. 23.0"` };
+export const YAW_DAMPER_AUTHORITY = { value: 5, unit: 'degrees of rudder', source: FLIGHT_MANUAL, where: 'section I, "Aileron rudder interconnect (ARI)": "the yaw stab aug (5°) rudder authority"' };
+export const INTERCONNECT_GAIN = { value: [-0.69, -0.46], unit: 'rad of rudder for each rad of aileron, augmentation on and off', source: CR_2144, where: FIG_3 };
+export const INTERCONNECT_LIMIT = { value: [15, 10], unit: 'degrees of rudder, augmentation on and off', source: FLIGHT_MANUAL, where: 'section I, "Aileron rudder interconnect (ARI)": "The limits of the system are 15° of rudder displacement when ... in the stability augmentation ... mode, and 10° ... when the stab aug switch is disengaged"' };
+export const INTERCONNECT_BELOW_KNOTS = { value: 230, unit: 'kt', source: FLIGHT_MANUAL, where: 'section IV, the aileron-rudder interconnect: "When the flap control switch is down, and airspeed is below approximately 230 knots"' };
+export const SPOILER_TRAVEL = { value: 45, unit: 'degrees up', source: FLIGHT_MANUAL, where: 'section I, "Lateral control system": "The spoilers travel 45 degrees upward from a flush contour position"' };
+export const SPOILER_PER_AILERON_CR = { value: 1.87, unit: 'degrees of spoiler for each degree of aileron', source: CR_2144, where: FIG_3 };
+/** NASA CR-2144's pull per g, bobweight loop closed, augmentation off: sea level Mach 0.8 and 35,000 ft Mach 0.9 (conditions 2 and 6). */
+export const PULL_PER_G = { value: [12.5, 12.2], unit: 'lb/g', source: CR_2144, where: 'table IV-12 (FST/G), PDF p.104, conditions 2 and 6' };
+/** The flight manual's g limit at this weight, up to Mach 0.72: what full back tilt is sized to (docs/milestones/3.md, pull request 6). */
+export const G_LIMIT = { value: 8.5, unit: 'g', source: FLIGHT_MANUAL, where: 'section V, the g limit at 37,500 lb, as docs/milestones/3.md has it' };
+/** CR-2144's most lift at 450 knots at sea level, as docs/milestones/3.md works it out. */
+export const MOST_G_AT_450 = { value: 7.9, unit: 'g', source: CR_2144, where: 'its maximum lift, as docs/milestones/3.md, pull request 6, gives it' };
+/** Wings' F-4C, full back tilt at sea level, and full right tilt at 600 knots: as docs/milestones/3.md quotes them. */
+export const WINGS_G_AT_FULL_TILT = { value: [3.0, 5.7, 8.3], unit: 'g at 250, 350 and 450 kt', source: WINGS, where: 'its checkride, as docs/milestones/3.md, pull request 6, quotes it' };
+export const WINGS_NEGATIVE_G = { value: -3, unit: 'g', source: WINGS, where: 'as docs/milestones/3.md, pull request 6, quotes it' };
+export const WINGS_ROLL_RATE_600 = { value: 183, unit: 'deg/s', source: WINGS, where: 'its checkride, as docs/milestones/3.md, pull request 6, quotes it' };

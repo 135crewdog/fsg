@@ -79,14 +79,16 @@ export const SLOW_FPS = 300;
  * A flight started at a state and not yet stepped: the airplane level, at 15,000 ft and 300 ft/s unless told
  * otherwise, with the air meeting it at an angle of attack and a sideslip (AFWAL's equation 9: U = V cos alpha
  * cos beta, V sin beta, V sin alpha cos beta), turning at p, q and r, the stick and the rudder where asked.
- * No copilot, so the stick alone moves the stabilator. Everything is part of the start; nothing is set afterwards.
+ * No copilot, so the stick alone moves the stabilator, and the aircraft file's test switch takes the stick and
+ * the rudder straight to the surfaces (fcs/test/straight: no feel system, augmentation or actuators), as pull
+ * request 5 had them. Everything is part of the start; nothing is set afterwards.
  */
 export function startAt(module, { alpha, beta, vt = SLOW_FPS, heightFt = AFWAL_REFERENCE_HEIGHT.value, p = 0, q = 0, r = 0, pitch = 0, roll = 0, rudder = 0 }) {
   const a = alpha / DEG, b = beta / DEG;
   return Flight.start(module, F4C, {
     assists: null, settleSeconds: 0, controls: { gear: false, brake: false, throttle: 0, pitch, roll },
     sets: [['ic/h-sl-ft', heightFt], ['ic/u-fps', vt * Math.cos(a) * Math.cos(b)], ['ic/v-fps', vt * Math.sin(b)], ['ic/w-fps', vt * Math.sin(a) * Math.cos(b)],
-      ['ic/p-rad_sec', p], ['ic/q-rad_sec', q], ['ic/r-rad_sec', r], ['fcs/rudder-cmd-norm', rudder]],
+      ['ic/p-rad_sec', p], ['ic/q-rad_sec', q], ['ic/r-rad_sec', r], ['fcs/rudder-cmd-norm', rudder], ['fcs/test/straight', 1]],
   });
 }
 

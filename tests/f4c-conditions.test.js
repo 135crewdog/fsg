@@ -48,12 +48,19 @@ import { Report } from '../jsbsim/tests/lib/harness.js';
 import { VARIANTS } from '../jsbsim/tests/lib/node.js';
 import { headTrace } from '../jsbsim/tests/lib/scenario.js';
 import { FACTORS, FADE_MACH, HEIGHTS, INCREMENTS, LEVELS, LEVEL_FADE_MACH, LEVEL_HEIGHTS, SHARED, UNCHANGED, asXml, conditions, inFile, lookup, machTables } from '../tools/f4c-mach.mjs';
-import { GROUND, atCondition, pitchRate, respond, rollRate, rudderFeet, startNear, stateOf, steadyPull, yawRate } from './checkride/conditions.js';
+import { GROUND, STRAIGHT, atCondition as atConditionOf, pitchRate, respond, rollRate, rudderFeet, startNear, stateOf, steadyPull, yawRate } from './checkride/conditions.js';
 import { moduleWith } from './checkride/files.js';
 import * as REFERENCE from './checkride/f4c-reference.js';
-import { exponential, factorsOf, measures, polynomial, respond as respondLinear, transferFunction, turningPoints } from './checkride/linear.js';
+import { exponential, factorsOf, measures, polynomial, respond as respondLinear, transferFunction, turningPoints, measuresBeside } from './checkride/linear.js';
 import { SIX, snapshot, startAt, table1 } from './checkride/table1.js';
 import { JUDGED, flyNative, flyWasm } from './checkride/tape.js';
+
+/**
+ * Every flight in this file is pull request 5's airplane: the stick and the rudder straight to the surfaces,
+ * as CR-2144's tables IV-4, IV-14 and IV-15 assume (the aircraft file's test switch; pull request 6 gave the
+ * file its real flight controls, which tests/f4c-fcs.test.js flies).
+ */
+const atCondition = (module, c, options = {}) => atConditionOf(module, c, { ...options, sets: [...STRAIGHT, ...(options.sets ?? [])] });
 
 const { WING_AREA, CG_PERCENT_CHORD, CONDITION_MACH, CONDITION_HEIGHT, CONDITION_TRIM_ALPHA, CONDITION_TRIM_STABILATOR, CONDITION_DRAG, CONDITION_STABILATOR_PER_G,
   CONDITION_PITCH_DAMPING, CONDITION_PITCH_FREQUENCY, CONDITION_DUTCH_ROLL_DAMPING, CONDITION_DUTCH_ROLL_FREQUENCY, CONDITION_SPIRAL_ROOT, TUCK_SECONDS_TO_DOUBLE } = REFERENCE;
@@ -158,6 +165,13 @@ test('linear: a first-order lag and a second-order swing answer a step as the te
   // A motion that does not die away has none; one that does not swing has none to time.
   assert.equal(measures(respondLinear({ numerator: [omega ** 2], denominator: polynomial([{ zeta: -0.01, omega }]) }, (t) => (t < 0.5 ? 1 : 0), DT, 20), 0.5).halfTime, Infinity);
   assert.ok(Number.isNaN(measures(respondLinear({ numerator: [1 / tau], denominator: polynomial([{ root: 1 / tau }]) }, (t) => (t < 0.5 ? 1 : 0), DT, 20), 0.5).halfTime));
+  // Two records laid beside each other are timed over the same swings, though a peak of one falls just before
+  // the pulse's end and the other's just after it: the same pulse response, one of them 16 ms early.
+  const late = respondLinear({ numerator: [omega ** 2], denominator: polynomial([{ zeta, omega }]) }, (t) => (t < 1 ? 1 : 0), DT, 20);
+  const early = late.map(({ t, x }) => ({ t: t - 2 * DT, x })), cut = measures(late).peakTime - DT;
+  assert.ok(measures(late, cut).free[0].t - measures(early, cut).free[0].t < -0.5, 'measured apart, they start a swing apart');
+  const pair = measuresBeside(early, late, cut);
+  assert.ok(Math.abs(pair.ours.free[0].t - pair.theirs.free[0].t) < 3 * DT && Math.abs(pair.ours.halfTime - pair.theirs.halfTime) < 0.01, `beside: ${pair.ours.halfTime} s and ${pair.theirs.halfTime}`);
   // The matrix exponential itself, on a turn: e^[[0, a], [-a, 0]] is a rotation by a.
   const turn = exponential([[0, 2], [-2, 0]]);
   assert.ok(Math.abs(turn[0][0] - Math.cos(2)) < 1e-12 && Math.abs(turn[0][1] - Math.sin(2)) < 1e-12);
@@ -212,14 +226,14 @@ function flyCondition(module, c) {
   };
   const base = stateOf(flight);
   // The stabilator's pulse: the pitch rate.
-  out.stabilator = { ours: measures(respond(flight, 'stabilator', pulse(PUSH), pitchRate, PUSH.record), PUSH.seconds), theirs: measures(crResponse('IV-4', 'N(THE/DS)', c.fc, pulse(PUSH), PUSH.record, true), PUSH.seconds) };
+  out.stabilator = measuresBeside(respond(flight, 'stabilator', pulse(PUSH), pitchRate, PUSH.record), crResponse('IV-4', 'N(THE/DS)', c.fc, pulse(PUSH), PUSH.record, true), PUSH.seconds);
   flight.dispose();
   // The rudder's: the yaw rate.
   const holder = {}, kicked = atCondition(module, c, { assists: rudderFeet(holder) }).flight;
   holder.flight = kicked;
   const yaw = respond(kicked, 'rudder', pulse(KICK), yawRate, KICK.record);
   kicked.dispose();
-  out.rudder = { ours: measures(yaw, KICK.seconds), theirs: measures(crResponse('IV-15', 'N(R /DR)', c.fc, pulse(KICK), KICK.record), KICK.seconds) };
+  out.rudder = measuresBeside(yaw, crResponse('IV-15', 'N(R /DR)', c.fc, pulse(KICK), KICK.record), KICK.seconds);
   // The aileron's step: the roll rate after half a second and after two.
   const rolled = atCondition(module, c).flight, roll = respond(rolled, 'aileron', () => STEP.degrees, rollRate, STEP.record);
   rolled.dispose();
@@ -445,7 +459,7 @@ test('f4c: its settings ask JSBSim for second-order stepping of rotations, and J
       holder.flight = flight;
       assert.equal(flight.get(RULES.rotationRate), 1, 'flown on the default');
       const [input, table, block, read] = control === 'rudder' ? [KICK, 'IV-15', 'N(R /DR)', yawRate] : [PUSH, 'IV-4', 'N(THE/DS)', pitchRate];
-      const ours = measures(respond(flight, control, pulse(input), read, input.record), input.seconds), theirs = measures(crResponse(table, block, c.fc, pulse(input), input.record, control === 'stabilator'), input.seconds);
+      const { ours, theirs } = measuresBeside(respond(flight, control, pulse(input), read, input.record), crResponse(table, block, c.fc, pulse(input), input.record, control === 'stabilator'), input.seconds);
       flight.dispose();
       say(`${nameOf(c)}, the ${control}'s pulse on JSBSim's default stepping: its swings die to half in ${ours.halfTime.toFixed(2)} s against CR-2144's ${theirs.halfTime.toFixed(2)} (${percent(ours.halfTime, theirs.halfTime)}): outside the plan's 25%`);
       assert.ok(Math.abs(ours.halfTime - was) < 0.02, `${key}: ${ours.halfTime} s on the default; this pull request measured ${was}`);
@@ -470,10 +484,12 @@ test('f4c: "A two-minute flight\'s tape replays in native JSBSim by milestone 1\
     assert.equal(diveDeg, 0, 'the engines hold condition 6 level');
     const hold = { ...twin.trimmed }, alpha = twin.get('aero/alpha-deg'), turning = twin.get('propulsion/engine[0]/n2');
     twin.dispose();
+    // The copilot holds the trim the twin's start kept (src/sim/game.js, `airborneTrim`).
+    const assists = { ...F4C.assists, trim: { ...F4C.assists.trim, sets: [['fcs/pitch-trim-cmd-norm', hold.heldPitchTrim]] } };
     const flight = Flight.start(module, F4C, {
-      record: true, settleSeconds: 0, terrain: GROUND, controls: { gear: false, flaps: false, brake: false, throttle: hold.throttle, pitch: hold.pitch, roll: hold.roll },
+      record: true, settleSeconds: 0, terrain: GROUND, assists, controls: { gear: false, flaps: false, brake: false, throttle: hold.throttle, pitch: hold.pitch, roll: hold.roll },
       // The speed before the angle of attack: with no speed JSBSim has no flight path to raise the nose from.
-      sets: [['ic/h-sl-ft', c.heightFt], ['ic/mach', c.mach], ['ic/alpha-deg', alpha], ['propulsion/engine[0]/n2', turning], ['propulsion/engine[1]/n2', turning]],
+      sets: [['ic/h-sl-ft', c.heightFt], ['ic/mach', c.mach], ['ic/alpha-deg', alpha], ['propulsion/engine[0]/n2', turning], ['propulsion/engine[1]/n2', turning], ...STRAIGHT],
     });
     // Read back: it starts at the condition, level and steady.
     assert.ok(Math.abs(flight.value('velocities/mach') - c.mach) < 1e-6 && Math.abs(feet(flight) - c.heightFt) < 0.01 && Math.abs(flight.get('aero/alpha-deg') - alpha) < 1e-9, `Mach ${flight.value('velocities/mach')} at ${feet(flight)} ft`);

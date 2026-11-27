@@ -162,13 +162,23 @@ export function turningPoints(samples, floor) {
  *              swings after the pulse (it has no swing to time); Infinity if its swings have not fallen to
  *              half by the end of the record: the motion has not died away.
  * A turning point counts only if the response comes back from it by 2% of its largest size.
+ *
+ * `beside` is the measures of the record this one is laid beside (the reference's, measured first). With it,
+ * this record's free motion starts at its turning point nearest in time to the reference's first free one,
+ * so that the same swings of both are timed. Without it a first peak that falls at the pulse's end can be
+ * counted on one record and not on the other: at CR-2144's condition 5 a pull's first peak came at 1.000 s
+ * in JSBSim and at 0.992 s in the model, for a 1 s pulse, and two motions alike within 5% at every turning
+ * point were timed at 3.46 s and 2.36 s, a swing apart (milestone 3, pull request 6).
  */
-export function measures(samples, freeFrom = 0) {
+export function measures(samples, freeFrom = 0, beside = null) {
   const most = Math.max(...samples.map((s) => Math.abs(s.x)));
   const turns = turningPoints(samples, 0.02 * most);
-  if (!turns.length) return { peakTime: NaN, peak: NaN, halfTime: NaN, turns, swings: [] };
+  if (!turns.length) return { peakTime: NaN, peak: NaN, halfTime: NaN, turns, free: [], swings: [] };
   // The swings of the free motion: each ends at a turning point, and is as large as the response moved since the one before.
-  const free = turns.filter((turn) => turn.t >= freeFrom);
+  const start = beside?.free?.length ? beside.free[0].t : null;
+  const first = start === null ? turns.findIndex((turn) => turn.t >= freeFrom)
+    : turns.reduce((best, turn, i) => (Math.abs(turn.t - start) < Math.abs(turns[best].t - start) ? i : best), 0);
+  const free = first < 0 ? [] : turns.slice(first);
   const swings = free.slice(1).map((turn, i) => ({ t: turn.t, size: Math.abs(turn.x - free[i].x) }));
   let halfTime = swings.length < 2 ? NaN : Infinity;
   for (let k = 1; k < swings.length; k++) {
@@ -177,5 +187,11 @@ export function measures(samples, freeFrom = 0) {
     halfTime = swings[k - 1].t + ((wanted - from) / (to - from)) * (swings[k].t - swings[k - 1].t) - swings[0].t;
     break;
   }
-  return { peakTime: turns[0].t, peak: turns[0].x, halfTime, turns, swings };
+  return { peakTime: turns[0].t, peak: turns[0].x, halfTime, turns, free, swings };
+}
+
+/** Two records laid beside each other: the reference's measures, and ours over the same swings. */
+export function measuresBeside(ours, theirs, freeFrom = 0) {
+  const reference = measures(theirs, freeFrom);
+  return { ours: measures(ours, freeFrom, reference), theirs: reference };
 }

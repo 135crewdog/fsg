@@ -16,6 +16,14 @@ const DEG = 180 / Math.PI;
 export const GROUND = flatSource(-30000);
 
 /**
+ * The aircraft file's test switch that takes the stick and the pedals straight to the surfaces, as pull
+ * request 5 flew the F-4C and as CR-2144's tables IV-4, IV-14 and IV-15 assume: no feel system, no stability
+ * augmentation, no actuators (aircraft/f4c/f4c.xml, "The jet's own flight controls"). A start that wants it
+ * adds it to its `sets`. Without it a flight has the real jet's controls.
+ */
+export const STRAIGHT = [['fcs/test/straight', 1]];
+
+/**
  * A flight trimmed by JSBSim's own trim at a Mach number and a height, gear up, on a flight path `gammaDeg`
  * above the horizon (0 is level). Throws if JSBSim cannot trim it: the engines cannot hold the speed.
  */
@@ -57,7 +65,8 @@ export const stabilatorOf = (flight) => flight.get('fcs/elevator-pos-deg');
  */
 export function stickFor(flight, stabilatorDeg) {
   const sum = stabilatorDeg >= 0 ? stabilatorDeg / 9 : stabilatorDeg / 21;
-  const held = flight.startSets.find(([name]) => name === 'fcs/pitch-trim-cmd-norm')?.[1] ?? 0;
+  // The trim the copilot holds: an airborne start's is the one JSBSim's trim found (src/sim/game.js, `airborneTrim`).
+  const held = flight.trimmed?.heldPitchTrim ?? flight.startSets.find(([name]) => name === 'fcs/pitch-trim-cmd-norm')?.[1] ?? 0;
   return -(sum - held);
 }
 
@@ -109,6 +118,7 @@ export function stateOf(flight) {
 }
 
 /**
+ * (With the stick straight to the stabilator: STRAIGHT, above.)
  * A flight started (and not stepped) at a trimmed flight's state with its angle of attack changed by
  * `alphaDeg` at the same speed, its stabilator by `stabilatorDeg`, and pitching at `q` rad/s: for reading
  * what the airplane would do there. The caller disposes of it.
@@ -119,7 +129,7 @@ export function startNear(module, base, { alphaDeg = 0, stabilatorDeg = 0, q = 0
   return Flight.start(module, F4C, {
     terrain: GROUND, settleSeconds: 0, controls: { gear: false, flaps: false, brake: false, throttle: base.throttle, pitch: stickFor(probe, base.stabilator + stabilatorDeg), roll: base.roll },
     sets: [['ic/h-sl-ft', base.heightFt], ['ic/theta-deg', base.theta], ['ic/u-fps', speed * Math.cos(alpha)], ['ic/w-fps', speed * Math.sin(alpha)], ['ic/q-rad_sec', q],
-      ['propulsion/engine[0]/n2', base.turning], ['propulsion/engine[1]/n2', base.turning]],
+      ['propulsion/engine[0]/n2', base.turning], ['propulsion/engine[1]/n2', base.turning], ...STRAIGHT],
   });
 }
 
