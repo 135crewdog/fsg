@@ -549,33 +549,53 @@ test('f4c fcs: "The pull per g in a steady pull is within 15% of table IV-12\'s 
   }
 });
 
-/** Full tilt from level flight at a speed and height: the most g (and the least) in the first 5 s. */
-function fullTilt(m, at, pitch) {
-  const flight = inTheAir(m, at), out = { most: -Infinity, least: Infinity, at: 0, alpha: 0 };
-  run(flight, 5, (t) => {
-    flight.fly({ pitch });
-    const g = flight.value('accelerations/Nz');
-    if (g > out.most) { out.most = g; out.at = t; out.alpha = flight.value('aero/alpha-rad') * DEG; out.knots = flight.value('velocities/vc-kts'); }
-    out.least = Math.min(out.least, g);
+/**
+ * What full back tilt gives at a speed: the g while the jet passes that speed in a pull held from level flight
+ * `above` knots faster, by which time the pitch motion the pull started has settled. No F-4 holds 8 g at a
+ * steady speed (at 480 knots the drag is about three times the thrust), so "at 480 knots" is a moment, and a
+ * pull begun at 480 would be read while the nose is still coming up: that reading is the peak of a swing,
+ * not what the pull holds (Codex's finding on pull request 6, which read it so). `before` is the g over the
+ * half second before the speed is passed: a settled pull changes little in it.
+ */
+function passing(m, knots, above = 80) {
+  const flight = inTheAir(m, { heightFt: 0, knots: knots + above }), g = [];
+  let out = null;
+  run(flight, 10, (t) => {
+    flight.fly({ pitch: 1 });
+    g.push(flight.value('accelerations/Nz'));
+    if (flight.value('velocities/vc-kts') > knots) return true;
+    const before = g.slice(-Math.round(0.5 / DT) - 1);
+    out = { g: g.at(-1), seconds: t, least: Math.min(...before), most: Math.max(...before), heightFt: flight.value('position/h-sl-ft'), alpha: flight.value('aero/alpha-rad') * DEG, pounds: flight.get('fcs/stick/pilot-force-lbs'), from: knots + above };
+    return false;
   });
-  out.pull = flight.get('fcs/stick/full-pull-lbs');
-  out.push = flight.get('fcs/stick/full-push-lbs');
+  assert.ok(out, `the pull from ${knots + above} kt slowed through ${knots}`);
+  assert.equal(out.pounds, flight.get('fcs/stick/full-pull-lbs'), 'the full pull, read back');
   flight.dispose();
   return out;
 }
 
 test(`f4c fcs: "Full back tilt holds 8.5 g within 0.5 at 480 knots at sea level. At 450 knots it reaches the wing's most lift first: 7.4 to 8.2 g"`, async () => {
-  // "Holds" read as the most g the pull reaches, in the first 5 s: at these speeds the jet slows 40 knots a second at full pull, so the g falls away once it has peaked.
-  const m = await module(), at480 = fullTilt(m, { heightFt: 0, knots: 480 }, 1), at450 = fullTilt(m, { heightFt: 0, knots: 450 }, 1);
-  say(`full back tilt (${at480.pull} lb, fcs/stick/full-pull-lbs): at 480 kt and sea level the most g is ${at480.most.toFixed(2)}, ${at480.at.toFixed(2)} s in, at ${at480.knots.toFixed(0)} kt and ${at480.alpha.toFixed(1)} degrees of angle of attack; ${cite(G_LIMIT)}; within 0.5. At 450 kt: ${at450.most.toFixed(2)} g, ${at450.at.toFixed(2)} s in, at ${at450.alpha.toFixed(1)} degrees; the line 7.4 to 8.2 (${cite(MOST_G_AT_450)})`);
-  assert.ok(Math.abs(at480.most - G_LIMIT.value) <= 0.5, `${at480.most} g at 480 kt`);
-  assert.ok(at450.most >= 7.4 && at450.most <= 8.2, `${at450.most} g at 450 kt`);
+  const m = await module(), at480 = passing(m, 480), at450 = passing(m, 450);
+  const line = (out, knots) => `passing ${knots} kt in a full pull (${out.pounds} lb) held from level flight at ${out.from} kt and sea level, ${out.seconds.toFixed(2)} s in and ${out.heightFt.toFixed(0)} ft up: ${out.g.toFixed(2)} g at ${out.alpha.toFixed(1)} degrees of angle of attack; over the half second before, ${out.least.toFixed(2)} to ${out.most.toFixed(2)} g`;
+  say(`full back tilt, ${line(at480, 480)}; ${cite(G_LIMIT)}; within 0.5, and settled (the half second within 0.25 g)`);
+  say(`full back tilt, ${line(at450, 450)}; the plan: 7.4 to 8.2 g (CR-2144's most lift gives 7.9): the g is falling as the wing gives out`);
+  assert.ok(Math.abs(at480.g - G_LIMIT.value) <= 0.5, `${at480.g} g passing 480 kt`);
+  assert.ok(at480.most - at480.least <= 0.25 && Math.abs(at480.least - G_LIMIT.value) <= 0.5 && Math.abs(at480.most - G_LIMIT.value) <= 0.5, `held: ${at480.least} to ${at480.most} g over the half second before`);
+  assert.ok(at450.g >= 7.4 && at450.g <= 8.2, `${at450.g} g passing 450 kt`);
 });
 
 test('f4c fcs: "Full forward tilt holds -3 g within 0.5 at 480 knots at sea level"', async () => {
-  const m = await module(), out = fullTilt(m, { heightFt: 0, knots: 480 }, -1);
-  say(`full forward tilt (${out.push} lb, fcs/stick/full-push-lbs) at 480 kt and sea level: the least g in the first 5 s ${out.least.toFixed(2)}; ${cite(WINGS_NEGATIVE_G)}; within 0.5`);
-  assert.ok(Math.abs(out.least - WINGS_NEGATIVE_G.value) <= 0.5, `${out.least} g`);
+  // Held: every reading from 2 s to 4 s after the push, the speed still near 480 (a push costs little speed).
+  // Begun 1,500 ft up, so that the push does not take it below sea level.
+  const m = await module(), flight = inTheAir(m, { heightFt: 1500, knots: 480 }), g = [], knots = [];
+  run(flight, 4, (t) => { flight.fly({ pitch: -1 }); if (t >= 2) { g.push(flight.value('accelerations/Nz')); knots.push(flight.value('velocities/vc-kts')); } });
+  const pounds = flight.get('fcs/stick/pilot-force-lbs'), heightFt = flight.value('position/h-sl-ft');
+  assert.equal(pounds, -flight.get('fcs/stick/full-push-lbs'), 'the full push, read back');
+  flight.dispose();
+  const least = Math.min(...g), most = Math.max(...g);
+  say(`full forward tilt (a push of ${-pounds} lb) held from level flight at 480 kt and 1,500 ft: from 2 s to 4 s in, ${least.toFixed(2)} to ${most.toFixed(2)} g at ${Math.min(...knots).toFixed(0)} to ${Math.max(...knots).toFixed(0)} kt, ending ${heightFt.toFixed(0)} ft up; ${cite(WINGS_NEGATIVE_G)}; within 0.5`);
+  assert.ok(Math.abs(least - WINGS_NEGATIVE_G.value) <= 0.5 && Math.abs(most - WINGS_NEGATIVE_G.value) <= 0.5, `${least} to ${most} g`);
+  assert.ok(Math.min(...knots) > 460 && Math.max(...knots) < 500 && heightFt > 0, `${Math.min(...knots)} to ${Math.max(...knots)} kt, ${heightFt} ft`);
 });
 
 test('f4c fcs: "The roll damper is out whenever the sideways pull on the stick is more than 1.5 lb (the flight manual), and in below it"', async () => {
@@ -622,9 +642,11 @@ test('f4c fcs: "Flaps down and below 230 knots, full right tilt gives 15 degrees
 
 test('f4c fcs, reported (no pass or fail): g at full back tilt at 250, 350, 550 and 650 knots at sea level and at Mach 0.9 and 1.5 at 35,000 ft; roll rate at full tilt at 250, 400 and 600 knots, beside Wings\'', async () => {
   const m = await module();
+  // As the line above: the g while passing the speed in a full pull held from 80 knots faster (40 for 650:
+  // the engines cannot hold 730 knots level at sea level).
   for (const knots of [250, 350, 550, 650]) {
-    const out = fullTilt(m, { heightFt: 0, knots }, 1);
-    say(`full back tilt at ${knots} kt and sea level: the most g ${out.most.toFixed(2)}, ${out.at.toFixed(2)} s in, at ${out.alpha.toFixed(1)} degrees of angle of attack${knots === 250 ? `; Wings ${WINGS_G_AT_FULL_TILT.value[0]}` : knots === 350 ? `; Wings ${WINGS_G_AT_FULL_TILT.value[1]}` : ''}`);
+    const out = passing(m, knots, knots === 650 ? 40 : 80);
+    say(`full back tilt, passing ${knots} kt at sea level (the pull held from ${out.from} kt): ${out.g.toFixed(2)} g at ${out.alpha.toFixed(1)} degrees of angle of attack; over the half second before, ${out.least.toFixed(2)} to ${out.most.toFixed(2)} g${knots === 250 ? `; Wings ${WINGS_G_AT_FULL_TILT.value[0]}` : knots === 350 ? `; Wings ${WINGS_G_AT_FULL_TILT.value[1]}` : ''}`);
   }
   for (const c of [{ mach: 0.9, heightFt: 35000 }, { mach: 1.5, heightFt: 35000 }]) {
     let started;

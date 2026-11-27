@@ -56,7 +56,7 @@ export const F4C = {
    * Which JSBSim command each of the game's seven controls drives (as in c172x.js). The one throttle works
    * both engines. The flaps and the speedbrakes drive nothing yet: the file gets them in pull request 7.
    * The stick's two commands are JSBSim's standard ones, and the aircraft file's flight controls say what
-   * they mean (pull request 6): the pitch stick is a pull in pounds (full back 100 lb, full forward 44: the
+   * they mean (pull request 6): the pitch stick is a pull in pounds (full back 103 lb, full forward 48: the
    * file's fcs/stick/full-pull-lbs and full-push-lbs), which the jet's feel system turns into stabilator; the
    * roll stick is a position, full right the left aileron 30 degrees down and the right spoiler up.
    */

@@ -536,14 +536,16 @@
      full back      fcs/stick/full-pull-lbs: sized so that full back tilt holds 8.5 g at 480 knots at sea
                     level (docs/milestones/3.md, pull request 6: "Full back tilt holds 8.5 g within 0.5 at
                     480 knots at sea level"; the flight manual's limit at this weight). The plan's own
-                    estimate was about 95 lb. tests/f4c-fcs.test.js flies it.
+                    estimate was about 95 lb. tests/f4c-fcs.test.js flies it: 8.5 g is what the pull is
+                    holding as the jet slows through 480 knots, the pitch motion settled.
      full forward   fcs/stick/full-push-lbs: sized so that full forward tilt holds -3 g there (the same
-                    plan: "-3 g within 0.5 at 480 knots at sea level", Wings' figure).
+                    plan: "-3 g within 0.5 at 480 knots at sea level", Wings' figure). Held: from 2 s to
+                    4 s after the push.
    Between, the force is in proportion to the tilt. Both are engineering numbers, Supported by the test;
    they are the one place the game's tilt meets the jet, and a feel round on the phone may change them.
   -->
-  <property value="100"> fcs/stick/full-pull-lbs </property>
-  <property value="44"> fcs/stick/full-push-lbs </property>
+  <property value="103"> fcs/stick/full-pull-lbs </property>
+  <property value="48"> fcs/stick/full-push-lbs </property>
 
   <channel name="Pitch">
 
