@@ -154,6 +154,9 @@ export class Flight {
    * flight. For tests, `controls` changes the controls it starts with and `sets` adds values set before
    * JSBSim's first step (an arrival just above the ground, say); they are part of the start, so of the tape.
    *
+   * An aircraft's settings may name JSBSim's stepping rules (`stepping`: see src/sim/aircraft/f4c.js); with
+   * none JSBSim keeps its defaults. They are part of the tape, so native JSBSim steps a replay the same way.
+   *
    * `record: true` keeps the tape: every step's inputs and the state after it (tape()). The start and the tape
    * are the whole flight, so native JSBSim can fly it again. A flight trimmed into the air is not one: JSBSim's
    * trim is not something the tape holds.
@@ -168,7 +171,7 @@ export class Flight {
     const flight = new Flight();
     flight.aircraft = aircraft;
     Object.assign(flight, { terrain, patch, patchPosts, patchMargin, ground });
-    const fdm = flight.fdm = Fdm.create(module, { dt: DT, ground, onEvent });
+    const fdm = flight.fdm = Fdm.create(module, { dt: DT, ground, onEvent, integrators: aircraft.stepping });
     try {
       fdm.loadModel(aircraft.model);
       const { lat, lon } = toLatLon(at.north, at.east);
@@ -355,7 +358,7 @@ export class Flight {
     const pack = (rows, width) => { const all = new Float64Array(rows.length * width); rows.forEach((row, i) => all.set(row, i * width)); return all; };
     return {
       // `own`: the aircraft is FSG's own, in the repo's aircraft/ folder (milestone 3): whoever flies the tape again must look there.
-      model: this.aircraft.model, own: Boolean(this.aircraft.own), dt: DT, ground: this.ground, sets: this.startSets,
+      model: this.aircraft.model, own: Boolean(this.aircraft.own), stepping: this.aircraft.stepping, dt: DT, ground: this.ground, sets: this.startSets,
       ins: this.inputNames, inputs: pack(this.recorded.inputs, this.inputNames.length), steps: this.recorded.inputs.length,
       states: { columns: this.stateNames, rows: this.recorded.states.length, data: pack(this.recorded.states, this.stateNames.length) },
     };

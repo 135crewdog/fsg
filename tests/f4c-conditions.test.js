@@ -25,20 +25,15 @@
 //   the pull     a twentieth of a g more and a twentieth less, and the stabilator between the two
 // "The time to die to half" is the free motion's, after the control is back (tests/checkride/linear.js).
 //
-// Six of the plan's lines are not met, all of them "the time to die to half within 25%", and all for one
-// reason that is not in the aircraft file: JSBSim v1.3.3's own way of stepping a rotation (its default, the
-// simplest there is, at the game's 120 steps a second) takes a little damping off every swing, in proportion
-// to how fast it swings, and the F-4C's quick motions without its stability augmentation have very little
-// damping to lose. They are marked "todo" with their numbers, the assertion kept; a reported test shows the
-// same flights meeting the line when JSBSim is told to step rotations by its second-order rule.
-//
-// What is done about it (Claude Code's choice, an engineering one): nothing yet. JSBSim stays on its own
-// defaults, the ones FlightGear flies every JSBSim airplane on at the same 120 steps a second, and the six
-// lines stay on record as not met. The game never flies the jet without its stability augmentation, which
-// adds several times the damping the stepping takes off. Reasoned; the test that settles it is pull request
-// 6's, the same pulses with the augmentation on against CR-2144's tables IV-10 and IV-16. If those fail for
-// this reason, the stepping rule is changed for the F-4C (a setting of JSBSim, src/sim/core.js
-// "integrators") and the whole checkride is flown again.
+// The stepping rule. Flown on JSBSim v1.3.3's default way of stepping a rotation (rectangular Euler, the
+// simplest there is), six of the plan's lines were not met, all of them "the time to die to half within 25%":
+// the pitch swing at conditions 8, 9 and 10 (34% to 45% slow) and the Dutch roll at 6, 7 and 8 (25.2% to
+// 25.3% slow). That rule takes a little damping off every swing, in proportion to how fast it swings, and
+// the F-4C's quick motions without its stability augmentation have very little damping to lose. The cause
+// was not in the aircraft file, so the lines were not touched and the cause was fixed: the F-4C's settings
+// (src/sim/aircraft/f4c.js, `stepping`) tell JSBSim to step rotations by its own second-order rule, and all
+// nine conditions meet every line, most within 2%. The last-but-one test here flies the six pulses on
+// JSBSim's default again and prints what it gave: the written reason for the departure.
 //
 // Every measured number is printed beside its reference and kept in
 // jsbsim/build/results/checkride-f4c-conditions.txt.
@@ -203,7 +198,6 @@ const crResponse = (table, block, fc, input, seconds, timesS = false) => respond
 
 /**
  * Everything flown at one condition, flown once: the trim, the three responses beside CR-2144's, and the pull.
- * `integrators` re-flies it with JSBSim's stepping rules changed (for the diagnosis at the end only).
  */
 function flyCondition(module, c) {
   const out = {};
@@ -250,18 +244,21 @@ function moved(module, c, control, degrees) {
 }
 
 /**
- * The lines not met, by build-independent key "<condition> <control>": the time to die to half, with what was
- * measured (the same in both builds). See the top of this file, and the diagnosis at its end.
+ * The six lines JSBSim's default stepping of rotations did not meet, by key "<condition> <control>", with what
+ * it gave (the same in both builds; measured in this pull request before the F-4C's settings changed the
+ * rule). The test near the end of this file flies them on the default again and holds these numbers to it.
  */
-const NOT_MET = new Map([
-  ['8 stabilator', '5.86 s against CR-2144\'s 4.37 (+34.3%)'],
-  ['9 stabilator', '3.54 s against 2.56 (+38.3%)'],
-  ['10 stabilator', '3.19 s against 2.20 (+44.7%)'],
-  ['6 rudder', '7.36 s against 5.87 (+25.3%)'],
-  ['7 rudder', '3.35 s against 2.67 (+25.3%)'],
-  ['8 rudder', '4.02 s against 3.21 (+25.2%)'],
+const ON_DEFAULT = new Map([
+  ['8 stabilator', 5.86],
+  ['9 stabilator', 3.54],
+  ['10 stabilator', 3.19],
+  ['6 rudder', 7.36],
+  ['7 rudder', 3.35],
+  ['8 rudder', 4.02],
 ]);
-const todo = (key) => (NOT_MET.has(key) ? { todo: `not met: ${NOT_MET.get(key)}. JSBSim's default stepping of rotations at 120 steps a second takes this much damping off; JSBSim stays on its defaults until pull request 6 flies the same pulses with the stability augmentation on (the top of this file)` } : {});
+/** JSBSim's own names for its stepping rules (FGPropagate.h, eIntegrateType), and its defaults. */
+const RULES = { rotationRate: 'simulation/integrator/rate/rotational', speed: 'simulation/integrator/rate/translational', attitude: 'simulation/integrator/position/rotational', position: 'simulation/integrator/position/translational' };
+const JSBSIM_DEFAULT_STEPPING = [1, 3, 1, 4];
 
 for (const variant of VARIANTS) {
   const say = (line) => report.line(`  ${variant}: ${line}`);
@@ -334,9 +331,9 @@ for (const variant of VARIANTS) {
         assert.ok(within(ours.peak, theirs.peak, 0.15), `the peak: ${ours.peak}, CR-2144 ${theirs.peak}`);
       });
 
-      test(`${variant}, f4c at ${nameOf(c)}: ${quote}: "the time to die to half within 25%. Where CR-2144's motion dies away, ours must"`, todo(`${c.fc} ${control}`), async () => {
+      test(`${variant}, f4c at ${nameOf(c)}: ${quote}: "the time to die to half within 25%. Where CR-2144's motion dies away, ours must"`, async () => {
         const { ours, theirs } = (await at(c))[control];
-        say(`${nameOf(c)}, the ${what} after the ${control}'s pulse: its swings die to half in ${ours.halfTime.toFixed(2)} s; CR-2144's table ${table}: ${theirs.halfTime.toFixed(2)} s; ${percent(ours.halfTime, theirs.halfTime)}; within 25%${NOT_MET.has(`${c.fc} ${control}`) ? ': NOT MET' : ''}`);
+        say(`${nameOf(c)}, the ${what} after the ${control}'s pulse: its swings die to half in ${ours.halfTime.toFixed(2)} s; CR-2144's table ${table}: ${theirs.halfTime.toFixed(2)} s; ${percent(ours.halfTime, theirs.halfTime)}; within 25%`);
         assert.ok(Number.isFinite(theirs.halfTime), 'CR-2144\'s motion dies away');
         assert.ok(Number.isFinite(ours.halfTime), 'ours dies away');
         assert.ok(within(ours.halfTime, theirs.halfTime, 0.25), `time to die to half: ${ours.halfTime} s, CR-2144 ${theirs.halfTime}`);
@@ -424,25 +421,35 @@ test('f4c, reported (no pass or fail; pull request 11 judges it): at each condit
   say(`the drag coefficient at zero angle of attack at sea level, with CR-2144's plotted minimum drag in brackets (its "CD MIN" line, figure IV-9): ${points.join('; ')}. AFWAL's alone, as pull request 5a had it at every speed: 0.0350`);
 });
 
-test('f4c, reported (the cause of the six lines not met): the same pulses flown with JSBSim stepping rotations by its second-order rule die to half as CR-2144\'s do', async () => {
-  // JSBSim v1.3.3 steps the rotation rates and the attitude by "rectangular Euler", its default (FGPropagate.cpp:
-  // integrator_rotational_rate and integrator_rotational_position = eRectEuler), and the game's host layer holds
-  // it to its defaults. For a swing of frequency w that rule takes w2 dt / 2 off the damping: at 120 steps a
-  // second, 0.017 of damping ratio at 4 rad/s. This test flies the six pulses again with both set to
-  // Adams-Bashforth 2 (JSBSim's number 3; it is JSBSim's own default for the translation rates), which the
-  // game's own flights cannot do: the stepping rule is given to the JSBSim instance here, by wrapping the one
-  // call that makes it, and put back after. A diagnosis, not a change: see the top of this file.
+test('f4c: its settings ask JSBSim for second-order stepping of rotations, and JSBSim has it; on JSBSim\'s default the six pulses die away 25% to 45% slower than CR-2144\'s, which is the reason', async () => {
+  // JSBSim v1.3.3 steps the rotation rates and the attitude by "rectangular Euler" unless told otherwise
+  // (FGPropagate.cpp: integrator_rotational_rate and integrator_rotational_position = eRectEuler). For a swing
+  // of frequency w that rule takes w2 dt / 2 off the damping: at 120 steps a second, 0.017 of damping ratio
+  // at 4 rad/s. The F-4C's settings set both to Adams-Bashforth 2 (JSBSim's number 3, its own default for the
+  // speeds). This test reads the rules back from a flight, then flies the six pulses on JSBSim's defaults,
+  // given to the JSBSim instance by wrapping the one call that makes it, and put back after.
   const module = await moduleWith(F4C, 'weh'), say = (line) => report.line(`  ${line}`), create = Fdm.create;
-  Fdm.create = (m, options) => create.call(Fdm, m, { ...options, integrators: [3, 3, 3, 4] });
+  assert.deepEqual(F4C.stepping, [3, 3, 3, 4]);
+  {
+    const { flight } = atCondition(module, NINE.find((x) => x.fc === 6));
+    const has = [RULES.rotationRate, RULES.speed, RULES.attitude, RULES.position].map((name) => flight.get(name));
+    flight.dispose();
+    assert.deepEqual(has, F4C.stepping, 'read back from JSBSim');
+    say(`JSBSim's stepping rules in an F-4C flight, read back: rotation rates ${has[0]}, speeds ${has[1]}, attitude ${has[2]}, position ${has[3]} (1 rectangular Euler, 3 and 4 Adams-Bashforth of second and third order); JSBSim's defaults are ${JSBSIM_DEFAULT_STEPPING.join(', ')}`);
+  }
+  Fdm.create = (m, options) => create.call(Fdm, m, { ...options, integrators: JSBSIM_DEFAULT_STEPPING });
   try {
-    for (const key of NOT_MET.keys()) {
+    for (const [key, was] of ON_DEFAULT) {
       const [fc, control] = key.split(' '), c = NINE.find((x) => x.fc === Number(fc));
       const holder = {}, { flight } = atCondition(module, c, control === 'rudder' ? { assists: rudderFeet(holder) } : {});
       holder.flight = flight;
+      assert.equal(flight.get(RULES.rotationRate), 1, 'flown on the default');
       const [input, table, block, read] = control === 'rudder' ? [KICK, 'IV-15', 'N(R /DR)', yawRate] : [PUSH, 'IV-4', 'N(THE/DS)', pitchRate];
       const ours = measures(respond(flight, control, pulse(input), read, input.record), input.seconds), theirs = measures(crResponse(table, block, c.fc, pulse(input), input.record, control === 'stabilator'), input.seconds);
       flight.dispose();
-      say(`${nameOf(c)}, the ${control}'s pulse: with JSBSim's default stepping its swings die to half in ${NOT_MET.get(key)}; with second-order stepping in ${ours.halfTime.toFixed(2)} s against ${theirs.halfTime.toFixed(2)} (${percent(ours.halfTime, theirs.halfTime)})`);
+      say(`${nameOf(c)}, the ${control}'s pulse on JSBSim's default stepping: its swings die to half in ${ours.halfTime.toFixed(2)} s against CR-2144's ${theirs.halfTime.toFixed(2)} (${percent(ours.halfTime, theirs.halfTime)}): outside the plan's 25%`);
+      assert.ok(Math.abs(ours.halfTime - was) < 0.02, `${key}: ${ours.halfTime} s on the default; this pull request measured ${was}`);
+      assert.ok(ours.halfTime > 1.25 * theirs.halfTime, `${key}: the default no longer misses the line: ${ours.halfTime} against ${theirs.halfTime}`);
     }
   } finally {
     Fdm.create = create;

@@ -16,6 +16,21 @@ export const F4C = {
    */
   own: true,
   /**
+   * How JSBSim steps this airplane forward, JSBSim's own setting (its numbers: rotation rates, speeds,
+   * attitude, position; 1 is rectangular Euler, 3 and 4 Adams-Bashforth of second and third order).
+   * JSBSim's default is 1, 3, 1, 4. A departure from it, for a measured reason: at the game's 120 steps a
+   * second the default takes damping off a quick swing (the damping ratio falls by about the swing's
+   * frequency in rad/s over 240), and without its stability augmentation the F-4C has little to lose high
+   * and fast: flown on the default, its pitch swing died to half 34% to 45% slower than NASA CR-2144's at
+   * Mach 1.5 to 2.15, and its Dutch roll 25% slower at 35,000 ft. With rotations stepped by the second-order
+   * rule every condition is within 9% and most within 2% (Supported: tests/f4c-conditions.test.js flies both).
+   * On its wheels nothing changes: standing and the engine run-up (tests/f4c.test.js), and in a throwaway
+   * run a full-afterburner roll to 340 knots and a firm arrival at 160 (one touch, 4.4 g on both rules);
+   * pull request 7's circuit tests the roll and the landing properly. The test aircraft keep JSBSim's
+   * default, which milestones 1 and 2 tested them on.
+   */
+  stepping: [3, 3, 3, 4],
+  /**
    * The files JSBSim reads to load it, relative to the repo's root. tests/f4c.test.js shows each is needed.
    * (aircraft/f4c/data/ is the record of where the aircraft file's tables came from. JSBSim does not read it,
    * and the app does not fetch it.)
