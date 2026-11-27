@@ -2,6 +2,10 @@
 
 What changed in each version a player can see, newest first.
 
+## 0.0.22
+
+- Speed and roll: the F-4C's engines now take it level to Mach 2.2 high up and about 750 knots on the deck, as NASA's data has it; and at high speed down low it rolls a little slower (about 225 degrees a second at 600 knots, from 260).
+
 ## 0.0.21
 
 - Buffet: the view shakes as the F-4C nears the stall, from about 40 knots above it, and hardest at the stall.

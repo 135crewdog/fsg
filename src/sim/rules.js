@@ -19,6 +19,20 @@ const MOST_EVENTS = 256;
 /** Wings' crash line, 8 m/s, in feet a minute: the test aircraft use it (the F-4C's own is a pilot question for milestone 3). */
 export const WINGS_CRASH_FPM = (8 / 0.3048) * 60;
 
+/**
+ * The limits that hold now: the lowest of those that apply. `limits` is an aircraft's: `g` and `knots` (the
+ * calibrated airspeed) always; `high` { aboveFt, knots } a lower speed limit above a height; `gear` and
+ * `flaps` { knots, g } while the gear or the flaps are out at all (their positions above 0).
+ */
+export function limitsNow(limits, { heightFt, gear, flaps }) {
+  let { g, knots } = limits;
+  if (limits.high && heightFt > limits.high.aboveFt) knots = Math.min(knots, limits.high.knots);
+  for (const [part, out] of [[limits.gear, gear], [limits.flaps, flaps]]) {
+    if (part && out > 0) { g = Math.min(g, part.g); knots = Math.min(knots, part.knots); }
+  }
+  return { g, knots };
+}
+
 export class Rules {
   /** True (the default): no touch ends the flight. The pause screen's switch. */
   crashOverride = true;
@@ -34,7 +48,8 @@ export class Rules {
 
   /**
    * `aircraft` has `contacts` (a name for each wheel and airframe point, in the aircraft file's order),
-   * `crash.closingFpm` and `limits` ({ g, knots }). `stateAt` gives where a JSBSim name is in the state.
+   * `crash.closingFpm` and `limits` ({ g, knots }, and optionally `high` { aboveFt, knots }, `gear` and
+   * `flaps` { knots, g }: see limitsNow). `stateAt` gives where a JSBSim name is in the state.
    */
   constructor(aircraft, stateAt, stateNames, dt) {
     this.#aircraft = aircraft;
@@ -42,6 +57,7 @@ export class Rules {
     this.#s = {
       time: stateAt('simulation/sim-time-sec'), vn: stateAt('velocities/v-north-fps'), ve: stateAt('velocities/v-east-fps'), vd: stateAt('velocities/v-down-fps'),
       vg: stateAt('velocities/vg-fps'), vc: stateAt('velocities/vc-kts'), g: stateAt('accelerations/Nz'),
+      h: stateAt('position/h-sl-ft'), gear: stateAt('gear/gear-pos-norm'), flaps: stateAt('fcs/flap-pos-norm'),
     };
     this.#points = [];
     stateNames.forEach((name, i) => {
@@ -109,7 +125,7 @@ export class Rules {
       }
     }
     // Limits: reported when first exceeded, and for as long as they are.
-    const { limits } = this.#aircraft;
+    const limits = limitsNow(this.#aircraft.limits, { heightFt: after[s.h], gear: after[s.gear], flaps: after[s.flaps] });
     const overG = after[s.g] > limits.g, overSpeed = after[s.vc] > limits.knots;
     if (overG && !this.over.g) this.#report({ type: 'over g', time, g: after[s.g], limit: limits.g });
     if (overSpeed && !this.over.speed) this.#report({ type: 'overspeed', time, knots: after[s.vc], limit: limits.knots });

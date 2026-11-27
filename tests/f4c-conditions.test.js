@@ -47,7 +47,7 @@ import { bitEqual, classA, classB, classN, describeN, fmt } from '../jsbsim/test
 import { Report } from '../jsbsim/tests/lib/harness.js';
 import { VARIANTS } from '../jsbsim/tests/lib/node.js';
 import { headTrace } from '../jsbsim/tests/lib/scenario.js';
-import { FACTORS, FADE_MACH, HEIGHTS, INCREMENTS, LEVELS, LEVEL_FADE_MACH, LEVEL_HEIGHTS, SHARED, UNCHANGED, asXml, conditions, inFile, lookup, machTables } from '../tools/f4c-mach.mjs';
+import { FACTORS, FADE_MACH, HEIGHTS, INCREMENTS, LEVELS, LEVEL_FADE_MACH, LEVEL_HEIGHTS, PLOTTED, PLOTTED_MACHS, SHARED, UNCHANGED, asXml, conditions, inFile, lookup, machTables, plottedDerivative, valuesAt } from '../tools/f4c-mach.mjs';
 import { GROUND, STRAIGHT, atCondition as atConditionOf, pitchRate, respond, rollRate, rudderFeet, startNear, stateOf, steadyPull, yawRate } from './checkride/conditions.js';
 import { moduleWith } from './checkride/files.js';
 import * as REFERENCE from './checkride/f4c-reference.js';
@@ -104,7 +104,7 @@ test('f4c: CR-2144\'s numbers in the reference file are the record\'s, condition
   report.line(`f4c: ${NINE.length} conditions; the reference file's ${Object.keys(REFERENCE).filter((name) => name.startsWith('CONDITION_')).length} lists of them are the record's`);
 });
 
-test('f4c: every table of what Mach changes in the aircraft file is what tools/f4c-mach.mjs works out from the two records, cell for cell: 17 factors and 2 increments through CR-2144\'s nine conditions, and the three levels along its plots', () => {
+test('f4c: every table of what Mach changes in the aircraft file is what tools/f4c-mach.mjs works out from the two records, cell for cell: 15 factors and 2 increments through CR-2144\'s nine conditions, the roll power and the roll damping along its plots by height through the nine, and the three levels along its plots', () => {
   const tables = machTables(), { tables: inTheFile } = inFile();
   assert.deepEqual(Object.keys(tables), [...FACTORS.map((name) => `aero/factor/${name}`), ...INCREMENTS.map((name) => `aero/increment/${name}`), ...LEVELS.map((name) => `aero/increment/${name}`)]);
   // Cell for cell: each table read out of the file as numbers.
@@ -126,12 +126,27 @@ test('f4c: every table of what Mach changes in the aircraft file is what tools/f
   // What the tables are. The factors and the two yaw increments: Mach 0.5, then CR-2144's eight Mach numbers;
   // 15,000 and 35,000 ft; the first row 1 (or 0); one condition in both columns but at Mach 0.9.
   const machs = [...new Set(CONDITION_MACH.value)].sort((a, b) => a - b);
-  for (const name of [...FACTORS.map((n) => `aero/factor/${n}`), ...INCREMENTS.map((n) => `aero/increment/${n}`)]) {
+  for (const name of [...FACTORS.filter((n) => !PLOTTED[n]).map((n) => `aero/factor/${n}`), ...INCREMENTS.map((n) => `aero/increment/${n}`)]) {
     const { columns, rows } = tables[name], at = name.startsWith('aero/factor') ? 1 : 0;
     assert.deepEqual(columns, HEIGHTS);
     assert.deepEqual(rows.map((row) => row[0]), [FADE_MACH, ...machs], `${name}: its Mach numbers`);
     assert.deepEqual(rows[0], [FADE_MACH, at, at], `${name}: ${at} at Mach ${FADE_MACH}`);
     for (const row of rows.slice(1)) if (row[0] !== 0.9) assert.equal(row[1], row[2], `${name} at Mach ${row[0]}: one condition, both columns`);
+  }
+  // The roll power and the roll damping (pull request 11): Mach 0.5, where they are 1, then the plots' Mach
+  // numbers above it; the plots' five heights; at each of the nine conditions the condition's own factor, the
+  // same number the other factors' tables are made from (valuesAt), so the conditions stay where they were.
+  for (const term of Object.keys(PLOTTED)) {
+    const { columns, rows } = tables[`aero/factor/${term}`];
+    assert.deepEqual(columns, LEVEL_HEIGHTS);
+    assert.deepEqual(rows.map((row) => row[0]), [FADE_MACH, ...PLOTTED_MACHS], `${term}: its Mach numbers`);
+    assert.deepEqual(rows[0], [FADE_MACH, 1, 1, 1, 1, 1], `${term}: 1 at Mach ${FADE_MACH}`);
+    for (const c of NINE) {
+      const row = rows.find((r) => r[0] === c.mach), own = Number(valuesAt(c).factor[term].toPrecision(4));
+      assert.equal(row[1 + columns.indexOf(c.heightFt)], own, `${term} at ${nameOf(c)}: the condition's own`);
+      const curve = plottedDerivative(term, c.mach, c.heightFt), derivative = term === 'roll-aileron' ? c.derivatives.Clda : c.derivatives.Clp;
+      report.line(`  ${term} at ${nameOf(c)}: CR-2144's tables give ${derivative.toFixed(4)}; its plotted curve there ${curve ? curve.derivative.toFixed(4) : 'is not drawn'}`);
+    }
   }
   // The three levels: Mach 0.3, where they are 0, then the plots' Mach numbers; the plots' five heights.
   for (const name of LEVELS.map((n) => `aero/increment/${n}`)) {
@@ -143,7 +158,8 @@ test('f4c: every table of what Mach changes in the aircraft file is what tools/f
   assert.deepEqual([...FACTORS, ...Object.keys(SHARED), ...UNCHANGED].length, 26, 'every term of Table 1 has its factor');
   report.line(`f4c: ${found.length} tables of what Mach changes in the aircraft file, ${cells} cells, each what tools/f4c-mach.mjs works out from aircraft/f4c/data/cr2144-f4c.json and afwal-f4j.json`);
   report.line('  the factors at each Mach number (15,000 ft | 35,000 ft where they differ):');
-  for (const name of FACTORS) report.line(`    ${name.padEnd(17)} ${tables[`aero/factor/${name}`].rows.map((row) => (row[1] === row[2] ? `${row[1]}` : `${row[1]}|${row[2]}`)).join('  ')}`);
+  for (const name of FACTORS.filter((n) => !PLOTTED[n])) report.line(`    ${name.padEnd(17)} ${tables[`aero/factor/${name}`].rows.map((row) => (row[1] === row[2] ? `${row[1]}` : `${row[1]}|${row[2]}`)).join('  ')}`);
+  for (const name of Object.keys(PLOTTED)) report.line(`    ${name.padEnd(17)} by height (sea level, 15,000, 35,000, 45,000, 55,000 ft): ${tables[`aero/factor/${name}`].rows.map((row) => `M${row[0]} ${row.slice(1).join('|')}`).join('  ')}`);
 });
 
 // ---- The checkride's tool: a transfer function's response ----
@@ -261,10 +277,13 @@ function moved(module, c, control, degrees) {
  * The six lines JSBSim's default stepping of rotations did not meet, by key "<condition> <control>", with what
  * it gave (the same in both builds; measured in this pull request before the F-4C's settings changed the
  * rule). The test near the end of this file flies them on the default again and holds these numbers to it.
+ * Condition 9's was 3.54 s while it was flown in a dive of 4.8 degrees (the engines could not hold it level);
+ * since pull request 11 it is flown level, as CR-2144 has it, and gives 3.68 (still 44% slower than
+ * CR-2144's 2.56). Condition 10's moved from 3.19 to 3.17 the same way (in a dive of 8.1 degrees, then level).
  */
 const ON_DEFAULT = new Map([
   ['8 stabilator', 5.86],
-  ['9 stabilator', 3.54],
+  ['9 stabilator', 3.68],
   ['10 stabilator', 3.19],
   ['6 rudder', 7.36],
   ['7 rudder', 3.35],

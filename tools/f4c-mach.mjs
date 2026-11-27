@@ -30,7 +30,10 @@
 // CR-2144's conditions the factors are straight lines in Mach, through conditions flown at different
 // heights; how the flexible airframe changes with height at one Mach is known only at 0.9. Reasoned: it is
 // the simplest table that passes through all nine conditions. CR-2144's plotted derivative curves (in the
-// record, by height) are the data for doing better.
+// record, by height) are the data for doing better, and two factors now use them (pull request 11): the
+// roll power and the roll damping, whose curves differ most with height (at Mach 0.9 the roll power at sea
+// level is 0.0227 against 0.0434 at 35,000 ft), are worked out on the plots' own grid of Mach numbers and
+// heights, through the nine conditions exactly (PLOTTED, below).
 //
 // The three levels are done from CR-2144's plots, because that is where it gives them: the trim angle of
 // attack and the trim stabilator against Mach in level flight at five heights, sea level to 55,000 ft (its
@@ -318,6 +321,63 @@ export function levelTables(factors) {
 }
 
 /**
+ * The roll power and the roll damping, on CR-2144's plotted curves by height (pull request 11). With one
+ * condition for each Mach number, the roll power at sea level came from the conditions at 15,000 and 35,000
+ * ft, where CR-2144's own roll-power curve is a third higher than its sea-level one at Mach 0.9 (0.0315 and
+ * 0.0434 against 0.0227): full-tilt roll at 600 knots at sea level was about 260 degrees a second. CR-2144
+ * plots both terms against Mach by height (the record's figures.nondimensional_derivatives: Cl_delta_a at
+ * sea level, 35,000 and 55,000 ft, Cl_p at all five heights), so these two factors are worked out on the
+ * plots' grid, as the three levels are:
+ *   rows      Mach 0.5, where the factor is 1 (as every factor's), then LEVEL_MACHS above it (every
+ *             condition's Mach number among them)
+ *   columns   the plots' five heights, LEVEL_HEIGHTS
+ *   a cell    at one of the nine conditions, the condition's own factor (valuesAt): every condition stays
+ *             exactly where it was. Elsewhere, CR-2144's plotted derivative at that Mach number and height
+ *             over AFWAL's at CR-2144's plotted trim angle of attack there, by valuesAt's rule.
+ *   no point  where the height's curve (or its trim curve) does not reach that Mach number, the cell is
+ *             read across from the heights that have one: straight between the nearest above and below,
+ *             held beyond them (what JSBSim would do with that column left out).
+ * The plots are in the stability axes and the conditions' derivatives in the airplane's own; at the plotted
+ * trim angles of attack (under 3 degrees but at the slowest ends) the difference is within the plots'
+ * reading error, and the conditions agree with the plots within 2% but at condition 5 (9.4 degrees), whose
+ * cell is its own (Reasoned; tests/f4c-conditions.test.js prints each condition beside its curve).
+ */
+export const PLOTTED = { 'roll-aileron': 'Cl_delta_a', 'roll-roll-rate': 'Cl_p' };
+export const PLOTTED_MACHS = LEVEL_MACHS.filter((mach) => mach > FADE_MACH);
+/** CR-2144's plotted derivative and trim angle of attack at a Mach number and a height, or null where its curves do not reach. */
+export function plottedDerivative(name, mach, heightFt) {
+  const key = heightFt === 0 ? 'SL' : String(heightFt), curve = CR.figures.nondimensional_derivatives[PLOTTED[name]].curves[key], trim = CR.figures.trim.alpha0_deg[key];
+  const reaches = (c) => c && mach >= c[0][0] - 1e-9 && mach <= c.at(-1)[0] + 1e-9;
+  if (!reaches(curve) || !reaches(trim)) return null;
+  return { derivative: plotted(curve, mach), alpha: plotted(trim, mach) };
+}
+function plottedFactorTable(name, all) {
+  const table = { columns: LEVEL_HEIGHTS, rows: [[FADE_MACH, ...LEVEL_HEIGHTS.map(() => 1)]], from: [] };
+  const afwalOf = { 'roll-aileron': (a) => (afwal('CRDA', a) + SPOILER * afwal('CRDSP', a)) * DEG, 'roll-roll-rate': (a) => afwal('CRP1', a) }[name];
+  for (const mach of PLOTTED_MACHS) {
+    const here = LEVEL_HEIGHTS.map((heightFt) => {
+      const condition = all.find((c) => c.mach === mach && c.heightFt === heightFt);
+      if (condition) return { value: valuesAt(condition).factor[name], from: condition.fc };
+      const point = plottedDerivative(name, mach, heightFt);
+      return point && { value: point.derivative / afwalOf(point.alpha), from: 'plot' };
+    });
+    const known = here.map((cell, k) => [k, cell]).filter(([, cell]) => cell);
+    if (!known.length) throw new Error(`CR-2144 plots no ${PLOTTED[name]} at Mach ${mach}`);
+    const filled = here.map((cell, k) => {
+      if (cell) return cell.value;
+      const below = known.filter(([j]) => j < k).at(-1), above = known.find(([j]) => j > k);
+      if (!below) return above[1].value;
+      if (!above) return below[1].value;
+      const [h0, h1] = [LEVEL_HEIGHTS[below[0]], LEVEL_HEIGHTS[above[0]]];
+      return below[1].value + ((LEVEL_HEIGHTS[k] - h0) / (h1 - h0)) * (above[1].value - below[1].value);
+    });
+    table.rows.push([mach, ...filled.map(rounded)]);
+    table.from.push(here.map((cell) => cell?.from ?? null));
+  }
+  return table;
+}
+
+/**
  * The tables: for each factor and increment, its columns (heights, ft) and its rows (a Mach number, then a
  * value for each column). For the factors and the two yaw increments the first row is the fade, factors 1
  * and increments 0 at Mach 0.5; each other row is a Mach number CR-2144 has, with its one condition there
@@ -338,6 +398,8 @@ export function machTables() {
     for (const name of INCREMENTS) tables[`aero/increment/${name}`].rows.push([mach, ...values.map((v) => rounded(v.increment[name]))]);
     for (const table of Object.values(tables)) table.from.push(forColumn.map((c) => c.fc));
   }
+  // The roll terms CR-2144 plots by height: on its plots' grid instead (plottedFactorTable, above).
+  for (const name of Object.keys(PLOTTED)) tables[`aero/factor/${name}`] = plottedFactorTable(name, all);
   // The factors are rounded as the aircraft file has them before the levels are worked out with them.
   return { ...tables, ...levelTables(tables) };
 }
@@ -380,7 +442,9 @@ const number = (x) => (Object.is(x, -0) ? '0' : String(x));
 export function asXml(tables = machTables()) {
   const lines = [];
   for (const [name, { columns, rows, from }] of Object.entries(tables)) {
-    const rowsAre = LEVELS.some((level) => name === `aero/increment/${level}`)
+    const rowsAre = Object.keys(PLOTTED).some((term) => name === `aero/factor/${term}`)
+      ? `Rows: Mach ${FADE_MACH}, then Mach numbers on CR-2144's plots. Columns: the plots' five heights; conditions ${[...new Set(from.flat().filter(Number.isInteger))].sort((a, b) => a - b).join(', ')} their own, ${from.flat().filter((f) => f === 'plot').length} cells off CR-2144's ${PLOTTED[name.slice('aero/factor/'.length)]} curves, ${from.flat().filter((f) => f === null).length} read across from the heights that have one.`
+      : LEVELS.some((level) => name === `aero/increment/${level}`)
       ? `Rows: Mach ${LEVEL_FADE_MACH}, then Mach numbers on CR-2144's plots. Columns: the plots' five heights; ${from.flat().filter((plottedThere) => !plottedThere).length} cells the curves do not reach take the nearest height's.`
       : `Rows: Mach ${FADE_MACH}, then CR-2144's conditions ${from.map((pair) => (pair[0] === pair[1] ? pair[0] : pair.join(' | '))).join(', ')}.`;
     lines.push(`  <!-- ${name.startsWith('aero/factor') ? 'Factor' : 'Increment'}: ${SAY[name]}. ${rowsAre} -->`);
