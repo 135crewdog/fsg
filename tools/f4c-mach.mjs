@@ -91,12 +91,14 @@ const AFWAL = JSON.parse(readFileSync(inRepo('aircraft/f4c/data/afwal-f4j.json')
 export const FILE = inRepo('aircraft/f4c/f4c.xml');
 
 const DEG = 180 / Math.PI, G = 32.174;
+/** CR-2144's reference wing and AFWAL's reference centre, for tools/f4c-flaps.mjs. */
+export const WING = () => ({ S, SPAN, CHORD, XREF });
 /** CR-2144's reference wing (its Table IV-2's heading), the same as AFWAL's (its Table 5). */
 const { S_ft2: S, b_ft: SPAN, c_bar_ft: CHORD } = CR.general_arrangement.printed;
 /** AFWAL's reference centre and CR-2144's centre of gravity, percent of the chord: the forces' moments are moved by the difference. */
 const XREF = AFWAL.table_5.rows.find((row) => row.symbol === 'Xref').value;
 /** CR-2144's thrust line: tilted nose-up by this, and passing this far above the centre of gravity (Table IV-2: ITH, LTH). */
-const THRUST_TILT = 5.25, THRUST_ARM_FT = 0.37;
+export const THRUST_TILT = 5.25, THRUST_ARM_FT = 0.37;
 /**
  * The spoiler for each degree of aileron: CR-2144's aileron derivatives have the spoiler in them, and AFWAL's
  * are apart. The F-4C's own: its flight manual (T.O. 1F-4C-1, section I) gives the ailerons 30 degrees down
@@ -121,10 +123,10 @@ export function along(xs, ys, x) {
   return ys[i - 1] + ((x - xs[i - 1]) / (xs[i] - xs[i - 1])) * (ys[i] - ys[i - 1]);
 }
 /** One of AFWAL's functions at an angle of attack, degrees, read without its sign. */
-const afwal = (name, alpha) => along(AFWAL.table_9.functions[name].alpha_deg, AFWAL.table_9.functions[name].values, Math.abs(alpha));
+export const afwal = (name, alpha) => along(AFWAL.table_9.functions[name].alpha_deg, AFWAL.table_9.functions[name].values, Math.abs(alpha));
 const afwalConstant = (symbol) => AFWAL.table_3.rows.find((row) => row.symbol === symbol).value;
 /** AFWAL's basic lift, drag and pitching moment with Table 1's rules for an angle of attack below zero. */
-const basic = {
+export const basic = {
   lift: (alpha) => (alpha >= 0 ? afwal('CLBAS', alpha) : 2 * afwal('CLBAS', 0) - afwal('CLBAS', alpha)),
   drag: (alpha) => afwal('CDBAS', alpha),
   pitch: (alpha) => (alpha >= 0 ? 1 : -1) * afwal('CMBAS', alpha),
@@ -133,7 +135,7 @@ const basic = {
 const slope = (f, alpha, h = 0.01) => (f(alpha + h) - f(alpha - h)) / (2 * h);
 
 /** A cell of one of CR-2144's tables: the value the record says to use (a misprint has `use_instead` in the table's doubt list). */
-function cell(table, label, fc) {
+export function cell(table, label, fc) {
   const { rows, doubt } = CR.tables[table], row = rows.find((r) => r.label.trim() === label);
   if (!row) throw new Error(`CR-2144 table ${table} has no row ${label}`);
   const corrected = doubt.find((d) => d.row === label && d.fc === fc && d.use_instead !== undefined);
@@ -149,37 +151,48 @@ const plotted = (curve, mach) => along(curve.map(([m]) => m), curve.map(([, valu
 export function conditions() {
   const out = [];
   for (let fc = 2; fc <= 10; fc++) {
-    const two = (label) => cell('IV-2', label, fc), three = (label) => cell('IV-3', label, fc), thirteen = (label) => cell('IV-13', label, fc);
-    const height = two('H(FT)'), heightFt = height === 'SL' ? 0 : Number(height.replace('K', '')) * 1000, curve = height === 'SL' ? 'SL' : String(heightFt);
-    const mach = two('M(-)'), V = two('VTO(FPS)'), q = two('Q(PSF)'), alpha = two('ALPHA(DEG)'), weight = two('W(LBS)'), m = weight / G;
-    const [Ix, Iy, Iz, Ixz] = ['IX (SLUG-FT SQ)', 'IY (SLUG-FT SQ)', 'IZ (SLUG-FT SQ)', 'IXZ(SLUG-FT SQ)'].map(two);
-    const stabilator = plotted(CR.figures.trim.delta_s_deg[curve], mach), drag = plotted(CR.figures.CL_CD.CD.curves[curve], mach);
-    const ca = Math.cos(alpha / DEG), sa = Math.sin(alpha / DEG);
-    // Level and steady: thrust along its line equals the drag, and its upward part carries some of the weight.
-    const thrust = (drag * q * S) / Math.cos((alpha + THRUST_TILT) / DEG);
-    const lift = (weight - thrust * Math.sin((alpha + THRUST_TILT) / DEG)) / (q * S);
-    const zw = three('ZW') * ca * ca - (three('ZU *') + three('XW')) * sa * ca + three('XU *') * sa * sa;
-    const unprimed = (lPrimed, nPrimed) => [lPrimed - (Ixz / Ix) * nPrimed, nPrimed - (Ixz / Iz) * lPrimed];
-    const rollAndYaw = (name, scale = 1) => {
-      const [l, n] = unprimed(thirteen(`L${name}`), thirteen(`N${name}`));
-      return [(l * Ix * scale) / (q * S * SPAN), (n * Iz * scale) / (q * S * SPAN)];
-    };
-    const [Clb, Cnb] = rollAndYaw('B\''), [Clp, Cnp] = rollAndYaw('P\'', (2 * V) / SPAN), [Clr, Cnr] = rollAndYaw('R\'', (2 * V) / SPAN);
-    const [Clda, Cnda] = rollAndYaw('\'DA'), [Cldr, Cndr] = rollAndYaw('\'DR');
-    out.push({
-      fc, mach, heightFt, V, q, weight, alpha, stabilator, drag, thrust, lift,
-      // The aerodynamic pitching moment about the centre of gravity that holds the thrust's own moment: the thrust line passes above it.
-      pitch: (THRUST_ARM_FT * thrust) / (q * S * CHORD),
-      derivatives: {
-        CLa: (-zw * m * V) / (q * S) - drag, Cma: ((three('MW') * ca - three('MU *') * sa) * Iy * V) / (q * S * CHORD),
-        Cmq: (2 * V * Iy * three('MQ')) / (q * S * CHORD ** 2), Cmad: (2 * V * V * Iy * three('MWD')) / (q * S * CHORD ** 2),
-        CLd: (-(three('ZDS') * ca - three('XDS') * sa) * m) / (q * S), Cmd: (three('MDS') * Iy) / (q * S * CHORD),
-        Cyb: (thirteen('YV') * m * V) / (q * S), Cyda: (thirteen('Y*DA') * m * V) / (q * S), Cydr: (thirteen('Y*DR') * m * V) / (q * S),
-        Clb, Cnb, Clp, Cnp, Clr, Cnr, Clda, Cnda, Cldr, Cndr,
-      },
-    });
+    const height = cell('IV-2', 'H(FT)', fc), curve = height === 'SL' ? 'SL' : String(Number(height.replace('K', '')) * 1000), mach = cell('IV-2', 'M(-)', fc);
+    out.push(conditionAt(fc, { stabilator: plotted(CR.figures.trim.delta_s_deg[curve], mach), drag: plotted(CR.figures.CL_CD.CD.curves[curve], mach) }));
   }
   return out;
+}
+
+/**
+ * One of CR-2144's flight conditions, `fc`, with what its tables are made from: where it is, its trim, and its
+ * derivatives as coefficients per radian. Its trim stabilator and drag coefficient are given: for the nine
+ * clean conditions they are read off CR-2144's plots (above); for the power approach, condition 1, they are
+ * its Table IV-1's (tools/f4c-flaps.mjs). `armFt` is how far above the centre of gravity the thrust line
+ * passes: Table IV-2's LTH, 0.37 ft at the clean conditions.
+ */
+export function conditionAt(fc, { stabilator, drag, armFt = THRUST_ARM_FT }) {
+  const two = (label) => cell('IV-2', label, fc), three = (label) => cell('IV-3', label, fc), thirteen = (label) => cell('IV-13', label, fc);
+  const height = two('H(FT)'), heightFt = height === 'SL' ? 0 : Number(height.replace('K', '')) * 1000;
+  const mach = two('M(-)'), V = two('VTO(FPS)'), q = two('Q(PSF)'), alpha = two('ALPHA(DEG)'), weight = two('W(LBS)'), m = weight / G;
+  const [Ix, Iy, Iz, Ixz] = ['IX (SLUG-FT SQ)', 'IY (SLUG-FT SQ)', 'IZ (SLUG-FT SQ)', 'IXZ(SLUG-FT SQ)'].map(two);
+  const ca = Math.cos(alpha / DEG), sa = Math.sin(alpha / DEG);
+  // Level and steady: thrust along its line equals the drag, and its upward part carries some of the weight.
+  const thrust = (drag * q * S) / Math.cos((alpha + THRUST_TILT) / DEG);
+  const lift = (weight - thrust * Math.sin((alpha + THRUST_TILT) / DEG)) / (q * S);
+  const zw = three('ZW') * ca * ca - (three('ZU *') + three('XW')) * sa * ca + three('XU *') * sa * sa;
+  const unprimed = (lPrimed, nPrimed) => [lPrimed - (Ixz / Ix) * nPrimed, nPrimed - (Ixz / Iz) * lPrimed];
+  const rollAndYaw = (name, scale = 1) => {
+    const [l, n] = unprimed(thirteen(`L${name}`), thirteen(`N${name}`));
+    return [(l * Ix * scale) / (q * S * SPAN), (n * Iz * scale) / (q * S * SPAN)];
+  };
+  const [Clb, Cnb] = rollAndYaw('B\''), [Clp, Cnp] = rollAndYaw('P\'', (2 * V) / SPAN), [Clr, Cnr] = rollAndYaw('R\'', (2 * V) / SPAN);
+  const [Clda, Cnda] = rollAndYaw('\'DA'), [Cldr, Cndr] = rollAndYaw('\'DR');
+  return {
+    fc, mach, heightFt, V, q, weight, alpha, stabilator, drag, thrust, lift,
+    // The aerodynamic pitching moment about the centre of gravity that holds the thrust's own moment: the thrust line passes above it.
+    pitch: (armFt * thrust) / (q * S * CHORD),
+    derivatives: {
+      CLa: (-zw * m * V) / (q * S) - drag, Cma: ((three('MW') * ca - three('MU *') * sa) * Iy * V) / (q * S * CHORD),
+      Cmq: (2 * V * Iy * three('MQ')) / (q * S * CHORD ** 2), Cmad: (2 * V * V * Iy * three('MWD')) / (q * S * CHORD ** 2),
+      CLd: (-(three('ZDS') * ca - three('XDS') * sa) * m) / (q * S), Cmd: (three('MDS') * Iy) / (q * S * CHORD),
+      Cyb: (thirteen('YV') * m * V) / (q * S), Cyda: (thirteen('Y*DA') * m * V) / (q * S), Cydr: (thirteen('Y*DR') * m * V) / (q * S),
+      Clb, Cnb, Clp, Cnp, Clr, Cnr, Clda, Cnda, Cldr, Cndr,
+    },
+  };
 }
 
 /**
@@ -253,7 +266,7 @@ export const SHARED = { 'side-spoiler': 'side-aileron', 'roll-spoiler': 'roll-ai
 export const UNCHANGED = ['drag-basic', 'pitch-sideslip', 'pitch-aileron', 'pitch-spoiler', 'yaw-roll-rate', 'yaw-aileron', 'yaw-spoiler'];
 
 /** A cell as the aircraft file has it: four significant figures. */
-const rounded = (x) => Number(x.toPrecision(4));
+export const rounded = (x) => Number(x.toPrecision(4));
 
 /** The Mach number at and below which the three levels are 0: the slowest CR-2144 plots. */
 export const LEVEL_FADE_MACH = 0.3;

@@ -29,8 +29,15 @@ export const STRAIGHT = [['fcs/test/straight', 1]];
  */
 export function trimmed(module, { mach, heightFt }, gammaDeg = 0, options = {}) {
   // The speed goes in last, and as a Mach number; `knots` is only what Flight.start asks for, and is replaced.
-  return Flight.start(module, F4C, { airborne: { heightFt, knots: 300 }, terrain: GROUND, ...options, sets: [['ic/gamma-deg', gammaDeg], ['ic/mach', mach], ...(options.sets ?? [])] });
+  return Flight.start(module, F4C, { airborne: { heightFt, knots: 300 }, terrain: GROUND, ...options, assists: options.assists ?? NO_FEET, sets: [['ic/gamma-deg', gammaDeg], ['ic/mach', mach], ...(options.sets ?? [])] });
 }
+
+/**
+ * The copilot without his feet: CR-2144's tables are the airplane with nobody on the pedals. Since pull request
+ * 7 the F-4C's copilot has Wings' feet in the air (src/sim/aircraft/f4c.js); a flight laid beside CR-2144's
+ * responses leaves them out, as before it.
+ */
+export const NO_FEET = { ...F4C.assists, feet: null, steer: { wheel: F4C.assists.steer.wheel } };
 
 /**
  * The F-4C at a condition, by the plan's rule: level if the engines can hold the speed, and if they cannot

@@ -8,8 +8,8 @@
   with their afterburners and the throttle system that lights them (pull request 3); and the aerodynamics,
   gear and flaps up, across the Mach range (pull request 5: at low speed in its first half, 5a; what Mach
   changes in its second); and the jet's own flight controls: the feel system, the stability augmentation,
-  the aileron-rudder interconnect and the actuators (pull request 6). Still to come: the flaps, the
-  speedbrakes, the gear's drag and ground effect (7).
+  the aileron-rudder interconnect and the actuators (pull request 6); and the flaps, the gear's drag, the
+  speedbrakes and ground effect (pull request 7).
 
   Where each number comes from. Every number below names one of these.
     CR-2144   NASA CR-2144, Heffley and Jewell, "Aircraft Handling Qualities Data", 1972, section IV (the
@@ -39,8 +39,8 @@
  <fileheader>
   <author> FSG (135crewdog/fsg), written by Claude Code </author>
   <filecreationdate> 2026-11-26 </filecreationdate>
-  <version> milestone 3, pull request 6 </version>
-  <description> McDonnell F-4C Phantom II: mass, gear, engines, the aerodynamics with the gear and flaps up, and its own flight controls. </description>
+  <version> milestone 3, pull request 7 </version>
+  <description> McDonnell F-4C Phantom II: mass, gear, engines, the aerodynamics clean and with its flaps, gear and speedbrakes, ground effect, and its own flight controls. </description>
   <reference refID="NASA CR-2144" author="R. K. Heffley and W. F. Jewell" title="Aircraft Handling Qualities Data" date="1972"/>
   <reference refID="T.O. 1F-4C-1" author="USAF" title="Flight Manual, F-4C, F-4D and F-4E" date="1970-10-01"/>
   <reference refID="AFWAL-TR-80-3141 Part III" author="D. G. Mitchell, T. T. Myers, G. L. Teper and D. E. Johnston" title="Investigation of High-Angle-of-Attack Maneuver-Limiting Factors, Part III: Appendices - Aerodynamic Models" date="1980-12"/>
@@ -115,11 +115,16 @@
   Reasoned, all of it engineering choice with no F-4 source: the stiffness (the airplane bounces on its
   legs a little over once a second), the damping (about half of critical: 4,100 and 1,650), and the
   friction (JSBSim's usual tyre numbers, as its F-16 and Cessna have: 0.8 braked, 0.5 sliding sideways,
-  0.02 rolling). A landing that feels wrong on the phone would settle them (milestone 3, pull request 7).
+  0.02 rolling). A landing that feels wrong on the phone would settle them. Pull request 7's circuit
+  stops in about 1,750 ft from a touchdown at 145 knots on the brakes alone (tests/f4c-low.test.js): much
+  shorter than a real F-4 (the F-4E appendix: 7,700 ft wet, at 30,000 lb, without the drag chute). The
+  braked friction, 0.8, is the number to look at first if the roll is too short on the phone.
 
-  The nosewheel steers 30 degrees each way. The real jet's nose gear steering turns it about 70 degrees
-  (not checked against the flight manual), which is for parking; 30 is what a pilot can use at a taxi: a
-  turn 80 ft across. Reasoned; pull request 7 taxis it. The main wheels have the brakes, left and right.
+  The nosewheel steers 70 degrees each way: the flight manual's (section I, "Nose gear steering": "The
+  limit of the nose gear steering system is 70 on each side of center"). It was 30
+  until pull request 7, a guess; with 30 the copilot's taxi turn came to 116 ft across against the plan's
+  84 (the copilot's share of the stick at a taxi is src/sim/aircraft/f4c.js's). The main wheels have the
+  brakes, left and right.
   All three legs retract.
  -->
  <ground_reactions>
@@ -134,7 +139,7 @@
    <rolling_friction> 0.02 </rolling_friction>
    <spring_coeff unit="LBS/FT"> 15000 </spring_coeff>
    <damping_coeff unit="LBS/FT/SEC"> 1650 </damping_coeff>
-   <max_steer unit="DEG"> 30 </max_steer>
+   <max_steer unit="DEG"> 70 </max_steer>
    <brake_group> NONE </brake_group>
    <retractable> 1 </retractable>
   </contact>
@@ -1404,8 +1409,8 @@
     15 degrees of rudder with the augmentation on and 10 with it off (the flight manual: "The limits of the
     system are 15° of rudder displacement when the automatic flight control system is in the stability
     augmentation ... mode, and 10° rudder displacement when the stab aug switch is disengaged"). Here the
-    augmentation is the yaw damper's switch. The file has no flaps yet (pull request 7): "down" is read as
-    fcs/flap-pos-norm above one half, until the flap switch is written. Reasoned.
+    augmentation is the yaw damper's switch. "Down" is read as the flaps past half (fcs/flap-pos-norm above
+    one half): the switch's DN, not its 1/2 (pull request 7: the flaps, below). Reasoned.
    -->
    <fcs_function name="fcs/interconnect/in">
     <function>
@@ -1546,6 +1551,49 @@
 
 
   <!--
+   The flaps (pull request 7). The switch has three places, UP, 1/2 and DN (the flight manual, section I,
+   "Wing flaps"), which the game sends as fcs/flap-cmd-norm 0, 0.5 and 1: up; half, the leading edge down
+   and the trailing edge 30 degrees; full, the trailing edge 60 degrees with its blowing (CR-2144: "Boundary
+   layer control is automatically induced when full flap deflection occurs"). The aerodynamics read
+   fcs/flap-pos-norm (the tables "The flaps and the gear").
+   The flight manual (section I, "Wing flaps"): "Normal flap extension will be accomplished within 8 seconds,
+   and retraction will be accomplished within 6 seconds": the whole travel at an even rate, an eighth of it a
+   second going down and a sixth coming up.
+   Not modelled: the real jet's airspeed switch, which "is set to automatically retract the flaps between
+   230 to 244 knots" and lets them down again "between 234 and 210 knots" (the same section). The plan has
+   no line for it; it is a proposal for the owner.
+  -->
+  <channel name="Flaps">
+   <actuator name="fcs/flap-actuator">
+    <input> fcs/flap-cmd-norm </input>
+    <rate_limit sense="incr"> 0.125 </rate_limit>
+    <rate_limit sense="decr"> 0.16666666666666666 </rate_limit>
+    <clipto>
+     <min> 0 </min>
+     <max> 1 </max>
+    </clipto>
+    <output> fcs/flap-pos-norm </output>
+   </actuator>
+  </channel>
+
+  <!--
+   The speedbrakes (pull request 7): a panel under each wing, in or out (the game's Boards toggle sends
+   fcs/speedbrake-cmd-norm 0 or 1), 1.5 seconds either way: Wings' time, as the flight manual's text gives
+   none. Reasoned. Their drag is in the external reactions, at the panels.
+  -->
+  <channel name="Speedbrakes">
+   <actuator name="fcs/speedbrake-actuator">
+    <input> fcs/speedbrake-cmd-norm </input>
+    <rate_limit> 0.6666666666666666 </rate_limit>
+    <clipto>
+     <min> 0 </min>
+     <max> 1 </max>
+    </clipto>
+    <output> fcs/speedbrake-pos-norm </output>
+   </actuator>
+  </channel>
+
+  <!--
    The landing gear: up or down in 4 seconds. Wings' time; the flight manual gives none. The way of
    writing it is JSBSim's own f16.xml's.
   -->
@@ -1567,6 +1615,42 @@
   </channel>
 
  </flight_control>
+
+ <!--
+  The speedbrakes' drag (pull request 7), as a force where the panels are: the middle of the two panels
+  fully open, on the centreline, 5.989 ft behind the centre of gravity and 2.491 ft below it (the owner's
+  model, models/f4c.glb, measured by models/measure.mjs, speedbrakeAt; tests/model.test.js holds this point
+  to it within an inch). So their drag pitches the nose as the real panels' would: acting below the centre
+  of gravity, nose down. In JSBSim v1.3.3 a WIND-frame force's x is along the airflow's way forward (it is
+  turned into the airplane's axes as the velocity is: src/models/propulsion/FGForce.cpp, Transform, by the wind-to-body matrix), so drag is -1 (read
+  back by tests/f4c-low.test.js: the force is aft, and its moment nose down).
+  How much: 0.06 of the wing's area at the dynamic pressure, fully open. Wings' F-4C (its card's
+  speedbrake_drag in the middle of its range, 0.03 + 0.5 x 0.06 = 0.06; the owner flew it), whose drag acted
+  halfway to the panels by the owner's choice; here it acts at them. No F-4 source read gives it. Reasoned;
+  tests/f4c-low.test.js reports the slow-down and the nose's drop beside Wings'.
+ -->
+ <external_reactions>
+  <force name="speedbrake" frame="WIND">
+   <function name="aero/force/speedbrake-lbs">
+    <product>
+     <property> aero/qbar-psf </property>
+     <property> metrics/Sw-sqft </property>
+     <value> 0.06 </value>
+     <property> fcs/speedbrake-pos-norm </property>
+    </product>
+   </function>
+   <location unit="IN">
+    <x> 71.864 </x>
+    <y> 0 </y>
+    <z> -29.893 </z>
+   </location>
+   <direction>
+    <x> -1 </x>
+    <y> 0 </y>
+    <z> 0 </z>
+   </direction>
+  </force>
+ </external_reactions>
 
  <!--
   The aerodynamics, gear and flaps up (pull request 5: AFWAL's model at low speed in its first half, 5a,
@@ -1594,7 +1678,8 @@
       alone.
     - Clean. AFWAL's airplane carries a centreline tank and one missile, as 0.0037 of drag coefficient
       (its Table 3, "Delta CD STORES"). The owner's F-4C carries nothing, so that is left out.
-    - No drag for the gear yet, and no flaps, speedbrakes or ground effect: pull request 7.
+    - The flaps, the gear and ground effect are below ("The flaps and the gear", "Ground effect": pull
+      request 7); the speedbrakes are an external force, after the flight controls.
     - Where AFWAL gives two sets of a function, this is set 1, the F-4J (its Table 4, configuration A).
       Set 2 was made up for its study.
 
@@ -2244,12 +2329,367 @@
   </function>
   <!-- END OF MACH TABLES -->
 
+  <!--
+   ==== The flaps and the gear (pull request 7) ====
+
+   NASA CR-2144 has the F-4C with its gear and flaps down at one flight condition, its number 1: the power
+   approach, at sea level and 136 knots (Mach 0.206), 33,197 lb, the centre of gravity at 29.1% of the
+   chord, trimmed at 11.7 degrees angle of attack with the stabilator at -9.1 and a drag coefficient of
+   0.242 (its Tables IV-1 and IV-2), and all its derivatives there (Tables IV-3 and IV-13). The flaps are
+   full: the trailing edge 60 degrees with its blowing, and the leading edge down. The tables below make the
+   airplane, with full flaps and the gear down, CR-2144's at that condition, by the same arithmetic as the
+   Mach tables: a factor on each of 17 terms of AFWAL's build-up, two increments on the yawing moment, and
+   the lift, the drag and the pitching moment of trimmed level flight. tools/f4c-flaps.mjs works them out
+   and says how; tests/f4c-low.test.js holds them to it and flies the airplane at condition 1 beside
+   CR-2144's own responses.
+   Matched at condition 1: the trim (lift, drag and pitching moment, with CR-2144's own thrust line and
+   centre of gravity) and every derivative but the three AFWAL leaves out (the lift for pitch rate and for
+   the rate the angle of attack changes at, and the stabilator's drag).
+   Reasoned, and said in the tool:
+     - the split between the gear and the flaps: the gear has drag only (0.025, Wings' F-4C card), and the
+       nose-down moment of that drag 4.5 ft below the centre of gravity; the flaps have the rest;
+     - half flaps (the trailing edge 30 degrees, the leading edge down): halfway between up and full, in
+       every factor and increment. No source read gives them;
+     - above 12 degrees angle of attack, extra flap lift sized so that the full-flap stall at 38,000 lb comes
+       at the flight manual's 126 knots at the nose slice's onset (figure 6-1);
+     - part of each factor is CR-2144's F-4C against AFWAL's F-4J at low speed, not the flaps alone: the clean
+       airplane below Mach 0.5 is AFWAL's (see "What Mach changes"), and with no clean low-speed data for
+       the F-4C the difference cannot be taken apart.
+   Every term's factor is the Mach factor times the flaps' (multiplied in each named term below). The flaps
+   are for slow flight; the real jet's blow up at speed. At Mach 0.5 and above with flaps down the two are
+   simply multiplied (Reasoned; nothing is known there).
+  -->
+  <!-- FLAP AND GEAR TABLES: made by tools/f4c-flaps.mjs. Not edited by hand. -->
+  <!-- Factor on the term lift-basic, by flap position: 1 up, condition 1's (CR-2144 over AFWAL at 11.7 degrees) full, halfway at half. -->
+  <function name="aero/flaps/factor/lift-basic">
+   <table>
+    <independentVar lookup="row"> fcs/flap-pos-norm </independentVar>
+    <tableData>
+          0            1
+        0.5        1.046
+          1        1.092
+    </tableData>
+   </table>
+  </function>
+  <!-- Factor on the term lift-stabilator, by flap position: 1 up, condition 1's (CR-2144 over AFWAL at 11.7 degrees) full, an eighth of the way at half (the owner's choice: tools/f4c-flaps.mjs, HALF_FLAP_TAIL_SHARE). -->
+  <function name="aero/flaps/factor/lift-stabilator">
+   <table>
+    <independentVar lookup="row"> fcs/flap-pos-norm </independentVar>
+    <tableData>
+          0            1
+        0.5       0.9541
+          1       0.6326
+    </tableData>
+   </table>
+  </function>
+  <!-- Factor on the term side-sideslip, by flap position: 1 up, condition 1's (CR-2144 over AFWAL at 11.7 degrees) full, halfway at half. -->
+  <function name="aero/flaps/factor/side-sideslip">
+   <table>
+    <independentVar lookup="row"> fcs/flap-pos-norm </independentVar>
+    <tableData>
+          0            1
+        0.5        1.021
+          1        1.042
+    </tableData>
+   </table>
+  </function>
+  <!-- Factor on the term side-aileron, by flap position: 1 up, condition 1's (CR-2144 over AFWAL at 11.7 degrees) full, halfway at half. -->
+  <function name="aero/flaps/factor/side-aileron">
+   <table>
+    <independentVar lookup="row"> fcs/flap-pos-norm </independentVar>
+    <tableData>
+          0            1
+        0.5        3.657
+          1        6.315
+    </tableData>
+   </table>
+  </function>
+  <!-- Factor on the term side-rudder, by flap position: 1 up, condition 1's (CR-2144 over AFWAL at 11.7 degrees) full, halfway at half. -->
+  <function name="aero/flaps/factor/side-rudder">
+   <table>
+    <independentVar lookup="row"> fcs/flap-pos-norm </independentVar>
+    <tableData>
+          0            1
+        0.5        1.319
+          1        1.638
+    </tableData>
+   </table>
+  </function>
+  <!-- Factor on the term roll-sideslip, by flap position: 1 up, condition 1's (CR-2144 over AFWAL at 11.7 degrees) full, halfway at half. -->
+  <function name="aero/flaps/factor/roll-sideslip">
+   <table>
+    <independentVar lookup="row"> fcs/flap-pos-norm </independentVar>
+    <tableData>
+          0            1
+        0.5        1.234
+          1        1.468
+    </tableData>
+   </table>
+  </function>
+  <!-- Factor on the term roll-roll-rate, by flap position: 1 up, condition 1's (CR-2144 over AFWAL at 11.7 degrees) full, halfway at half. -->
+  <function name="aero/flaps/factor/roll-roll-rate">
+   <table>
+    <independentVar lookup="row"> fcs/flap-pos-norm </independentVar>
+    <tableData>
+          0            1
+        0.5        1.272
+          1        1.544
+    </tableData>
+   </table>
+  </function>
+  <!-- Factor on the term roll-yaw-rate, by flap position: 1 up, condition 1's (CR-2144 over AFWAL at 11.7 degrees) full, halfway at half. -->
+  <function name="aero/flaps/factor/roll-yaw-rate">
+   <table>
+    <independentVar lookup="row"> fcs/flap-pos-norm </independentVar>
+    <tableData>
+          0            1
+        0.5        1.302
+          1        1.604
+    </tableData>
+   </table>
+  </function>
+  <!-- Factor on the term roll-aileron, by flap position: 1 up, condition 1's (CR-2144 over AFWAL at 11.7 degrees) full, halfway at half. -->
+  <function name="aero/flaps/factor/roll-aileron">
+   <table>
+    <independentVar lookup="row"> fcs/flap-pos-norm </independentVar>
+    <tableData>
+          0            1
+        0.5        1.297
+          1        1.594
+    </tableData>
+   </table>
+  </function>
+  <!-- Factor on the term roll-rudder, by flap position: 1 up, condition 1's (CR-2144 over AFWAL at 11.7 degrees) full, halfway at half. -->
+  <function name="aero/flaps/factor/roll-rudder">
+   <table>
+    <independentVar lookup="row"> fcs/flap-pos-norm </independentVar>
+    <tableData>
+          0            1
+        0.5        1.431
+          1        1.863
+    </tableData>
+   </table>
+  </function>
+  <!-- Factor on the term pitch-basic, by flap position: 1 up, condition 1's (CR-2144 over AFWAL at 11.7 degrees) full, halfway at half. -->
+  <function name="aero/flaps/factor/pitch-basic">
+   <table>
+    <independentVar lookup="row"> fcs/flap-pos-norm </independentVar>
+    <tableData>
+          0            1
+        0.5       0.5497
+          1      0.09937
+    </tableData>
+   </table>
+  </function>
+  <!-- Factor on the term pitch-pitch-rate, by flap position: 1 up, condition 1's (CR-2144 over AFWAL at 11.7 degrees) full, halfway at half. -->
+  <function name="aero/flaps/factor/pitch-pitch-rate">
+   <table>
+    <independentVar lookup="row"> fcs/flap-pos-norm </independentVar>
+    <tableData>
+          0            1
+        0.5       0.7622
+          1       0.5244
+    </tableData>
+   </table>
+  </function>
+  <!-- Factor on the term pitch-alpha-rate, by flap position: 1 up, condition 1's (CR-2144 over AFWAL at 11.7 degrees) full, halfway at half. -->
+  <function name="aero/flaps/factor/pitch-alpha-rate">
+   <table>
+    <independentVar lookup="row"> fcs/flap-pos-norm </independentVar>
+    <tableData>
+          0            1
+        0.5       0.7927
+          1       0.5855
+    </tableData>
+   </table>
+  </function>
+  <!-- Factor on the term pitch-stabilator, by flap position: 1 up, condition 1's (CR-2144 over AFWAL at 11.7 degrees) full, an eighth of the way at half (the owner's choice: tools/f4c-flaps.mjs, HALF_FLAP_TAIL_SHARE). -->
+  <function name="aero/flaps/factor/pitch-stabilator">
+   <table>
+    <independentVar lookup="row"> fcs/flap-pos-norm </independentVar>
+    <tableData>
+          0            1
+        0.5       0.9471
+          1       0.5766
+    </tableData>
+   </table>
+  </function>
+  <!-- Factor on the term yaw-sideslip, by flap position: 1 up, condition 1's (CR-2144 over AFWAL at 11.7 degrees) full, halfway at half. -->
+  <function name="aero/flaps/factor/yaw-sideslip">
+   <table>
+    <independentVar lookup="row"> fcs/flap-pos-norm </independentVar>
+    <tableData>
+          0            1
+        0.5        1.253
+          1        1.506
+    </tableData>
+   </table>
+  </function>
+  <!-- Factor on the term yaw-yaw-rate, by flap position: 1 up, condition 1's (CR-2144 over AFWAL at 11.7 degrees) full, halfway at half. -->
+  <function name="aero/flaps/factor/yaw-yaw-rate">
+   <table>
+    <independentVar lookup="row"> fcs/flap-pos-norm </independentVar>
+    <tableData>
+          0            1
+        0.5       0.8848
+          1       0.7695
+    </tableData>
+   </table>
+  </function>
+  <!-- Factor on the term yaw-rudder, by flap position: 1 up, condition 1's (CR-2144 over AFWAL at 11.7 degrees) full, halfway at half. -->
+  <function name="aero/flaps/factor/yaw-rudder">
+   <table>
+    <independentVar lookup="row"> fcs/flap-pos-norm </independentVar>
+    <tableData>
+          0            1
+        0.5        1.297
+          1        1.595
+    </tableData>
+   </table>
+  </function>
+  <!-- Added to the yawing moment for roll rate, for each unit of p b/2V, by flap position: condition 1's full (CR-2144's less AFWAL's), halfway at half. -->
+  <function name="aero/flaps/increment/yaw-roll-rate">
+   <table>
+    <independentVar lookup="row"> fcs/flap-pos-norm </independentVar>
+    <tableData>
+          0            0
+        0.5      -0.0119
+          1      -0.0238
+    </tableData>
+   </table>
+  </function>
+  <!-- Added to the yawing moment for the aileron with its spoiler, for each degree of aileron, by flap position: condition 1's full, halfway at half. -->
+  <function name="aero/flaps/increment/yaw-aileron">
+   <table>
+    <independentVar lookup="row"> fcs/flap-pos-norm </independentVar>
+    <tableData>
+          0            0
+        0.5    0.0003549
+          1    0.0007098
+    </tableData>
+   </table>
+  </function>
+  <!-- Added to the drag coefficient, by flap position: condition 1's level less the gear's drag, halfway at half. -->
+  <function name="aero/flaps/increment/drag">
+   <table>
+    <independentVar lookup="row"> fcs/flap-pos-norm </independentVar>
+    <tableData>
+          0            0
+        0.5      0.02361
+          1      0.04722
+    </tableData>
+   </table>
+  </function>
+  <!-- Added to the pitching-moment coefficient, by flap position: condition 1's level less the gear's drag's moment, halfway at half. -->
+  <function name="aero/flaps/increment/pitch">
+   <table>
+    <independentVar lookup="row"> fcs/flap-pos-norm </independentVar>
+    <tableData>
+          0            0
+        0.5    -0.006713
+          1     -0.01343
+    </tableData>
+   </table>
+  </function>
+  <!-- Added to the lift coefficient. Rows: the angle of attack; columns: the flap position. Condition 1's level to 12 degrees, the extra for the stall added by 22 and held to 30, none by 50; halfway at half flaps. -->
+  <function name="aero/flaps/increment/lift">
+   <table>
+    <independentVar lookup="row"> aero/alpha-deg </independentVar>
+    <independentVar lookup="column"> fcs/flap-pos-norm </independentVar>
+    <tableData>
+                       0          0.5            1
+         12            0      0.06799        0.136
+         22            0       0.1596       0.3191
+         30            0       0.1596       0.3191
+         50            0            0            0
+    </tableData>
+   </table>
+  </function>
+  <!-- Added to the drag coefficient, by gear position: GEAR_DRAG. -->
+  <function name="aero/gear/increment/drag">
+   <table>
+    <independentVar lookup="row"> gear/gear-pos-norm </independentVar>
+    <tableData>
+          0            0
+          1        0.025
+    </tableData>
+   </table>
+  </function>
+  <!-- Added to the pitching-moment coefficient, by gear position: the gear's drag acting GEAR_ARM_FT below the centre of gravity, -GEAR_DRAG x GEAR_ARM_FT / chord (nose down). -->
+  <function name="aero/gear/increment/pitch">
+   <table>
+    <independentVar lookup="row"> gear/gear-pos-norm </independentVar>
+    <tableData>
+          0            0
+          1    -0.007014
+    </tableData>
+   </table>
+  </function>
+  <!-- END OF FLAP AND GEAR TABLES -->
+
+  <!--
+   ==== Ground effect (pull request 7) ====
+
+   Near the ground the wing's downwash is held back: more lift and less drag at the same angle of attack.
+   As a factor on the lift and on the drag, each a table in the height over the span (JSBSim's
+   aero/h_b-mac-ft: the aerodynamic reference point's height above the ground over the wingspan). The
+   numbers are JSBSim's own F-15's (jsbsim-data/aircraft/f15/f15.xml, aero/function/kCLge and kCDge,
+   JSBSim v1.3.3, read, not edited): a fighter's wing of about the F-4's shape (aspect ratio 3.0 against the
+   F-4's 2.82); the F-14 file of Richard Harrison's that the plan names has none. Standing, the F-4C's
+   reference point is 6.4 ft up: 0.166 of the span, where the lift is 3.2% more and the drag 4.0% less.
+   Left out: what ground effect does to the pitching moment (the tail's downwash), which the F-15's file
+   gives as a factor on the whole moment of under 1%. Reasoned, all of it: no F-4 source read gives ground
+   effect. A landing that floats or drops wrong on the phone would settle it.
+  -->
+  <function name="aero/ground-effect/lift-factor">
+   <table>
+    <independentVar lookup="row"> aero/h_b-mac-ft </independentVar>
+    <tableData>
+     0.0  1.061
+     0.1  1.033
+     0.15 1.031
+     0.2  1.033
+     0.3  1.028
+     0.4  1.011
+     0.5  1.009
+     0.6  1.005
+     0.7  1.002
+     0.8  1.0
+    </tableData>
+   </table>
+  </function>
+  <function name="aero/ground-effect/drag-factor">
+   <table>
+    <independentVar lookup="row"> aero/h_b-mac-ft </independentVar>
+    <tableData>
+     0.0  0.81
+     0.1  0.99
+     0.15 0.95
+     0.2  0.98
+     0.3  0.99
+     0.4  1.0
+     0.5  1.04
+     0.6  1.01
+     0.7  0.99
+     0.8  1.01
+     0.9  1.0
+    </tableData>
+   </table>
+  </function>
+
   <!-- The spoiler's side force and rolling moment change with Mach as the aileron's do. -->
   <function name="aero/factor/side-spoiler">
    <property> aero/factor/side-aileron </property>
   </function>
   <function name="aero/factor/roll-spoiler">
    <property> aero/factor/roll-aileron </property>
+  </function>
+  <!-- And as the flaps change the aileron's. -->
+  <function name="aero/flaps/factor/side-spoiler">
+   <property> aero/flaps/factor/side-aileron </property>
+  </function>
+  <function name="aero/flaps/factor/roll-spoiler">
+   <property> aero/flaps/factor/roll-aileron </property>
   </function>
 
   <!-- ==== The tables, each as AFWAL's listing has it ==== -->
@@ -2894,6 +3334,7 @@
   <function name="aero/coefficient/lift-basic">
    <product>
     <property> aero/factor/lift-basic </property>
+    <property> aero/flaps/factor/lift-basic </property>
     <sum>
      <property> aero/constant/CLBAS-at-zero </property>
      <product>
@@ -2909,6 +3350,7 @@
   <function name="aero/coefficient/lift-stabilator">
    <product>
     <property> aero/factor/lift-stabilator </property>
+    <property> aero/flaps/factor/lift-stabilator </property>
     <property> aero/table/CLSTAB </property>
     <property> fcs/elevator-pos-deg </property>
    </product>
@@ -2926,6 +3368,7 @@
   <function name="aero/coefficient/side-sideslip">
    <product>
     <property> aero/factor/side-sideslip </property>
+    <property> aero/flaps/factor/side-sideslip </property>
     <property> aero/table/CYB </property>
     <property> aero/beta-deg </property>
    </product>
@@ -2933,6 +3376,7 @@
   <function name="aero/coefficient/side-aileron">
    <product>
     <property> aero/factor/side-aileron </property>
+    <property> aero/flaps/factor/side-aileron </property>
     <property> aero/constant/Cy-delta-a </property>
     <property> aero/aileron-deg </property>
    </product>
@@ -2940,6 +3384,7 @@
   <function name="aero/coefficient/side-spoiler">
    <product>
     <property> aero/factor/side-spoiler </property>
+    <property> aero/flaps/factor/side-spoiler </property>
     <property> aero/constant/Cy-delta-sp </property>
     <property> aero/spoiler-deg </property>
    </product>
@@ -2947,6 +3392,7 @@
   <function name="aero/coefficient/side-rudder">
    <product>
     <property> aero/factor/side-rudder </property>
+    <property> aero/flaps/factor/side-rudder </property>
     <property> aero/table/CYDR </property>
     <property> fcs/rudder-pos-deg </property>
    </product>
@@ -2956,6 +3402,7 @@
   <function name="aero/coefficient/roll-sideslip">
    <product>
     <property> aero/factor/roll-sideslip </property>
+    <property> aero/flaps/factor/roll-sideslip </property>
     <property> aero/table/CRB1 </property>
     <property> aero/beta-deg </property>
    </product>
@@ -2963,6 +3410,7 @@
   <function name="aero/coefficient/roll-roll-rate">
    <product>
     <property> aero/factor/roll-roll-rate </property>
+    <property> aero/flaps/factor/roll-roll-rate </property>
     <property> aero/table/CRP1 </property>
     <property> aero/b-over-2v-sec </property>
     <property> velocities/p-aero-rad_sec </property>
@@ -2971,6 +3419,7 @@
   <function name="aero/coefficient/roll-yaw-rate">
    <product>
     <property> aero/factor/roll-yaw-rate </property>
+    <property> aero/flaps/factor/roll-yaw-rate </property>
     <property> aero/table/CRR </property>
     <property> aero/b-over-2v-sec </property>
     <property> velocities/r-aero-rad_sec </property>
@@ -2979,6 +3428,7 @@
   <function name="aero/coefficient/roll-aileron">
    <product>
     <property> aero/factor/roll-aileron </property>
+    <property> aero/flaps/factor/roll-aileron </property>
     <property> aero/table/CRDA </property>
     <property> aero/aileron-deg </property>
    </product>
@@ -2986,6 +3436,7 @@
   <function name="aero/coefficient/roll-spoiler">
    <product>
     <property> aero/factor/roll-spoiler </property>
+    <property> aero/flaps/factor/roll-spoiler </property>
     <property> aero/table/CRDSP </property>
     <property> aero/spoiler-deg </property>
    </product>
@@ -2993,6 +3444,7 @@
   <function name="aero/coefficient/roll-rudder">
    <product>
     <property> aero/factor/roll-rudder </property>
+    <property> aero/flaps/factor/roll-rudder </property>
     <property> aero/table/CRDR </property>
     <property> fcs/rudder-pos-deg </property>
    </product>
@@ -3007,6 +3459,7 @@
   <function name="aero/coefficient/pitch-basic">
    <product>
     <property> aero/factor/pitch-basic </property>
+    <property> aero/flaps/factor/pitch-basic </property>
     <property> aero/alpha-sign </property>
     <property> aero/table/CMBAS </property>
    </product>
@@ -3020,6 +3473,7 @@
   <function name="aero/coefficient/pitch-pitch-rate">
    <product>
     <property> aero/factor/pitch-pitch-rate </property>
+    <property> aero/flaps/factor/pitch-pitch-rate </property>
     <property> aero/table/CMQ </property>
     <property> aero/c-over-2v-sec </property>
     <property> velocities/q-aero-rad_sec </property>
@@ -3028,6 +3482,7 @@
   <function name="aero/coefficient/pitch-alpha-rate">
    <product>
     <property> aero/factor/pitch-alpha-rate </property>
+    <property> aero/flaps/factor/pitch-alpha-rate </property>
     <property> aero/table/CMAD </property>
     <property> aero/c-over-2v-sec </property>
     <property> aero/alphadot-rad_sec </property>
@@ -3036,6 +3491,7 @@
   <function name="aero/coefficient/pitch-stabilator">
    <product>
     <property> aero/factor/pitch-stabilator </property>
+    <property> aero/flaps/factor/pitch-stabilator </property>
     <sum>
      <property> aero/table/CMSTAB </property>
      <product>
@@ -3069,6 +3525,7 @@
   <function name="aero/coefficient/yaw-sideslip">
    <product>
     <property> aero/factor/yaw-sideslip </property>
+    <property> aero/flaps/factor/yaw-sideslip </property>
     <property> aero/table/CNB1 </property>
     <property> aero/beta-deg </property>
    </product>
@@ -3084,6 +3541,7 @@
   <function name="aero/coefficient/yaw-yaw-rate">
    <product>
     <property> aero/factor/yaw-yaw-rate </property>
+    <property> aero/flaps/factor/yaw-yaw-rate </property>
     <property> aero/table/CNR </property>
     <property> aero/b-over-2v-sec </property>
     <property> velocities/r-aero-rad_sec </property>
@@ -3106,6 +3564,7 @@
   <function name="aero/coefficient/yaw-rudder">
    <product>
     <property> aero/factor/yaw-rudder </property>
+    <property> aero/flaps/factor/yaw-rudder </property>
     <property> aero/table/CNDR </property>
     <property> fcs/rudder-pos-deg </property>
    </product>
@@ -3113,37 +3572,54 @@
 
   <!--
    Two terms that are not in AFWAL's Table 1: what Mach adds to the yawing moment for roll rate and for
-   the aileron with its spoiler ("What Mach changes", above). Nothing at and below Mach 0.5.
+   the aileron with its spoiler ("What Mach changes", above), and what the flaps add ("The flaps and the
+   gear"). Nothing at and below Mach 0.5 with the flaps up.
   -->
   <function name="aero/coefficient/yaw-roll-rate-mach">
    <product>
-    <property> aero/increment/yaw-roll-rate </property>
+    <sum>
+     <property> aero/increment/yaw-roll-rate </property>
+     <property> aero/flaps/increment/yaw-roll-rate </property>
+    </sum>
     <property> aero/b-over-2v-sec </property>
     <property> velocities/p-aero-rad_sec </property>
    </product>
   </function>
   <function name="aero/coefficient/yaw-aileron-mach">
    <product>
-    <property> aero/increment/yaw-aileron </property>
+    <sum>
+     <property> aero/increment/yaw-aileron </property>
+     <property> aero/flaps/increment/yaw-aileron </property>
+    </sum>
     <property> aero/aileron-deg </property>
    </product>
   </function>
 
   <!-- ==== The six sums: Table 1's, with the three levels and the two yaw terms that Mach adds ==== -->
 
+  <!-- Lift and drag each times its ground effect (above): 1 more than a span above the ground. -->
   <function name="aero/coefficient/lift">
-   <sum>
-    <property> aero/coefficient/lift-basic </property>
-    <property> aero/coefficient/lift-stabilator </property>
-    <property> aero/increment/lift </property>
-   </sum>
+   <product>
+    <property> aero/ground-effect/lift-factor </property>
+    <sum>
+     <property> aero/coefficient/lift-basic </property>
+     <property> aero/coefficient/lift-stabilator </property>
+     <property> aero/increment/lift </property>
+     <property> aero/flaps/increment/lift </property>
+    </sum>
+   </product>
   </function>
-  <!-- AFWAL's one term (its stores' drag is left out, above), and the level from CR-2144's plot. -->
+  <!-- AFWAL's one term (its stores' drag is left out, above), the level from CR-2144's plot, the flaps' and the gear's. -->
   <function name="aero/coefficient/drag">
-   <sum>
-    <property> aero/coefficient/drag-basic </property>
-    <property> aero/increment/drag </property>
-   </sum>
+   <product>
+    <property> aero/ground-effect/drag-factor </property>
+    <sum>
+     <property> aero/coefficient/drag-basic </property>
+     <property> aero/increment/drag </property>
+     <property> aero/flaps/increment/drag </property>
+     <property> aero/gear/increment/drag </property>
+    </sum>
+   </product>
   </function>
   <function name="aero/coefficient/side">
    <sum>
@@ -3174,6 +3650,8 @@
     <property> aero/coefficient/pitch-aileron </property>
     <property> aero/coefficient/pitch-spoiler </property>
     <property> aero/increment/pitch </property>
+    <property> aero/flaps/increment/pitch </property>
+    <property> aero/gear/increment/pitch </property>
    </sum>
   </function>
   <!-- About the reference centre: AFWAL's "Cn REF". -->

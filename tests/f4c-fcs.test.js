@@ -626,12 +626,14 @@ test('f4c fcs: "Full right tilt moves the right spoiler up 45 degrees and the le
 
 test('f4c fcs: "Flaps down and below 230 knots, full right tilt gives 15 degrees of right rudder within 2 degrees from the interconnect; flaps up, or faster, none"', async () => {
   const m = await module();
-  // The file has no flaps yet (pull request 7): a start sets fcs/flap-pos-norm, as the plan says. No trim: started by values, level at the speed.
+  // A start sets fcs/flap-pos-norm, as the plan says, and (since pull request 7 gave the file its flaps) the
+  // flap control too, so that the flaps stay there. No trim: started by values, level at the speed.
   for (const [knots, flaps] of [[200, 1], [200, 0], [260, 1], [220, 1]]) {
-    const flight = Flight.start(m, F4C, { assists: null, settleSeconds: 0, terrain: GROUND, controls: { gear: false, brake: false, throttle: 0.6, roll: 1 },
+    const flight = Flight.start(m, F4C, { assists: null, settleSeconds: 0, terrain: GROUND, controls: { gear: false, brake: false, throttle: 0.6, roll: 1, flaps },
       sets: [['ic/h-sl-ft', 5000], ['ic/vc-kts', knots], ['ic/alpha-deg', 8], ['fcs/flap-pos-norm', flaps]] });
     assert.equal(flight.get('fcs/flap-pos-norm'), flaps);
     run(flight, 0.5);
+    assert.equal(flight.get('fcs/flap-pos-norm'), flaps, 'and stay there');
     const interconnect = flight.get('fcs/interconnect/rudder-deg'), rudder = flight.get('fcs/rudder-pos-deg'), kt = flight.value('velocities/vc-kts');
     flight.dispose();
     const wanted = flaps && kt < INTERCONNECT_BELOW_KNOTS.value ? -INTERCONNECT_LIMIT.value[0] : 0;

@@ -140,9 +140,15 @@ test('f4c: every table of AFWAL\'s in the aircraft file is its listing as read, 
   const controls = file.slice(file.indexOf('<flight_control'), file.indexOf('</flight_control>'));
   assert.equal(controls.split('<table>').length - 1, 4, 'the flight controls have the feel system\'s three and the flexure\'s one');
   assert.equal(file.split('<table>').length - 1, every.length + 4, 'there is no table anywhere else in the file');
-  assert.ok(others.length === 22 && others.every(([, name]) => /^aero\/(factor|increment)\//.test(name)), 'every other table is a factor or an increment of what Mach changes');
+  // Pull request 7 added the flaps' and the gear's 24 (between their own two marks, held to tools/f4c-flaps.mjs
+  // by tests/f4c-low.test.js) and ground effect's two: none of them is AFWAL's.
+  const mach = others.filter(([, name]) => /^aero\/(factor|increment)\//.test(name)), low = others.filter(([, name]) => /^aero\/(flaps|gear)\//.test(name));
+  assert.ok(mach.length === 22 && low.length === 24, 'every other table is a factor or an increment of what Mach changes, or of the flaps and the gear');
+  assert.deepEqual(others.filter(([, name]) => !mach.some(([, n]) => n === name) && !low.some(([, n]) => n === name)).map(([, name]) => name), ['aero/ground-effect/lift-factor', 'aero/ground-effect/drag-factor'], 'and ground effect\'s two');
   const marked = file.slice(file.indexOf('<!-- MACH TABLES'), file.indexOf('<!-- END OF MACH TABLES -->'));
-  assert.equal(marked.split('<table>').length - 1, others.length, 'and they are all between the two marks');
+  assert.equal(marked.split('<table>').length - 1, mach.length, 'what Mach changes is all between its two marks');
+  const flapsMarked = file.slice(file.indexOf('<!-- FLAP AND GEAR TABLES'), file.indexOf('<!-- END OF FLAP AND GEAR TABLES -->'));
+  assert.equal(flapsMarked.split('<table>').length - 1, low.length, 'and the flaps\' and the gear\'s between theirs');
   assert.deepEqual(tables.map(([, name]) => name), USED.map((name) => `aero/table/${name}`), 'each table is named for AFWAL\'s function, in the listing\'s order');
   assert.deepEqual(Object.keys(LISTING).filter((name) => !USED.includes(name)), ['CRB2', 'CRP2', 'DCM2', 'CNB2'], 'what is left out is AFWAL\'s second set');
   let cells = 0;
@@ -371,7 +377,8 @@ for (const variant of VARIANTS) {
     // own; stick neutral for a minute, the speed within 3 knots, the height within 50 ft, the bank within 5 degrees.
     const { trim } = F4C.assists, module = await moduleWith(F4C, variant);
     assert.equal(trim.knots, WINGS_NEUTRAL_SPEED.value);
-    assert.deepEqual(assistWrites(F4C.assists), ['fcs/pitch-trim-cmd-norm', 'fcs/steer-cmd-norm'], 'the copilot writes the pitch trim and the nosewheel steering, both cockpit controls');
+    // (Pull request 7 gave the copilot the rudder too: its feet.)
+    assert.deepEqual(assistWrites(F4C.assists), ['fcs/pitch-trim-cmd-norm', 'fcs/rudder-cmd-norm', 'fcs/steer-cmd-norm'], 'the copilot writes the pitch trim, the rudder and the nosewheel steering, all cockpit controls');
     const parked = Flight.start(module, F4C, { settleSeconds: 0 });
     for (const [command, value] of trim.sets) {
       assert.ok(parked.startSets.some(([n, v]) => n === command && v === value), `${command} is in the start`);

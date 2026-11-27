@@ -6,6 +6,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { F4C } from '../../src/sim/aircraft/f4c.js';
 import { Flight } from '../../src/sim/game.js';
+import { flatSource } from '../../src/sim/ground.js';
 import { AFWAL_REFERENCE_HEIGHT, WING_AREA, WING_CHORD, WING_SPAN } from './f4c-reference.js';
 
 const DEG = 180 / Math.PI;
@@ -86,7 +87,11 @@ export const SLOW_FPS = 300;
 export function startAt(module, { alpha, beta, vt = SLOW_FPS, heightFt = AFWAL_REFERENCE_HEIGHT.value, p = 0, q = 0, r = 0, pitch = 0, roll = 0, rudder = 0 }) {
   const a = alpha / DEG, b = beta / DEG;
   return Flight.start(module, F4C, {
-    assists: null, settleSeconds: 0, controls: { gear: false, brake: false, throttle: 0, pitch, roll },
+    // Over ground 30,000 ft below sea level, so that a start at sea level has no ground effect (pull request 7).
+    terrain: flatSource(-30000),
+    // Gear and flaps up: AFWAL's clean airplane. (Since pull request 7 the F-4C has flaps, and a start on the
+    // ground would have them at the takeoff setting, 1/2.)
+    assists: null, settleSeconds: 0, controls: { gear: false, flaps: 0, brake: false, throttle: 0, pitch, roll },
     sets: [['ic/h-sl-ft', heightFt], ['ic/u-fps', vt * Math.cos(a) * Math.cos(b)], ['ic/v-fps', vt * Math.sin(b)], ['ic/w-fps', vt * Math.sin(a) * Math.cos(b)],
       ['ic/p-rad_sec', p], ['ic/q-rad_sec', q], ['ic/r-rad_sec', r], ['fcs/rudder-cmd-norm', rudder], ['fcs/test/straight', 1]],
   });
