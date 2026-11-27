@@ -98,6 +98,18 @@
       "original": "3a6d73465349af409ef88747f288e49f0ec8b99dc5505200f568884eecd95393",
       "commit": "6d689b789fedb783d7ad6ae8cc990904a12fe32e"
     },
+    "src/render/plume.js": {
+      "from": "wings:src/render/plume.js",
+      "how": "adapted",
+      "original": "e416efc413e0d2de3280abb833cc7907ff75a04bf1d1051b7d4d730530940119",
+      "commit": "6d689b789fedb783d7ad6ae8cc990904a12fe32e"
+    },
+    "src/render/aircraft.js": {
+      "from": "wings:src/render/aircraft.js",
+      "how": "adapted",
+      "original": "c9846c7a080998c96d889d932d4a4199af21ad51bc6c8391a50cd99f5f43dbe4",
+      "commit": "6d689b789fedb783d7ad6ae8cc990904a12fe32e"
+    },
     "src/input/look.js": {
       "from": "wings:src/input/look.js",
       "how": "adapted",

@@ -42,7 +42,7 @@ export function startFlight(canvas, aircraft, field = FIELD, { onReadout } = {})
   const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, powerPreference: 'high-performance' });
   const scene = new THREE.Scene();
   const world = createWorld(scene, renderer, field);
-  const airplane = createAircraft(aircraft.glb);
+  const airplane = createAircraft(aircraft);
   scene.add(airplane);
   const chase = createChaseCamera(FAR);
   const look = createLook();   // a finger dragged across the view looks around; let go and the view comes back
@@ -136,10 +136,12 @@ export function startFlight(canvas, aircraft, field = FIELD, { onReadout } = {})
       pose.position = shown.position; pose.quaternion = shown.quaternion;
       airplane.position.set(...shown.position);
       airplane.quaternion.set(...shown.quaternion);
-      // Its moving parts and its propeller are the newest state's: they are not blended.
+      // Its moving parts, its propeller and its plumes are the newest state's: they are not blended. The plumes
+      // show what each engine's afterburner gives, from JSBSim, not the throttle (as in Wings).
       drawnParts = surfaces(newest.state);
       airplane.set(drawnParts);
       airplane.propeller(newest.propellerRpm ?? 0, flying ? elapsed : 0);
+      airplane.burner(newest.engines?.afterburner, flying ? elapsed : 0);
       if (flying) {
         // For the overlay: frames a second by the half second, and how far the picture is behind the newest state.
         run.frameSince ??= time;
@@ -229,6 +231,7 @@ export function startFlight(canvas, aircraft, field = FIELD, { onReadout } = {})
         out.discShown = airplane.getObjectByName('propeller_disc')?.visible ?? null;
         out.model = airplane.shown();   // where the model's own motions stand, 0 to 1: its flaps, elevator, ailerons and rudder as drawn
         out.drawn = drawnParts;         // and where JSBSim had those parts in the state that frame was drawn from
+        out.plumes = airplane.plumes.map((plume) => plume.shown());   // each engine's plume as drawn: lit or not, where it starts, how long
       }
       if (newest) {
         const s = newest.state, place = toWorld(s[at.lat], s[at.lon]);

@@ -57,6 +57,9 @@ export const FILES = [
   // brought up to that commit); the script that measures a model; and the test that checks every model.
   { ...copy('wings', 'models/f4c.glb'), at: WINGS_0_0_62 },
   ...['docs/models.md', 'models/measure.mjs', 'tests/model.test.js'].map((f) => adapted('wings', f, f, WINGS_0_0_62)),
+  // The afterburner plumes, from the same commit (milestone 3, pull request 9): Wings' plume, and the airplane on
+  // screen that puts one at each engine's exit (FSG's own version since milestone 2, brought up to that commit).
+  ...['src/render/plume.js', 'src/render/aircraft.js'].map((f) => adapted('wings', f, f, WINGS_0_0_62)),
   // The look-around, from Wings (itself from Rage, as it is), with a line at its top saying so.
   adapted('wings', 'src/input/look.js'),
   // The HUD, its readouts and their tests, from Wings' main at 0.0.62 (milestone 2, pull request 6).

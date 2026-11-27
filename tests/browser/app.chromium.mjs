@@ -8,7 +8,7 @@
 // sessions have and the repo does not depend on.
 //   node tests/browser/app.chromium.mjs
 import { createServer } from 'node:http';
-import { existsSync, readFileSync, statSync } from 'node:fs';
+import { existsSync, readFileSync, statSync, writeFileSync } from 'node:fs';
 import { createRequire } from 'node:module';
 import { extname, join, normalize } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -582,6 +582,18 @@ check(!js.error && js.build === 'weh' && (await text('#dev')).includes('wasm exc
     await c.screenshot({ path: join(shots, name) });
     await c.evaluate(() => { document.getElementById('dev').style.visibility = ''; });
   };
+  // The plumes' pictures (milestone 3, PR 9), at an iPhone's own sharpness: the page is shown at two pixels a point for the
+  // moment (the app draws at up to 2, src/flight.js), and put back at one, at which this script's other lines are run.
+  const cdp = await flown.newCDPSession(c);
+  const sharpShot = async (name) => {
+    if (!shots) return;
+    await c.evaluate(() => { document.getElementById('dev').style.visibility = 'hidden'; });
+    await cdp.send('Emulation.setDeviceMetricsOverride', { width: 852, height: 393, deviceScaleFactor: 2, mobile: false });
+    await c.waitForTimeout(800);
+    writeFileSync(join(shots, name), Buffer.from((await cdp.send('Page.captureScreenshot', { format: 'png' })).data, 'base64'));
+    await cdp.send('Emulation.setDeviceMetricsOverride', { width: 852, height: 393, deviceScaleFactor: 1, mobile: false });
+    await c.evaluate(() => { document.getElementById('dev').style.visibility = ''; });
+  };
   await on(c).ready();
 
   // What is on the screen: Gear, the two Flaps buttons with the indicator between them, Boards and Brakes, in title case; the throttle's groove and knob.
@@ -648,6 +660,12 @@ check(!js.error && js.build === 'weh' && (await text('#dev')).includes('wasm exc
     return { rolling, lit, inBurner, from, off, liftoff, gear };
   };
   const first = await takeOff({ gearUp: true, afterburnerShot: true });
+  // In the air in full afterburner, the plumes as they are drawn.
+  {
+    const air = await now();
+    check(air.wheelsDown === 0 && air.engines.afterburner.every((x) => x === 1) && air.plumes.length === 2 && air.plumes.every((p) => p.lit && p.lengthM === 4.5),
+      'in the air in full afterburner both plumes show, at full length', air.plumes.map((p) => (p.lit ? `lit, ${p.lengthM} m` : 'out')).join(' and '));
+  }
   const b = first.inBurner;
   check((await says('#brake')) === 'Brakes Off' && b.pilot.throttle === 1 && Math.abs(b.knob - b.top) <= 1 && b.burner && b.colour === ORANGE && first.lit && first.rolling,
     'Brakes off and the throttle slid to the top: the knob covers the groove\'s top and is orange above MIL, the HUD reads AB, and it rolls',
@@ -756,6 +774,51 @@ check(!js.error && js.build === 'weh' && (await text('#dev')).includes('wasm exc
   check(again.mode === 'flying' && parked(again) && again.pilot.throttle === 0 && again.pilot.brake === true && again.pilot.gear === true && again.pilot.speedbrake === false && again.pilot.flaps === 0.5 && (await reads()) === '1/2' &&
     Math.abs(knobAgain.knob - knobAgain.bottom) <= 1 && !knobAgain.burner && (await says('#brake')) === 'Brakes On' && (await says('#gear')) === 'Gear Down' && Math.abs(again.stick.pitch) < 0.05,
     'Restart parks it with the throttle closed, the gear down, the flaps back at 1/2 (from "Full") and the brakes on', `${where(again)}; throttle ${again.pilot.throttle}; the indicator "${await reads()}"`);
+  // The plumes (docs/milestones/3.md, PR 9), on the runway with the brakes on: none at any dry power (idle, 50%, MIL), both at full
+  // afterburner, and gone within 1 s of the throttle chopped to idle. What is drawn is read from the scene (src/render/plume.js,
+  // shown()) every 50 ms; the frame rate is the overlay's, at idle and in full afterburner.
+  {
+    const watch = (ms) => c.evaluate((ms) => new Promise((done) => {
+      const seen = [], from = performance.now();
+      const id = setInterval(() => {
+        const p = window.fsg.picture;
+        seen.push({ t: performance.now() - from, lit: p.plumes.map((x) => x.lit), lengthM: p.plumes.map((x) => x.lengthM), afterburner: p.engines.afterburner, fps: p.fps, throttle: window.fsg.pilot.throttle, knots: p.groundKt });
+        if (performance.now() - from >= ms) { clearInterval(id); done(seen); }
+      }, 50);
+    }), ms);
+    const none = (seen) => seen.every((x) => x.lit.every((lit) => !lit));
+    const fps = (seen) => seen.reduce((sum, x) => sum + x.fps, 0) / seen.length;
+    const knob = async () => { const k = await c.locator('#throttle .thumb').boundingBox(); return [k.x + k.width / 2, k.y + k.height / 2]; };
+    const slide = async (y) => { const [x, from] = await knob(); await c.mouse.move(x, from); await c.mouse.down(); await c.mouse.move(x, y, { steps: 10 }); await c.mouse.up(); };
+    const tap = async (place) => { const g0 = await groove(), [x] = await knob(); await c.mouse.move(x, g0.rail.top + (1 - place) * g0.rail.height); await c.mouse.down(); await c.mouse.up(); };
+    const idleSeen = await watch(3000);
+    await tap(0.4125);   // 50%: half of MIL, src/ui/throttle.js's place for it
+    const halfSeen = await watch(8000);
+    await tap(0.72);     // MIL: in the detent band
+    const milSeen = await watch(8000);
+    await sharpShot('plumes-mil.png');
+    check(none(idleSeen) && none(halfSeen) && none(milSeen) && halfSeen.at(-1).throttle > 0.45 && halfSeen.at(-1).throttle < 0.55 && milSeen.at(-1).throttle === 0.8,
+      'no plume at any dry power: idle, 50% and MIL, each held on the runway',
+      `${idleSeen.length + halfSeen.length + milSeen.length} looks; throttle ${idleSeen.at(-1).throttle}, ${halfSeen.at(-1).throttle.toFixed(3)} and ${milSeen.at(-1).throttle}; afterburners at MIL ${milSeen.at(-1).afterburner.join(', ')}`);
+    await slide(2);      // full afterburner
+    const lit = await until(() => window.fsg.picture.plumes.every((p) => p.lit), null, 20000);
+    const abSeen = await watch(3000);
+    await sharpShot('plumes-runway-ab.png');
+    check(lit && abSeen.every((x) => x.lit.every(Boolean) && x.lengthM.every((m) => m === 4.5)) && abSeen.at(-1).throttle === 1,
+      'at full afterburner both plumes show, at full length', `throttle ${abSeen.at(-1).throttle}; afterburners ${abSeen.at(-1).afterburner.join(', ')}; plumes ${abSeen.at(-1).lengthM.join(' and ')} m; ${abSeen.at(-1).knots.toFixed(1)} kt over the ground on the brakes`);
+    await tap(0);        // chopped to idle, at a tap
+    const chopSeen = await watch(2500);
+    const outAt = chopSeen.find((x) => x.lit.every((lit) => !lit))?.t ?? null;
+    check(outAt !== null && outAt <= 1000 && none(chopSeen.filter((x) => x.t >= 1000)) && chopSeen.at(-1).throttle === 0,
+      'chopped to idle, both plumes are gone within 1 s, and stay gone', `out ${outAt === null ? 'never' : `${outAt.toFixed(0)} ms`} after the chop (read every 50 ms); throttle ${chopSeen.at(-1).throttle}`);
+    console.log(`     reported: the frame rate on the runway (the overlay's, this browser drawing in software): ${fps(idleSeen).toFixed(1)} a second at idle, ${fps(milSeen).toFixed(1)} at MIL, ${fps(abSeen).toFixed(1)} in full afterburner with both plumes lit`);
+    // Parked again, for what follows.
+    const n = (await now()).flight;
+    await c.click('#pause');
+    await c.click('#restart');
+    await until((m) => window.fsg.picture.flight > m && window.fsg.picture.flying, n, 10000);
+    await c.waitForTimeout(1500);
+  }
   // With the crash override off, flown into the ground at more than 1,575 ft/min: the crashed screen.
   await c.click('#pause');
   await c.click('#override');
@@ -777,6 +840,17 @@ check(!js.error && js.build === 'weh' && (await text('#dev')).includes('wasm exc
   await c.click('#override');
   await c.click('#resume');
   const third = await takeOff();
+  // For the owner, the plumes just after liftoff in full afterburner (PR 9), the view dragged round: from the side, and from behind and to one side.
+  // Taken here, in a flight whose picture timing is not one of the lines: the sharper pictures slow this browser's frames for the moment.
+  for (const [name, dx] of [['plumes-air-side.png', 360], ['plumes-air-quarter.png', 150]]) {
+    if (!shots) break;
+    await c.mouse.move(250, 250);
+    await c.mouse.down();
+    await c.mouse.move(250 + dx, 240, { steps: 8 });
+    await sharpShot(name);
+    await c.mouse.up();
+    await c.waitForTimeout(1000);
+  }
   await until(() => window.fsg.picture.aboveGroundFt > 300, null, 60000);
   await hold(-55, 'level');
   // Its centre of gravity stands 6.4 ft up: under 10 ft it is at the ground. The fastest sink on the way down is kept, read every 50 ms.

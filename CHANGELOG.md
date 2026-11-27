@@ -2,6 +2,10 @@
 
 What changed in each version a player can see, newest first.
 
+## 0.0.20
+
+- Afterburner plumes: a short orange flame behind each engine, which lights only once that engine's afterburner does, grows with it, and goes out at MIL or below.
+
 ## 0.0.19
 
 - The F-4C Phantom II takes the Cessna's place: it starts on the numbers with the gear down, flaps at 1/2 and the brakes on, with Gear, Boards and Brakes buttons, flaps that read Up, 1/2 and Full, and a throttle that stops at MIL and turns the knob orange in afterburner.
