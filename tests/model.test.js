@@ -341,10 +341,18 @@ for (const model of MODELS) {
       at.forEach((feet, k) => assert.ok(Math.abs(feet - reference.value[k]) <= 0.005, 'the reference is the model\'s, to the hundredth of a foot'));
     });
 
-    it('"its speedbrake point within 1 in of the model\'s panels"', { todo: 'the aircraft file gains its speedbrakes in pull request 7' }, () => {
+    it('"its speedbrake point within 1 in of the model\'s panels"', async () => {
+      // The aircraft file's speedbrakes (pull request 7): their drag is an external force, acting at a point in
+      // the structural frame (inches, x aft, y right, z up), here from the centre of gravity as loaded.
+      const { cg } = await standing();
       const xml = bytesOf(aircraft, aircraft.files[0]).toString().replace(/<!--[^]*?-->/g, '');
-      assert.ok(/speedbrake/i.test(xml), `${aircraft.files[0]} has no speedbrakes yet: when it has, its point is compared here with [${reference.value.join(', ')}] ft`);
-      assert.fail('the aircraft file has speedbrakes: compare its point with the reference here, within 1 in');
+      const force = xml.match(/<force name="speedbrake"[^>]*>([^]*?)<\/force>/);
+      assert.ok(force, `${aircraft.files[0]} has a speedbrake force`);
+      const [x, y, z] = ['x', 'y', 'z'].map((axis) => Number(force[1].match(new RegExp(`<location unit="IN">[^]*?<${axis}>\\s*([-\\d.]+)\\s*</${axis}>`))[1]));
+      const inFile = [-(x - cg[0]) / 12, (y - cg[1]) / 12, -(z - cg[2]) / 12], model = speedbrakeAt(glb);   // feet forward, right and down
+      const off = inFile.map((feet, k) => (feet - model[k]) * 12);
+      say(`the aircraft file's speedbrake point is [${inFile.map((feet) => feet.toFixed(3)).join(', ')}] ft forward, right and down; the model's open panels' middle [${model.map((feet) => feet.toFixed(3)).join(', ')}]: ${off.map((inches) => inches.toFixed(2)).join(', ')} in off`);
+      off.forEach((inches) => assert.ok(Math.abs(inches) <= 1, `${inches} in`));
     });
   }
 }

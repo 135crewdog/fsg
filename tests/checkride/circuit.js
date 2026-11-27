@@ -4,6 +4,7 @@
 // From parked on the numbers: take off, a left-hand pattern, land, stop, brakes on. The crash override is off.
 import { C172X } from '../../src/sim/aircraft/c172x.js';
 import { F16 } from '../../src/sim/aircraft/f16.js';
+import { F4C } from '../../src/sim/aircraft/f4c.js';
 import { DT, Flight } from '../../src/sim/game.js';
 import { FIELD } from '../../src/sim/world.js';
 import { circuitPilot, readout } from './pilot.js';
@@ -25,6 +26,22 @@ export const CIRCUIT = new Map([
     flareFt: 60, wheelsFt: 5.5, flare: { fpmPerFt: 15, leastFpm: 180, mostFpm: 900, gain: 0.006, mostChange: 2, leastPitch: 2, mostPitch: 12, idleFt: 8 },
     pitch: { p: 0.06, i: 0.03, d: 0.025 }, power: { p: 0.02, i: 0.004 }, roll: { p: 0.03, i: 0.01, d: 0.012 }, steer: { heading: 0.1, across: 0.005, most: 0.3, slowKt: 0 }, cruisePower: 0.3, mostPower: 0.75,
   }],
+  // The F-4C's pattern (milestone 3, pull request 7: docs/milestones/3.md, "The circuit"). The plan's: takeoff on
+  // 1/2 flaps (the flight manual's) in full afterburner, a 1,500 ft pattern, downwind at 250 knots, the gear and
+  // full flaps abeam the landing end, final at the approach speed: 147 knots, 11.7 degrees of angle of attack
+  // at this weight (tests/f4c-low.test.js). The flight manual's: fly it off at 10 degrees nose up ("pitch
+  // attitude must be controlled to maintain a 10 to 12 nose high attitude for aircraft fly-off"). The rest is
+  // the pilot's: the climb and the pattern at MIL (the stick's 0.8: no afterburner after the takeoff), a base
+  // leg at 150 knots, the aim point 1,000 ft down the runway, and a flare from 40 ft that takes the sink from
+  // about 800 ft/min to 200 to 400 at the wheels, which are about 7 ft below the centre of gravity at the
+  // landing attitude. Stopped on the brakes alone. The stick is a pull in pounds through the feel system;
+  // the pilot's loops close on the attitude as they do for the F-16, with the same numbers (found by trying).
+  [F4C, {
+    patternFt: 1500, downwindKt: 250, baseKt: 150, finalKt: 147,
+    rotateKt: 145, climbPitch: 10, climbPower: 0.8, takeoffFlaps: 0.5, turnAfterFt: 20000, turnBank: 45, baseBank: 30, baseFt: 30000, aimFt: 1000, lineUp: 0.08,
+    flareFt: 40, wheelsFt: 7, flare: { fpmPerFt: 15, leastFpm: 200, mostFpm: 800, gain: 0.006, mostChange: 2, leastPitch: 4, mostPitch: 12, idleFt: 10 },
+    pitch: { p: 0.06, i: 0.03, d: 0.025 }, power: { p: 0.02, i: 0.004 }, roll: { p: 0.03, i: 0.01, d: 0.012 }, steer: { heading: 0.1, across: 0.005, most: 0.3, slowKt: 0 }, cruisePower: 0.5, mostPower: 0.8,
+  }],
 ]);
 
 const SEVEN = ['pitch', 'roll', 'throttle', 'gear', 'flaps', 'speedbrake', 'brake'];
@@ -38,7 +55,7 @@ export function flyCircuit(module, aircraft, { record = false, field = FIELD, mo
   const flight = Flight.start(module, aircraft, { crashOverride: false, record });
   const pilot = circuitPilot(how, { field });
   const fuel = flight.value('propulsion/total-fuel-lbs');
-  const out = { how, events: [], downwind: { low: Infinity, high: -Infinity, slow: Infinity, fast: -Infinity, seconds: 0 }, highest: 0, controls: new Set(), stoppedFor: 0 };
+  const out = { how, events: [], downwind: { low: Infinity, high: -Infinity, slow: Infinity, fast: -Infinity, seconds: 0 }, final: { slow: Infinity, fast: -Infinity, seconds: 0 }, highest: 0, controls: new Set(), stoppedFor: 0 };
   for (let step = 0; step < mostSeconds / DT && !flight.ended && out.stoppedFor < 2; step++) {
     const seen = readout(flight, field);
     const controls = pilot(seen);
@@ -47,6 +64,11 @@ export function flyCircuit(module, aircraft, { record = false, field = FIELD, mo
     if (pilot.events.downwind && !pilot.events.abeam) {
       const d = out.downwind;
       d.low = Math.min(d.low, seen.feet); d.high = Math.max(d.high, seen.feet); d.slow = Math.min(d.slow, seen.knots); d.fast = Math.max(d.fast, seen.knots); d.seconds += DT;
+    }
+    // Final (milestone 3, pull request 7): from the first moment on the runway's heading (within 10 degrees) after the base turn, to the flare.
+    if (pilot.phase === 'final' && (out.final.seconds > 0 || Math.abs(seen.heading) < 10)) {
+      const f = out.final;
+      f.slow = Math.min(f.slow, seen.knots); f.fast = Math.max(f.fast, seen.knots); f.seconds += DT;
     }
     out.highest = Math.max(out.highest, seen.feet);
     if (pilot.events.stopped) out.stoppedFor += DT;   // two seconds more with the brakes on

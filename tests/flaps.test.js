@@ -46,10 +46,11 @@ test('which airplane has the lever: more than one flap setting, the two buttons;
   assert.equal(flapSettings(F16), null, 'the F-16, whose flaps are its flight computer\'s: no lever');
   assert.ok(!buttonsFor(F16).some(([control]) => control === 'flaps'), 'and no Flaps button either');
   assert.equal(flapSettings({ ...LIKE_F4C, controls: { flaps: { to: [] } } }), null, 'settings that drive nothing: no lever');
-  // FSG's own F-4C (pull request 3) has no flaps in its aircraft file yet: nothing shows, and it parks as it did.
-  assert.equal(flapSettings(F4C), null, 'the F-4C, for now: no lever');
-  assert.ok(!buttonsFor(F4C).some(([control]) => control === 'flaps'), 'and no Flaps button');
-  assert.equal(parkedFor(F4C), PARKED, 'it parks as an airplane with no settings does');
+  // FSG's own F-4C had no flaps in its aircraft file until pull request 7: now it has the lever, Up, 1/2 and Full,
+  // and parks at 1/2, its takeoff setting (tests/f4c-low.test.js reads the flaps back in JSBSim).
+  assert.equal(flapSettings(F4C), F4C.flaps.settings, 'the F-4C: the lever');
+  assert.deepEqual(F4C.flaps.settings.map((s) => s.reads), ['Up', '1/2', 'Full']);
+  assert.deepEqual(parkedFor(F4C), { ...PARKED, flaps: 0.5 }, 'it parks at 1/2 flaps');
 });
 
 for (const [name, aircraft, reads] of LEVERS) {

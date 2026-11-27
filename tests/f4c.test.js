@@ -321,10 +321,11 @@ for (const variant of VARIANTS) {
     assert.equal(flight.get('fcs/mil-throttle-norm'), F4C.mil, 'the file\'s MIL is the settings\'');
     assert.equal(F4C.jet, true);
     // Everything the game writes is a cockpit control, and both engines have the one throttle. (The pitch
-    // trim came with the aerodynamics, pull request 5: the copilot's neutral trim, set once.)
-    assert.deepEqual(assistWrites(F4C.assists), ['fcs/pitch-trim-cmd-norm', 'fcs/steer-cmd-norm']);
-    assert.deepEqual([...flight.inputNames].sort(), ['fcs/aileron-cmd-norm', 'fcs/elevator-cmd-norm', 'fcs/left-brake-cmd-norm', 'fcs/pitch-trim-cmd-norm', 'fcs/right-brake-cmd-norm', 'fcs/steer-cmd-norm',
-      'fcs/throttle-cmd-norm', 'fcs/throttle-cmd-norm[1]', 'gear/gear-cmd-norm']);
+    // trim came with the aerodynamics, pull request 5: the copilot's neutral trim, set once. The flaps and the
+    // speedbrakes came with pull request 7, and with them the copilot's feet: the rudder.)
+    assert.deepEqual(assistWrites(F4C.assists), ['fcs/pitch-trim-cmd-norm', 'fcs/rudder-cmd-norm', 'fcs/steer-cmd-norm']);
+    assert.deepEqual([...flight.inputNames].sort(), ['fcs/aileron-cmd-norm', 'fcs/elevator-cmd-norm', 'fcs/flap-cmd-norm', 'fcs/left-brake-cmd-norm', 'fcs/pitch-trim-cmd-norm', 'fcs/right-brake-cmd-norm',
+      'fcs/rudder-cmd-norm', 'fcs/speedbrake-cmd-norm', 'fcs/steer-cmd-norm', 'fcs/throttle-cmd-norm', 'fcs/throttle-cmd-norm[1]', 'gear/gear-cmd-norm']);
     flight.fly({ throttle: 0.5 });
     run(flight, 1);
     assert.ok(flight.get('fcs/throttle-cmd-norm') === 0.5 && flight.get('fcs/throttle-cmd-norm[1]') === 0.5 && toEngine(flight, 0) === toEngine(flight, 1), 'the one throttle works both engines');

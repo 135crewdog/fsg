@@ -1,12 +1,14 @@
 // The game's settings for the F-4C Phantom II, FSG's own aircraft file (aircraft/f4c/f4c.xml). New in FSG,
 // milestone 3 (docs/milestones/3.md, pull request 3), after c172p.js and f16.js.
 //
-// So far the file has weight, wheels, engines, its aerodynamics across its Mach range (pull request 5) and,
-// since pull request 6, its own flight controls (feel system, stability augmentation, interconnect): it
-// flies, headless. It is not in the app yet (the Cessna
-// still flies there); pull request 8 puts it in. Everything here is about the game; the airplane itself,
+// So far the file has weight, wheels, engines, its aerodynamics across its Mach range (pull request 5),
+// since pull request 6 its own flight controls (feel system, stability augmentation, interconnect), and
+// since pull request 7 its flaps, gear drag, speedbrakes and ground effect: it flies a circuit, headless.
+// It is not in the app yet (the Cessna still flies there); pull request 8 puts it in. Everything here is about the game; the airplane itself,
 // with its own throttle system and afterburner, is the aircraft file.
 import { WINGS_CRASH_FPM } from '../rules.js';
+
+const DEG = Math.PI / 180;
 
 export const F4C = {
   /** JSBSim's name for it: aircraft/f4c/f4c.xml. */
@@ -27,7 +29,8 @@ export const F4C = {
    * rule every condition is within 9% and most within 2% (Supported: tests/f4c-conditions.test.js flies both).
    * On its wheels nothing changes: standing and the engine run-up (tests/f4c.test.js), and in a throwaway
    * run a full-afterburner roll to 340 knots and a firm arrival at 160 (one touch, 4.4 g on both rules);
-   * pull request 7's circuit tests the roll and the landing properly. The test aircraft keep JSBSim's
+   * pull request 7's circuit, flown on both rules, takes off, lands and stops within 3 ft and 3 ft/min of
+   * each other, and parked the jet is still on both (tests/f4c-low.test.js). The test aircraft keep JSBSim's
    * default, which milestones 1 and 2 tested them on.
    */
   stepping: [3, 3, 3, 4],
@@ -54,7 +57,7 @@ export const F4C = {
   standingPitchDeg: -0.07,
   /**
    * Which JSBSim command each of the game's seven controls drives (as in c172x.js). The one throttle works
-   * both engines. The flaps and the speedbrakes drive nothing yet: the file gets them in pull request 7.
+   * both engines. The flaps and the speedbrakes drive the aircraft file's own (pull request 7).
    * The stick's two commands are JSBSim's standard ones, and the aircraft file's flight controls say what
    * they mean (pull request 6): the pitch stick is a pull in pounds (full back 103 lb, full forward 48: the
    * file's fcs/stick/full-pull-lbs and full-push-lbs), which the jet's feel system turns into stabilator; the
@@ -65,9 +68,22 @@ export const F4C = {
     roll: { to: ['fcs/aileron-cmd-norm'], sign: 1 },
     throttle: { to: ['fcs/throttle-cmd-norm', 'fcs/throttle-cmd-norm[1]'] },
     gear: { to: ['gear/gear-cmd-norm'] },
-    flaps: { to: [] },
-    speedbrake: { to: [] },
+    flaps: { to: ['fcs/flap-cmd-norm'] },
+    speedbrake: { to: ['fcs/speedbrake-cmd-norm'] },
     brake: { to: ['fcs/left-brake-cmd-norm', 'fcs/right-brake-cmd-norm'] },
+  },
+  /**
+   * Its flap settings, from up to fully down (milestone 3, PR F; the aircraft file's flaps, pull request 7).
+   * The flight manual's switch: UP, 1/2 and DN, "Selecting the 1/2 position moves the leading edge flaps to
+   * the full down position and the trailing edge flaps 1/2 down. Selection of DN, moves the trailing edge
+   * flaps to the fully extended position" (T.O. 1F-4C-1, section I, "Wing flap switch"). The indicator reads
+   * "Up", "1/2" and "Full" (the plan's, docs/milestones/3.md). Every flight starts at 1/2, the flight manual's
+   * takeoff setting ("full flap takeoffs are prohibited"). tests/f4c-low.test.js reads back that each `at`
+   * puts the flaps there.
+   */
+  flaps: {
+    settings: [{ at: 0, reads: 'Up' }, { at: 0.5, reads: '1/2' }, { at: 1, reads: 'Full' }],
+    takeoff: 1,
   },
   /**
    * Where MIL is on the game's throttle, 0 to 1: beyond it is the afterburner. The aircraft file's throttle
@@ -87,16 +103,31 @@ export const F4C = {
    *          the trim moves the feel system's neutral, so it means the trimmed stabilator with no force on
    *          the stick: JSBSim's trim finds -0.0191 again (tests/f4c-fcs.test.js). The airplane is the same
    *          left and right, so there is no roll trim.
-   *   feet   None yet: the pedals stay in the middle. The jet's own yaw damper and aileron-rudder
-   *          interconnect are in the aircraft file (pull request 6); pull request 7 decides what more is
-   *          the copilot's.
-   *   steer  The nosewheel, straight from the stick with no fade, as f16.js has it for now. Pull request 7
-   *          gives the jet its copilot's feet on the ground; until then no test taxis it at speed.
+   *          With the flaps (pull request 7) the trim is the same: they are up at 350 knots. JSBSim's trim
+   *          there still finds -0.0191 (tests/f4c-low.test.js, which flies it hands off for a minute).
+   *   feet   Wings' feet (src/sim/assists.js, wingsFeet), on top of the jet's own yaw damper and, with the
+   *          flaps down and slow, its aileron-rudder interconnect, both in the aircraft file. Kept because
+   *          they still help: rolling into and out of a 30 degree bank with full stick, the most sideslip with
+   *          the copilot's feet and without them was 2.6 and 23 degrees at 150 knots with gear and flaps down,
+   *          3.4 and 14 at 200, and 0.9 and 2.0 clean at 250 (Supported: tests/f4c-low.test.js reports it).
+   *          The yaw damper's 5 degrees and the interconnect's stick-linked rudder do not hold the ball in a
+   *          brisk roll on approach; the feet do. JSBSim's rudder command is positive nose left.
+   *   steer  The copilot's feet on the ground (milestone 3, PR 2), as c172p.js has them, with the F-4C's
+   *          numbers. The nosewheel's share of the tilt: a half at 28 knots, 6% at 70 (the flight manual: "use
+   *          nose gear steering until the rudder becomes effective at approximately 70 knots"; the plan's
+   *          line is 10% or less there), 2% at 100. The rudder holds the nose against what the tilt did not
+   *          ask for. The hold's numbers are the Cessna's (tried first, and they meet every line of PR 2 on
+   *          the jet: tests/f4c-low.test.js), but the wheelbase, the jet's own: 23.27 ft from the nosewheel to
+   *          the mains (the aircraft file's gear). The nosewheel turns 70 degrees each way (the flight manual;
+   *          the aircraft file).
    */
   assists: {
     trim: { knots: 350, heightFt: 2000, sets: [['fcs/pitch-trim-cmd-norm', -0.0191]] },
-    feet: null,
-    steer: { wheel: { to: 'fcs/steer-cmd-norm', sign: 1, halfAtKt: 0 } },
+    feet: { to: 'fcs/rudder-cmd-norm', sign: -1 },
+    steer: {
+      wheel: { to: 'fcs/steer-cmd-norm', sign: 1, halfAtKt: 28, power: 3 },
+      hold: { turnRadPerSec: 4 * DEG, follow: 0.65, wheelbaseFt: 23.27, rate: 6, heading: 40, forgetSeconds: 10 },
+    },
   },
   /** A name for each wheel and airframe contact point, in the aircraft file's order (tests/f4c.test.js checks it against the file). */
   contacts: ['nose wheel', 'left main wheel', 'right main wheel', 'nose', 'belly (left)', 'belly (right)', 'tail underside (left)', 'tail underside (right)',

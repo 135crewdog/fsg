@@ -72,7 +72,7 @@ export const RIGHT_ENGINE_EXIT = { value: [-16.16, 2.17, 0.61], unit: WHEEL_UNIT
 /**
  * The middle of the two speedbrake panels, fully open, on the centreline: where their drag acts. Measured from the
  * owner's model (models/f4c.glb, the same file as Wings') by models/measure.mjs; Wings' card has the same figure.
- * tests/model.test.js holds this number to the model. The aircraft file gets its speedbrakes in pull request 7.
+ * tests/model.test.js holds this number to the model, and the aircraft file's speedbrake point to it (pull request 7).
  */
 export const SPEEDBRAKE_PANELS = { value: [-5.99, 0, 2.49], unit: WHEEL_UNIT, source: WINGS, where: `models/f4c.glb, measured by models/measure.mjs (speedbrakeAt); ${CARD}, speedbrake_ft` };
 /** Gear up or down. Wings' figure: the flight manual gives none. */
@@ -156,3 +156,35 @@ export const MOST_G_AT_450 = { value: 7.9, unit: 'g', source: CR_2144, where: 'i
 export const WINGS_G_AT_FULL_TILT = { value: [3.0, 5.7, 8.3], unit: 'g at 250, 350 and 450 kt', source: WINGS, where: 'its checkride, as docs/milestones/3.md, pull request 6, quotes it' };
 export const WINGS_NEGATIVE_G = { value: -3, unit: 'g', source: WINGS, where: 'as docs/milestones/3.md, pull request 6, quotes it' };
 export const WINGS_ROLL_RATE_600 = { value: 183, unit: 'deg/s', source: WINGS, where: 'its checkride, as docs/milestones/3.md, pull request 6, quotes it' };
+
+// Low and slow (pull request 7): CR-2144's power approach (its condition 1), the flight manual's flaps,
+// stall, takeoff and landing, its F-4E appendix (a different engine and weight), and Wings' feel numbers.
+const PA = 'tables IV-1 and IV-2, condition 1 (the power approach), PDF p.76 and p.88';
+export const POWER_APPROACH_WEIGHT = { value: 33197, unit: 'lb', source: CR_2144, where: PA };
+export const POWER_APPROACH_KNOTS = { value: 136, unit: 'kt (true and calibrated, sea level)', source: CR_2144, where: PA };
+export const POWER_APPROACH_ALPHA = { value: 11.7, unit: 'degrees', source: CR_2144, where: PA };
+export const POWER_APPROACH_STABILATOR = { value: -9.1, unit: 'degrees, trailing edge down positive', source: CR_2144, where: PA };
+export const POWER_APPROACH_LIFT = { value: 0.915, unit: 'lift coefficient', source: CR_2144, where: 'table IV-1, PDF p.76' };
+export const POWER_APPROACH_DRAG = { value: 0.242, unit: 'drag coefficient', source: CR_2144, where: 'table IV-1, PDF p.76' };
+/** CR-2144's inertias at condition 1 (the file flies the clean ones at every weight). */
+export const POWER_APPROACH_INERTIAS = { value: [23669, 117506, 133730, 1575], unit: 'slug-ft2 (Ixx, Iyy, Izz, Ixz)', source: CR_2144, where: 'table IV-2, condition 1, PDF p.88' };
+export const FULL_FLAP_STALL = { value: [122, 126], unit: 'KCAS at 38,000 lb, full flaps, gear down, the nose slice ("26 to 30 units")', source: FLIGHT_MANUAL, where: 'section VI, figure 6-1, "Stall characteristics, F-4C": its chart is headed "POWER-ON STALL SPEEDS"' };
+export const FULL_FLAP_STALL_WEIGHT = { value: 38000, unit: 'lb', source: FLIGHT_MANUAL, where: 'section VI, figure 6-1, its example' };
+/** The owner's own figure, kept from Wings (CLAUDE.md, "Flying": "rotation at 150 knots"). */
+export const ROTATION_SPEED = { value: 150, unit: 'kt: the nosewheel lifts, takeoff flaps, full afterburner, stick full back', source: WINGS, where: `${CARD}, rotate_kt: the owner's figure, which CLAUDE.md keeps ("rotation at 150 knots")` };
+export const FLY_OFF_ATTITUDE = { value: [10, 12], unit: 'degrees nose up', source: FLIGHT_MANUAL, where: 'section II, "Normal takeoff": "pitch attitude must be controlled to maintain a 10 to 12 nose high attitude for aircraft fly-off"' };
+export const F4E_NOSEWHEEL_LIFTOFF = { value: [167, 55000], unit: 'kt at lb (2,000 ft, 20 C, 27% of the chord)', source: FLIGHT_MANUAL, where: 'its F-4E appendix (T.O. 1F-4C-1-1), figure B2-8, the sample problem' };
+export const ON_SPEED_UNITS = { value: 19.2, unit: 'units of angle of attack', source: FLIGHT_MANUAL, where: 'section VI, "Landing": "The optimum indicated AOA for approach is 19.2 units"; section I, the angle-of-attack system: "approach (19.2 units)"' };
+export const F4E_APPROACH = { value: [138, 32000, 2], unit: 'kt at lb, and kt more for each 1,000 lb', source: FLIGHT_MANUAL, where: 'its F-4E appendix (T.O. 1F-4C-1-1), figure B8-1, the sample problem; section II, "Heavy gross weight landing": "approximately 2 knots for each 1000-pound increase"' };
+export const HALF_FLAP_APPROACH_MORE = { value: 12, unit: 'kt over full flaps, on speed', source: FLIGHT_MANUAL, where: 'section II, "Half-flap landing": "an approximate 12 knot increase in final approach speed"' };
+export const F4E_LANDING_ROLL = { value: [7700, 30000], unit: 'ft at lb, without the drag chute, wet (RCR 14), 2,000 ft, 15 C', source: FLIGHT_MANUAL, where: 'its F-4E appendix (T.O. 1F-4C-1-1), figure B8-2, the sample problem' };
+export const FLAPS_DOWN_SECONDS = { value: 8, unit: 's', source: FLIGHT_MANUAL, where: 'section I, "Wing flaps": "Normal flap extension will be accomplished within 8 seconds"' };
+export const FLAPS_UP_SECONDS = { value: 6, unit: 's', source: FLIGHT_MANUAL, where: 'section I, "Wing flaps": "retraction will be accomplished within 6 seconds"' };
+export const NOSEWHEEL_STEERING_UNTIL = { value: 70, unit: 'kt', source: FLIGHT_MANUAL, where: 'section II, "Normal takeoff": "The rudder becomes effective for steering at approximately 70 knots"' };
+export const NOSEWHEEL_STEERING_LIMIT = { value: 70, unit: 'degrees each way', source: FLIGHT_MANUAL, where: 'section I, "Nose gear steering": "The limit of the nose gear steering system is 70 on each side of center"' };
+/** Wings' F-4C, as docs/milestones/3.md, pull request 7, quotes its checkride. */
+const WINGS_PR7 = 'its checkride, as docs/milestones/3.md, pull request 7, quotes it';
+export const WINGS_TAKEOFF = { value: [174, 1700], unit: 'kt and ft: liftoff speed and ground roll, full flaps', source: WINGS, where: WINGS_PR7 };
+export const WINGS_LEAN = { value: [0.09, -0.16, -0.36], unit: 'tilt for level flight at 250, 450 and 600 kt (back positive)', source: WINGS, where: WINGS_PR7 };
+export const WINGS_SPEEDBRAKE_SECONDS = { value: 1.5, unit: 's', source: WINGS, where: WINGS_PR7 };
+export const WINGS_IDLE_SLOWDOWN = { value: [76, 22, 5], unit: 's from 400 to 250 kt at idle, boards in and out; degrees the nose drops as they open', source: WINGS, where: WINGS_PR7 };
