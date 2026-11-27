@@ -60,6 +60,7 @@ To change a number in the aircraft file's tables, change it here first, with the
 **How it is used.**
 - `tools/f4c-mach.mjs` works the aircraft file's 22 tables of what Mach changes out of this file and `afwal-f4j.json`, and writes them between the file's two "MACH TABLES" marks. Its header says which number makes which cell.
 - `tests/f4c-conditions.test.js` works them out again and holds the aircraft file to them, cell for cell; then flies the airplane at CR-2144's nine clean conditions and lays its trim and its responses beside the record's.
+- `tools/f4c-thrust.mjs` anchors the engines' thrust tables (`aircraft/f4c/Engines/J79-GE-15.xml`) to its figure IV-9: its zero-excess-thrust line and its sea-level speed restriction; `tests/f4c-numbers.test.js` holds the engine file to it and flies the anchors.
 - `tests/checkride/f4c-reference.js` has the few lists a test names (each condition's Mach, height, trim and stabilator per g), and a test holds them to this file.
 
 To change one of the aircraft file's Mach tables, change the record or the tool, and run `node tools/f4c-mach.mjs --write`. Never the table by hand.

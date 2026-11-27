@@ -157,8 +157,23 @@ export const F4C = {
     'left wingtip', 'right wingtip', 'left stabilator tip', 'right stabilator tip', 'top of the fin'],
   /** The crash line: closing with the ground faster than this at a touch is a hard impact. Wings' 8 m/s. */
   crash: { closingFpm: WINGS_CRASH_FPM },
-  /** Limits, reported and not enforced. Placeholders until pull request 11: 8.5 g and 750 knots, Wings' card's g limit and a round speed. */
-  limits: { g: 8.5, knots: 750 },
+  /**
+   * Limits, reported and not enforced (src/sim/rules.js reports the lowest that applies at each step). The
+   * flight manual's, where its text gives a number (T.O. 1F-4C-1, section V, "Operating limitations"; pull
+   * request 11; tests/checkride/f4c-reference.js quotes each with its line):
+   *   g       8.5: "MAXIMUM CLEAN SUBSONIC (M= 0.72 OR LESS) AT COMBAT DESIGN GROSS WEIGHT - 37,500 POUNDS
+   *           8.5G" (figure 5-1). The jet flies at 38,924 lb and to Mach 2: what the limit is there is a chart
+   *           (figure 5-9, figure 5-10), not in the text, so 8.5 g stands everywhere (Reasoned).
+   *   knots   750 from sea level to 30,000 ft and 710 above (figure 5-5, the engine airspeed limits), read as
+   *           calibrated airspeed (the chart beside it is in knots; at sea level 750 is Mach 1.13, where NASA
+   *           CR-2144's envelope has its speed restriction). The airframe's own speed and Mach limits by
+   *           height are a chart (figure 5-4).
+   *   gear    250 knots and 0 to +2.0 g while it is out (figure 5-6, "LANDING GEAR EXTENDED")
+   *   flaps   250 knots and 0 to +2.0 g while they are out at all (figure 5-6, "WING FLAPS FULLY OR
+   *           PARTIALLY EXTENDED")
+   * The game reports only the upper ends: no negative g limit is in the text (a chart, figure 5-9).
+   */
+  limits: { g: 8.5, knots: 750, high: { aboveFt: 30000, knots: 710 }, gear: { knots: 250, g: 2 }, flaps: { knots: 250, g: 2 } },
   /**
    * The model's moving parts (src/render/surfaces.js), as c172p.js has them: for each of the model's six
    * motions (docs/models.md), the number of the state that drives it and that number's values where the

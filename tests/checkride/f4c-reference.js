@@ -149,7 +149,7 @@ export const SPOILER_PER_AILERON_CR = { value: 1.87, unit: 'degrees of spoiler f
 /** NASA CR-2144's pull per g, bobweight loop closed, augmentation off: sea level Mach 0.8 and 35,000 ft Mach 0.9 (conditions 2 and 6). */
 export const PULL_PER_G = { value: [12.5, 12.2], unit: 'lb/g', source: CR_2144, where: 'table IV-12 (FST/G), PDF p.104, conditions 2 and 6' };
 /** The flight manual's g limit at this weight, up to Mach 0.72: what full back tilt is sized to (docs/milestones/3.md, pull request 6). */
-export const G_LIMIT = { value: 8.5, unit: 'g', source: FLIGHT_MANUAL, where: 'section V, the g limit at 37,500 lb, as docs/milestones/3.md has it' };
+export const G_LIMIT = { value: 8.5, unit: 'g (clean, at 37,500 lb, up to Mach 0.72)', source: FLIGHT_MANUAL, where: 'section V, "Operating limitations", figure 5-1 (instrument markings, the accelerometer), p.5-2: "POSITIVE LOAD FACTOR (G) LIMITS MAXIMUM CLEAN SUBSONIC (M= 0.72 OR LESS) AT COMBAT DESIGN GROSS WEIGHT - 37,500 POUNDS 8.5G" (lines 29679 to 29687)' };
 /** CR-2144's most lift at 450 knots at sea level, as docs/milestones/3.md works it out. */
 export const MOST_G_AT_450 = { value: 7.9, unit: 'g', source: CR_2144, where: 'its maximum lift, as docs/milestones/3.md, pull request 6, gives it' };
 /** Wings' F-4C, full back tilt at sea level, and full right tilt at 600 knots: as docs/milestones/3.md quotes them. */
@@ -206,3 +206,15 @@ export const WING_ROCK_TIME_HISTORY = { value: [21, 11, 30, 60, 2.5, 3, 21, 6.3,
 export const WIND_UP_TURN_DEPARTURE = { value: [8, 1.5, 2.5], unit: 's shown, and s before its end that the attitude rolls and yaws away, read from the picture; the figure gives no speed, height, load factor, angle of attack or controls, only silhouettes 0.5 s apart', source: AFWAL, where: 'section G, PDF p.63 ("Both aircraft depart from a wind-up turn to the left") and its figure 34, PDF p.66: about 16 silhouettes each, about 8 s, the attitude going in the last 1.5 to 2.5 s' };
 /** Wings' F-4C at its stall, as docs/milestones/3.md, pull request 10, quotes its checkride. */
 export const WINGS_STALL = { value: [135, 21, 17, 1357], unit: 'kt; the nose from 21 to 17 degrees up; ft/min sinking', source: WINGS, where: 'its checkride, as docs/milestones/3.md, pull request 10, quotes it' };
+
+// The numbers (pull request 11). The limits are the flight manual's section V, "Operating limitations" ("line" is
+// the line in the text of T.O. 1F-4C-1 the checkride's references were read from); the anchors of the engines'
+// thrust are CR-2144's (tools/f4c-thrust.mjs reads them from aircraft/f4c/data/cr2144-f4c.json).
+const LIMITS = 'section V, "Operating limitations"';
+export const AIRSPEED_LIMIT = { value: [750, 30000, 710], unit: 'kt from sea level to ft; kt above it', source: FLIGHT_MANUAL, where: `${LIMITS}, figure 5-5 (engine airspeed limits), p.5-5: "SEA LEVEL TO 30,000 FEET ... POINT AT WHICH DUCT TEMP HI LIGHT ILLUMINATES (121°C), OR 750 KNOTS WHICHEVER OCCURS FIRST"; "30,000 FEET AND UP ... OR 710 KNOTS WHICHEVER OCCURS FIRST" (lines 30192 to 30213)` };
+export const GEAR_LIMIT = { value: [250, 2], unit: 'kt, g (0 to +2.0)', source: FLIGHT_MANUAL, where: `${LIMITS}, figure 5-6 (systems operation limitations), p.5-6: "LANDING GEAR EXTENDED 250 KNOTS 0 TO +2.0 G" (lines 30334 to 30338; the text's "0 TO • 2.0 G" read as +2.0)` };
+export const FLAPS_LIMIT = { value: [250, 2], unit: 'kt, g (0 to +2.0)', source: FLIGHT_MANUAL, where: `${LIMITS}, figure 5-6 (systems operation limitations), p.5-6: "WING FLAPS FULLY OR PARTIALLY EXTENDED 250 KNOTS 0 TO +2.0 G" (lines 30340 to 30344; "0 TO - 2.0 G" in the text, the same row as the gear's)` };
+/** The glide, engines out: "The aircraft will glide approximately 6 nautical miles for every 5000 feet of altitude. The recommended glide airspeed is 215 knots." */
+export const GLIDE = { value: [6, 5000, 215], unit: 'nm for every ft; kt', source: FLIGHT_MANUAL, where: 'section III, "Glide distance" (lines 20393 to 20398)' };
+/** The fastest of CR-2144's conditions: Mach 1.1 at sea level, as true airspeed (its VTO, 1,228 ft/s), and Mach 2.15 at 45,000 ft. */
+export const FASTEST_AT_SEA_LEVEL = { value: 728, unit: 'kt true (Mach 1.1)', source: CR_2144, where: 'table IV-2 (condition 3: M 1.1, VTO 1,228 ft/s = 727.6 kt), PDF p.88; the plan\'s "728 knots at sea level"' };
