@@ -82,6 +82,7 @@
 // moment, the pitching moment of the aileron and the spoiler, and what sideslip takes from the
 // stabilator's. Left out, as AFWAL leaves them out: CR-2144's lift for pitch rate and for the rate the
 // angle of attack changes at (Zq, Zw-dot: about 1% of the airplane's own speed), and the stabilator's drag.
+import { rollSideslipSlope } from './f4c-sideslip.mjs';
 import { readFileSync, writeFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 
@@ -220,7 +221,7 @@ function levelsAt({ alpha, stabilator, drag, lift, pitch, shift }, f) {
 export function valuesAt(condition) {
   const { alpha: a, stabilator, drag, lift, pitch, derivatives: d } = condition;
   const shift = (CR.tables['IV-2'].rows.find((r) => r.label === 'C.G.(MGC)').values[condition.fc - 1] * 100 - XREF) / 100, chords = CHORD / SPAN;
-  const ca = Math.cos(a / DEG), sa = Math.sin(a / DEG), at = (name) => afwal(name, a), slopeOf = (name) => slope((x) => afwal(name, x), a);
+  const ca = Math.cos(a / DEG), sa = Math.sin(a / DEG), at = (name) => (name === 'CRB1' ? rollSideslipSlope(a) : afwal(name, a)), slopeOf = (name) => slope((x) => afwal(name, x), a);
   const f = {}, plus = {};
   // Lift: the stabilator's, then the slope, then the level at the trim point.
   f['lift-stabilator'] = d.CLd / (at('CLSTAB') * DEG);
@@ -241,6 +242,7 @@ export function valuesAt(condition) {
   f['side-aileron'] = d.Cyda / ((afwalConstant('Cy_delta_a') + SPOILER * afwalConstant('Cy_delta_sp')) * DEG);
   f['side-rudder'] = d.Cydr / (at('CYDR') * DEG);
   // Roll.
+  // Below zero angle of attack the file's rolling moment from sideslip is no longer AFWAL's |alpha| rule (tools/f4c-sideslip.mjs).
   f['roll-sideslip'] = d.Clb / (at('CRB1') * DEG);
   f['roll-roll-rate'] = d.Clp / at('CRP1');
   f['roll-yaw-rate'] = d.Clr / at('CRR');

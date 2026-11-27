@@ -45,6 +45,8 @@ const file = bytesOf(F4C, F4C.files[0]).toString();
 const aerodynamics = file.slice(file.indexOf('<aerodynamics>'), file.indexOf('</aerodynamics>'));
 
 /** The 24 functions the model uses: set 1 of AFWAL's doubled ones (its Table 4, configuration A, the F-4J). */
+/** The large-sideslip bend's terms (pull request 10, round 3): each multiplied by the factors of the term it bends, not one of its own. */
+const BEND_TERMS = ['side-sideslip-bend', 'roll-sideslip-bend', 'roll-sideslip-below-zero', 'yaw-sideslip-bend'];
 const USED = ['CLBAS', 'CLSTAB', 'CDBAS', 'CYB', 'CYDR', 'CRB1', 'CRP1', 'CRR', 'CRDA', 'CRDSP', 'CRDR',
   'CMBAS', 'DCM1', 'CMQ', 'CMAD', 'CMSTAB', 'CMDA', 'CMDSP', 'CNB1', 'CNP', 'CNR', 'CNDA', 'CNDSP', 'CNDR'];
 
@@ -129,7 +131,7 @@ test.after(() => report.save());
 
 // ---- 1. The aircraft file's tables are the record's ----
 
-test('f4c: every table of AFWAL\'s in the aircraft file is its listing as read, cell for cell: the 24 functions of set 1; the only other tables are the 22 that carry what Mach changes', () => {
+test('f4c: every table of AFWAL\'s in the aircraft file is its listing as read, cell for cell: the 24 functions of set 1; the only other tables are the 22 that carry what Mach changes (and since then the flaps\' and gear\'s, ground effect\'s, and the large-sideslip bend\'s)', () => {
   // The first half of pull request 5 had these 24 and no other table. The second half added what Mach changes:
   // 22 tables in Mach and height, between two marks, which tests/f4c-conditions.test.js holds to their own record.
   const every = [...aerodynamics.matchAll(/<function name="([^"]+)">\s*<table>([^]*?)<\/table>\s*<\/function>/g)];
@@ -143,8 +145,13 @@ test('f4c: every table of AFWAL\'s in the aircraft file is its listing as read, 
   // Pull request 7 added the flaps' and the gear's 24 (between their own two marks, held to tools/f4c-flaps.mjs
   // by tests/f4c-low.test.js) and ground effect's two: none of them is AFWAL's.
   const mach = others.filter(([, name]) => /^aero\/(factor|increment)\//.test(name)), low = others.filter(([, name]) => /^aero\/(flaps|gear)\//.test(name));
+  // Pull request 10 (round 3) added TN D-6425's large-sideslip bend: four tables between their own two marks, held
+  // to tools/f4c-sideslip.mjs by tests/f4c-sideslip.test.js.
+  const bend = others.filter(([, name]) => /^aero\/sideslip\//.test(name));
+  const bendMarked = file.slice(file.indexOf('<!-- SIDESLIP TABLES'), file.indexOf('<!-- END OF SIDESLIP TABLES -->'));
+  assert.ok(bend.length === 4 && bendMarked.split('<table>').length - 1 === 4, 'the bend\'s four, all between their two marks');
   assert.ok(mach.length === 22 && low.length === 24, 'every other table is a factor or an increment of what Mach changes, or of the flaps and the gear');
-  assert.deepEqual(others.filter(([, name]) => !mach.some(([, n]) => n === name) && !low.some(([, n]) => n === name)).map(([, name]) => name), ['aero/ground-effect/lift-factor', 'aero/ground-effect/drag-factor'], 'and ground effect\'s two');
+  assert.deepEqual(others.filter(([, name]) => !mach.some(([, n]) => n === name) && !low.some(([, n]) => n === name) && !bend.some(([, n]) => n === name)).map(([, name]) => name), ['aero/ground-effect/lift-factor', 'aero/ground-effect/drag-factor'], 'and ground effect\'s two');
   const marked = file.slice(file.indexOf('<!-- MACH TABLES'), file.indexOf('<!-- END OF MACH TABLES -->'));
   assert.equal(marked.split('<table>').length - 1, mach.length, 'what Mach changes is all between its two marks');
   const flapsMarked = file.slice(file.indexOf('<!-- FLAP AND GEAR TABLES'), file.indexOf('<!-- END OF FLAP AND GEAR TABLES -->'));
@@ -191,7 +198,7 @@ test('f4c: every table of AFWAL\'s in the aircraft file is its listing as read, 
   assert.equal(declared.get('aero/constant/K-beta'), constant('K_beta^(Cm_delta_stab)'));
   const byDeclaration = [...declared].filter(([name]) => name.startsWith('aero/factor/')), byTable = others.map(([, name]) => name).filter((name) => name.startsWith('aero/factor/'));
   const shared = [...aerodynamics.matchAll(/<function name="(aero\/factor\/[a-z-]+)">\s*<property> aero\/factor\/[a-z-]+ <\/property>\s*<\/function>/g)].map((m) => m[1]);
-  const terms = [...aerodynamics.matchAll(/<function name="aero\/coefficient\/([a-z-]+)">/g)].map((m) => m[1]).filter((name) => !SIX.includes(name) && !name.endsWith('-mach'));
+  const terms = [...aerodynamics.matchAll(/<function name="aero\/coefficient\/([a-z-]+)">/g)].map((m) => m[1]).filter((name) => !SIX.includes(name) && !name.endsWith('-mach') && !BEND_TERMS.includes(name));
   assert.equal(terms.length, 26);
   assert.deepEqual([...byDeclaration.map(([name]) => name), ...byTable, ...shared].sort(), terms.map((term) => `aero/factor/${term}`).sort(), 'a factor for every term of Table 1, and no other');
   assert.ok(byDeclaration.every(([, value]) => value === 1), 'every factor that is a number is 1');
@@ -316,7 +323,7 @@ for (const variant of VARIANTS) {
     // All of it slower than Mach 0.3, where nothing of what Mach changes is in the airplane: read back, every factor 1 and every increment 0.
     assert.ok(seen.mach > 0.2 && seen.mach < 0.3, `the fastest state was at Mach ${seen.mach}`);
     const slow = startAt(module, { alpha: 4, beta: 0 });
-    for (const term of [...aerodynamics.matchAll(/<function name="aero\/coefficient\/([a-z-]+)">/g)].map((m) => m[1]).filter((name) => !SIX.includes(name) && !name.endsWith('-mach'))) {
+    for (const term of [...aerodynamics.matchAll(/<function name="aero\/coefficient\/([a-z-]+)">/g)].map((m) => m[1]).filter((name) => !SIX.includes(name) && !name.endsWith('-mach') && !BEND_TERMS.includes(name))) {
       assert.equal(slow.get(`aero/factor/${term}`), 1, `aero/factor/${term} at Mach ${slow.get('velocities/mach')}`);
     }
     for (const name of ['lift', 'drag', 'pitch', 'yaw-roll-rate', 'yaw-aileron']) assert.equal(slow.get(`aero/increment/${name}`), 0, `aero/increment/${name} at Mach ${slow.get('velocities/mach')}`);

@@ -6,7 +6,7 @@
 // since pull request 7 its flaps, gear drag, speedbrakes and ground effect: it flies a circuit, headless.
 // Since pull request 8 it is the airplane in the app, in the Cessna's place: its picture (`glb`, `surfaces`)
 // and the engines' numbers sent beside the state (`engines`); since pull request 9 its afterburner plumes
-// (`plumes`). Everything here is about the game; the airplane
+// (`plumes`); since pull request 10 the band its buffet shakes the camera in (`buffet`). Everything here is about the game; the airplane
 // itself, with its own throttle system and afterburner, is the aircraft file.
 import { WINGS_CRASH_FPM } from '../rules.js';
 
@@ -133,6 +133,25 @@ export const F4C = {
       hold: { turnRadPerSec: 4 * DEG, follow: 0.65, wheelbaseFt: 23.27, rate: 6, heading: 40, forgetSeconds: 10 },
     },
   },
+  /**
+   * The buffet the chase camera shakes with near the stall (src/sim/buffet.js; pull request 10), by the angle of
+   * attack. The flight manual (T.O. 1F-4C-1, section VI, "1-G Stalls"): "Onset of buffet normally occurs approximately
+   * 40 knots before the stall (around 14 units AOA), and increases from light to moderate preceding the stall". Its
+   * units have no scale to degrees, so the band is set by its knots:
+   *   fullDeg    22: the stall, where AFWAL-TR-80-3141 has the nose slice begin (section G, PDF p.59), the angle the
+   *              checkride's stall speed is read at
+   *   onsetDeg   10.5: where, slowing at 1 g to that stall clean at 15,000 ft, the jet is 40 knots faster than its
+   *              stall speed (tests/f4c-edge.test.js flies it and holds the onset to 30 to 50 knots above, the plan's line)
+   *   flaps      A departure from the plan's "from the angle of attack and the speed" only: the flaps are a third input,
+   *              because the flight manual gives the flapped jet a different buffet: "There is virtually no increase
+   *              in airframe buffet during stall approaches and only light to moderate buffet will be experienced at
+   *              the stall" (section VI, "Landing Configuration Stalls", which adds "Stalls with one-half or full
+   *              flaps display essentially identical characteristics"), and "Avoid buffet through the landing
+   *              pattern" (section II, "Landing technique"). With the clean band alone an approach on speed (11.7
+   *              degrees) would shake all the way down. So with the flaps at 1/2 or more the shake begins only at
+   *              20 degrees; between up and 1/2, in proportion.
+   */
+  buffet: { onsetDeg: 10.5, fullDeg: 22, flapsOnsetDeg: 20, flapsAt: 0.5 },
   /** A name for each wheel and airframe contact point, in the aircraft file's order (tests/f4c.test.js checks it against the file). */
   contacts: ['nose wheel', 'left main wheel', 'right main wheel', 'nose', 'belly (left)', 'belly (right)', 'tail underside (left)', 'tail underside (right)',
     'left wingtip', 'right wingtip', 'left stabilator tip', 'right stabilator tip', 'top of the fin'],

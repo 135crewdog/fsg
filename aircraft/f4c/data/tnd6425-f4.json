@@ -1,0 +1,7872 @@
+{
+ "about_this_copy": "NASA TN D-6425 figure 7, the rudder-0 curves only (circles and their repeat squares), read for FSG milestone 3, pull request 10 (round 3), so that the F-4C file can take the report's bend of yaw, roll and side force with large sideslip. The values are the report's own coefficients, as printed (body axes, about 33% of the mean chord, the report's wing area and span); tools/f4c-sideslip.mjs moves them to AFWAL's reference and works out the file's tables.",
+ "source": {
+  "report": "NASA TN D-6425",
+  "title": "Static Force Tests of a Model of a Twin-Jet Fighter Airplane for Angles of Attack from -10 to 110 deg and Sideslip Angles from -40 to 40 deg",
+  "author": "Ernie L. Anglin, Langley Research Center",
+  "date": "August 1971",
+  "figure": "Figure 7, Effect of rudder deflection on the static lateral-directional stability coefficients as a function of angle of attack and sideslip angle, delta_h = 0 (panels a to z, -10 to 110 degrees)",
+  "pdf_pages": [
+   36,
+   50
+  ],
+  "model": "0.13-scale model of the F-4 (\"twin-jet high-performance fighter airplane designed for land and carrier-based operations\"), clean, horizontal tail at 0, Langley full-scale tunnel (30 by 60 ft open throat); \"the present tests were conducted at a tunnel velocity approximately equal to the expected velocity of the proposed free-flight model during spins\" (low speed; Reynolds number not stated in the text read)"
+ },
+ "axes_and_reference": {
+  "axes": "body axes (the report's symbols section and its figure 1: \"All forces and moments presented herein are referred to the body system of axes\")",
+  "moment_reference": "33 percent of the mean aerodynamic chord",
+  "wing_area_sqft": 538.34,
+  "span_ft": 38.41,
+  "mean_chord_ft": 16.04,
+  "to_afwal": "AFWAL's model is body-axis moments about 31% of the chord with 530 sq ft and a 38.67 ft span. The side force is multiplied by S_report/S_afwal (1.0157); the rolling moment by S b over S b (1.0089); the yawing moment is first moved 0.02 chord (0.321 ft) forward, Cn31 = Cn33 - (0.321/38.41) Cy, then multiplied by 1.0089. Each change is under 5% of a slope; tools/f4c-sideslip.mjs applies all three."
+ },
+ "how_read": {
+  "images": "The PDF's own scans (pdfimages: 1-bit CCITT at 300 dpi), not re-rendered. Page 38 is turned 1.05 degrees in the scan and was turned back first; the other pages lean under 0.2 degrees, left as they are (under 3 px across a plot).",
+  "calibration": "Sideslip: the plotted sideslip lines found in the scan (columns with long dark runs), each snapped to its expected place and fitted with a straight line (residual under 4 px). Coefficients: the printed axis labels found as rows of digits left of the plot frame, fitted with a straight line (residual under 3 px); where the label finder failed (alpha 25 rolling moment; 50; 60; 80, 85 and 100 yawing moment; 110) the label rows were read from 2x views and are named \"manual\" below.",
+  "reading_A": "Automatic: at each sideslip line a search for the rudder-0 symbol (a ring: circle or square, scored on all four quadrants so that the triangles of the other two rudder settings score lower), the one nearest reading B within 0.008 (yaw, roll) or 0.06 (side force) taken, its centre converted by the calibration. At alpha 50 (symbols filled) and 110 (labels touching the frame) reading A is a magnified eye reading (2.5 to 3 times the views of reading B).",
+  "reading_B": "By eye, done first and without reading A: every rudder-0 symbol read on views of the whole page at 0.36 to 0.5 scale. From -10 to 22.5 degrees reading B was taken as pixel positions and converted with reading A's calibration, so the two share their calibration there; from 25 degrees up reading B was read against the printed labels, independently.",
+  "agreement": {
+   "Cy": {
+    "pairs": 277,
+    "mean": -0.0061,
+    "rms": 0.014,
+    "max": 0.0478
+   },
+   "Cn": {
+    "pairs": 287,
+    "mean": 0.0,
+    "rms": 0.0025,
+    "max": 0.011
+   },
+   "Cl": {
+    "pairs": 279,
+    "mean": -0.0001,
+    "rms": 0.0019,
+    "max": 0.009
+   }
+  },
+  "reading_error": "Taken as the root-mean-square difference of the two readings: about 0.0025 in yawing moment, 0.002 in rolling moment and 0.014 in side force (reading B is the coarser of the two). Where they differ by more than 0.005 (yaw, roll) or 0.03 (side force) the measured reading A is used; at 80 degrees, where reading B differed by up to 0.008 in yawing moment, a 2x view of the plot confirmed reading A (reading B had misread that page's scale).",
+  "flags": "\"measured\": reading A, automatic; \"magnified eye reading\": reading A by eye on a 2.5 to 3x view; \"eyeballed\": reading B only, where reading A found no symbol. Nothing is interpolated between points: a point the plot does not show is left out."
+ },
+ "page_40_scale": "Panels (i) and (j), 20 and 22.5 degrees, are drawn about 1.6 times larger than the others, and their yawing-moment axis is printed .4, .2, 0, -.2, -.4. Read as .04, .02, 0, -.02, -.04: on that reading the rudder's effect at zero sideslip (about 0.015) and the slope at small sideslip (+0.0008 per degree at 20, -0.0015 at 22.5) sit between those of the panels either side (17.5: +0.0013; 25: -0.0011); on the printed scale both would be ten times larger. The side force (.2 a label, as printed) and rolling moment (.02) on that page are read as printed. Reasoned from that continuity; the two panels are used.",
+ "side_force_above_70_degrees": "AFWAL's CYB is positive from 70 degrees up (+0.0006 at 70, +0.003 at 80 to 110: afwal-f4j.json as the listing prints it). The report agrees within 10 degrees of sideslip: its small-sideslip slope is positive or near zero there too (+0.0018 at 70, +0.0016 at 75, -0.0005 and +0.0002 at 80 and 85, +0.0011 to +0.0026 at 90 to 110; the cross-check below), never the large negative slope of its overall trend, while past about 15 degrees its side force falls steeply (about -0.003 a degree overall from -40 to 40). So the record matches the print and both are right: the positive slope is the small-sideslip part only, and the bend beyond 10 degrees (this record) carries the rest. Listed as a doubt resolved, nothing changed.",
+ "cross_check_within_10_degrees": {
+  "how": "The report's slope over plus and minus 10 degrees (the odd part, (C(beta) - C(-beta))/2, at 5 and 10 degrees, least squares through zero), moved to AFWAL's reference, beside AFWAL's per-degree table at the same angle of attack (its value at |alpha| for a negative angle, as AFWAL's Table 1 does; CNB1 held at 45 above 45).",
+  "finding": "Below the stall AFWAL's slopes are not this report's: yawing moment 18 to 21% larger in the report from -10 to 5 degrees, side force 14 to 22% larger, and the rolling moment at 0 degrees 41% smaller, and the rolling moment at negative angles of attack of the other sign (at -10 degrees +0.0005 against AFWAL's -0.0024). AFWAL says why: its model below about 30 degrees is its reference 16 (STI's F-4J data package, from McDonnell's spin-evaluation data, NASA Langley tabulations and NASA's simulator data, normalised to trim Mach number), and this report gave only the trends beyond (AFWAL-TR-80-3141 Part III, section E, PDF p.38-39). Through the stall and above, the two differ by more again. That is why only the report's departure from its own straight line is used beyond 10 degrees, never its level.",
+  "table": [
+   {
+    "alpha_deg": -10,
+    "Cy": {
+     "report_per_deg": -0.013142,
+     "afwal_per_deg": -0.011,
+     "difference_percent": 19
+    },
+    "Cn": {
+     "report_per_deg": 0.002549,
+     "afwal_per_deg": 0.0021,
+     "difference_percent": 21
+    },
+    "Cl": {
+     "report_per_deg": 0.000472,
+     "afwal_per_deg": -0.00236,
+     "difference_percent": -120
+    }
+   },
+   {
+    "alpha_deg": -5,
+    "Cy": {
+     "report_per_deg": -0.013369,
+     "afwal_per_deg": -0.011,
+     "difference_percent": 22
+    },
+    "Cn": {
+     "report_per_deg": 0.002663,
+     "afwal_per_deg": 0.0022,
+     "difference_percent": 21
+    },
+    "Cl": {
+     "report_per_deg": 4.4e-05,
+     "afwal_per_deg": -0.00175,
+     "difference_percent": -103
+    }
+   },
+   {
+    "alpha_deg": 0,
+    "Cy": {
+     "report_per_deg": -0.012591,
+     "afwal_per_deg": -0.011,
+     "difference_percent": 14
+    },
+    "Cn": {
+     "report_per_deg": 0.002659,
+     "afwal_per_deg": 0.0022,
+     "difference_percent": 21
+    },
+    "Cl": {
+     "report_per_deg": -0.000773,
+     "afwal_per_deg": -0.00132,
+     "difference_percent": -41
+    }
+   },
+   {
+    "alpha_deg": 5,
+    "Cy": {
+     "report_per_deg": -0.012949,
+     "afwal_per_deg": -0.011,
+     "difference_percent": 18
+    },
+    "Cn": {
+     "report_per_deg": 0.002589,
+     "afwal_per_deg": 0.0022,
+     "difference_percent": 18
+    },
+    "Cl": {
+     "report_per_deg": -0.001935,
+     "afwal_per_deg": -0.00175,
+     "difference_percent": 11
+    }
+   },
+   {
+    "alpha_deg": 10,
+    "Cy": {
+     "report_per_deg": -0.011852,
+     "afwal_per_deg": -0.011,
+     "difference_percent": 8
+    },
+    "Cn": {
+     "report_per_deg": 0.002366,
+     "afwal_per_deg": 0.0021,
+     "difference_percent": 13
+    },
+    "Cl": {
+     "report_per_deg": -0.002353,
+     "afwal_per_deg": -0.00236,
+     "difference_percent": 0
+    }
+   },
+   {
+    "alpha_deg": 12.5,
+    "Cy": {
+     "report_per_deg": -0.013828,
+     "afwal_per_deg": -0.011,
+     "difference_percent": 26
+    },
+    "Cn": {
+     "report_per_deg": 0.002399,
+     "afwal_per_deg": 0.0017,
+     "difference_percent": 41
+    },
+    "Cl": {
+     "report_per_deg": -0.002581,
+     "afwal_per_deg": -0.002275,
+     "difference_percent": 13
+    }
+   },
+   {
+    "alpha_deg": 15,
+    "Cy": {
+     "report_per_deg": -0.012071,
+     "afwal_per_deg": -0.011,
+     "difference_percent": 10
+    },
+    "Cn": {
+     "report_per_deg": 0.001751,
+     "afwal_per_deg": 0.0013,
+     "difference_percent": 35
+    },
+    "Cl": {
+     "report_per_deg": -0.002238,
+     "afwal_per_deg": -0.00219,
+     "difference_percent": 2
+    }
+   },
+   {
+    "alpha_deg": 17.5,
+    "Cy": {
+     "report_per_deg": -0.011762,
+     "afwal_per_deg": -0.011,
+     "difference_percent": 7
+    },
+    "Cn": {
+     "report_per_deg": 0.001454,
+     "afwal_per_deg": 0.00035,
+     "difference_percent": 315
+    },
+    "Cl": {
+     "report_per_deg": -0.001144,
+     "afwal_per_deg": -0.001685,
+     "difference_percent": -32
+    }
+   },
+   {
+    "alpha_deg": 20,
+    "Cy": {
+     "report_per_deg": -0.010044,
+     "afwal_per_deg": -0.011,
+     "difference_percent": -9
+    },
+    "Cn": {
+     "report_per_deg": 0.000915,
+     "afwal_per_deg": -0.0006,
+     "difference_percent": -252
+    },
+    "Cl": {
+     "report_per_deg": -0.000839,
+     "afwal_per_deg": -0.00118,
+     "difference_percent": -29
+    }
+   },
+   {
+    "alpha_deg": 22.5,
+    "Cy": {
+     "report_per_deg": -0.007921,
+     "afwal_per_deg": -0.011,
+     "difference_percent": -28
+    },
+    "Cn": {
+     "report_per_deg": -0.001401,
+     "afwal_per_deg": -0.00195,
+     "difference_percent": -28
+    },
+    "Cl": {
+     "report_per_deg": 6.5e-05,
+     "afwal_per_deg": -0.00062,
+     "difference_percent": -110
+    }
+   },
+   {
+    "alpha_deg": 25,
+    "Cy": {
+     "report_per_deg": -0.006931,
+     "afwal_per_deg": -0.011,
+     "difference_percent": -37
+    },
+    "Cn": {
+     "report_per_deg": -0.001074,
+     "afwal_per_deg": -0.0033,
+     "difference_percent": -67
+    },
+    "Cl": {
+     "report_per_deg": -8.1e-05,
+     "afwal_per_deg": -6e-05,
+     "difference_percent": 35
+    }
+   },
+   {
+    "alpha_deg": 30,
+    "Cy": {
+     "report_per_deg": -0.00294,
+     "afwal_per_deg": -0.011,
+     "difference_percent": -73
+    },
+    "Cn": {
+     "report_per_deg": -0.003067,
+     "afwal_per_deg": -0.004,
+     "difference_percent": -23
+    },
+    "Cl": {
+     "report_per_deg": 0.000339,
+     "afwal_per_deg": 0.00025,
+     "difference_percent": 36
+    }
+   },
+   {
+    "alpha_deg": 35,
+    "Cy": {
+     "report_per_deg": -0.002346,
+     "afwal_per_deg": -0.0092,
+     "difference_percent": -74
+    },
+    "Cn": {
+     "report_per_deg": -0.003996,
+     "afwal_per_deg": -0.0038,
+     "difference_percent": 5
+    },
+    "Cl": {
+     "report_per_deg": -0.000297,
+     "afwal_per_deg": -0.0001,
+     "difference_percent": 197
+    }
+   },
+   {
+    "alpha_deg": 40,
+    "Cy": {
+     "report_per_deg": -0.003153,
+     "afwal_per_deg": -0.0079,
+     "difference_percent": -60
+    },
+    "Cn": {
+     "report_per_deg": -0.002803,
+     "afwal_per_deg": -0.0026,
+     "difference_percent": 8
+    },
+    "Cl": {
+     "report_per_deg": -0.001483,
+     "afwal_per_deg": -0.00108,
+     "difference_percent": 37
+    }
+   },
+   {
+    "alpha_deg": 45,
+    "Cy": {
+     "report_per_deg": -0.003486,
+     "afwal_per_deg": -0.0065,
+     "difference_percent": -46
+    },
+    "Cn": {
+     "report_per_deg": -0.00169,
+     "afwal_per_deg": -0.002,
+     "difference_percent": -15
+    },
+    "Cl": {
+     "report_per_deg": -0.002222,
+     "afwal_per_deg": -0.0018,
+     "difference_percent": 23
+    }
+   },
+   {
+    "alpha_deg": 50,
+    "Cy": {
+     "report_per_deg": -0.002539,
+     "afwal_per_deg": -0.005,
+     "difference_percent": -49
+    },
+    "Cn": {
+     "report_per_deg": -0.001335,
+     "afwal_per_deg": -0.002,
+     "difference_percent": -33
+    },
+    "Cl": {
+     "report_per_deg": -0.002462,
+     "afwal_per_deg": -0.00222,
+     "difference_percent": 11
+    }
+   },
+   {
+    "alpha_deg": 55,
+    "Cy": {
+     "report_per_deg": -0.003718,
+     "afwal_per_deg": -0.0036,
+     "difference_percent": 3
+    },
+    "Cn": {
+     "report_per_deg": -0.001392,
+     "afwal_per_deg": -0.002,
+     "difference_percent": -30
+    },
+    "Cl": {
+     "report_per_deg": -0.002466,
+     "afwal_per_deg": -0.00241,
+     "difference_percent": 2
+    }
+   },
+   {
+    "alpha_deg": 60,
+    "Cy": {
+     "report_per_deg": -0.005054,
+     "afwal_per_deg": -0.0023,
+     "difference_percent": 120
+    },
+    "Cn": {
+     "report_per_deg": -0.001536,
+     "afwal_per_deg": -0.002,
+     "difference_percent": -23
+    },
+    "Cl": {
+     "report_per_deg": -0.002754,
+     "afwal_per_deg": -0.00255,
+     "difference_percent": 8
+    }
+   },
+   {
+    "alpha_deg": 65,
+    "Cy": {
+     "report_per_deg": -0.000796,
+     "afwal_per_deg": -0.0008,
+     "difference_percent": 0
+    },
+    "Cn": {
+     "report_per_deg": -0.00211,
+     "afwal_per_deg": -0.002,
+     "difference_percent": 6
+    },
+    "Cl": {
+     "report_per_deg": -0.002536,
+     "afwal_per_deg": -0.00268,
+     "difference_percent": -5
+    }
+   },
+   {
+    "alpha_deg": 70,
+    "Cy": {
+     "report_per_deg": 0.001753,
+     "afwal_per_deg": 0.0006,
+     "difference_percent": 192
+    },
+    "Cn": {
+     "report_per_deg": -0.001829,
+     "afwal_per_deg": -0.002,
+     "difference_percent": -9
+    },
+    "Cl": {
+     "report_per_deg": -0.002748,
+     "afwal_per_deg": -0.00279,
+     "difference_percent": -1
+    }
+   },
+   {
+    "alpha_deg": 75,
+    "Cy": {
+     "report_per_deg": 0.001641,
+     "afwal_per_deg": 0.002,
+     "difference_percent": -18
+    },
+    "Cn": {
+     "report_per_deg": -0.002524,
+     "afwal_per_deg": -0.002,
+     "difference_percent": 26
+    },
+    "Cl": {
+     "report_per_deg": -0.002783,
+     "afwal_per_deg": -0.00291,
+     "difference_percent": -4
+    }
+   },
+   {
+    "alpha_deg": 80,
+    "Cy": {
+     "report_per_deg": -0.000455,
+     "afwal_per_deg": 0.003,
+     "difference_percent": -115
+    },
+    "Cn": {
+     "report_per_deg": -0.004851,
+     "afwal_per_deg": -0.002,
+     "difference_percent": 143
+    },
+    "Cl": {
+     "report_per_deg": -0.002696,
+     "afwal_per_deg": -0.003,
+     "difference_percent": -10
+    }
+   },
+   {
+    "alpha_deg": 85,
+    "Cy": {
+     "report_per_deg": 0.000193,
+     "afwal_per_deg": 0.003,
+     "difference_percent": -94
+    },
+    "Cn": {
+     "report_per_deg": -0.004388,
+     "afwal_per_deg": -0.002,
+     "difference_percent": 119
+    },
+    "Cl": {
+     "report_per_deg": -0.003081,
+     "afwal_per_deg": -0.003,
+     "difference_percent": 3
+    }
+   },
+   {
+    "alpha_deg": 90,
+    "Cy": {
+     "report_per_deg": 0.001101,
+     "afwal_per_deg": 0.003,
+     "difference_percent": -63
+    },
+    "Cn": {
+     "report_per_deg": -0.003988,
+     "afwal_per_deg": -0.002,
+     "difference_percent": 99
+    },
+    "Cl": {
+     "report_per_deg": -0.003128,
+     "afwal_per_deg": -0.003,
+     "difference_percent": 4
+    }
+   },
+   {
+    "alpha_deg": 100,
+    "Cy": {
+     "report_per_deg": 0.002476,
+     "afwal_per_deg": 0.003,
+     "difference_percent": -17
+    },
+    "Cn": {
+     "report_per_deg": -0.002036,
+     "afwal_per_deg": -0.002,
+     "difference_percent": 2
+    },
+    "Cl": {
+     "report_per_deg": -0.00299,
+     "afwal_per_deg": -0.003,
+     "difference_percent": 0
+    }
+   },
+   {
+    "alpha_deg": 110,
+    "Cy": {
+     "report_per_deg": 0.00258,
+     "afwal_per_deg": 0.003,
+     "difference_percent": -14
+    },
+    "Cn": {
+     "report_per_deg": -0.000863,
+     "afwal_per_deg": -0.002,
+     "difference_percent": -57
+    },
+    "Cl": {
+     "report_per_deg": -0.002764,
+     "afwal_per_deg": -0.003,
+     "difference_percent": -8
+    }
+   }
+  ]
+ },
+ "panels": [
+  {
+   "alpha_deg": -10,
+   "pdf_page": 36,
+   "coefficients": {
+    "Cy": {
+     "points": [
+      {
+       "beta_deg": -20,
+       "value": 0.2593,
+       "flag": "measured",
+       "reading_A": 0.2593,
+       "reading_B": 0.2626
+      },
+      {
+       "beta_deg": -15,
+       "value": 0.1848,
+       "flag": "measured",
+       "reading_A": 0.1848,
+       "reading_B": 0.1848
+      },
+      {
+       "beta_deg": -10,
+       "value": 0.1183,
+       "flag": "measured",
+       "reading_A": 0.1183,
+       "reading_B": 0.1167
+      },
+      {
+       "beta_deg": -5,
+       "value": 0.0551,
+       "flag": "measured",
+       "reading_A": 0.0551,
+       "reading_B": 0.0518
+      },
+      {
+       "beta_deg": 0,
+       "value": -0.0114,
+       "flag": "measured",
+       "reading_A": -0.0114,
+       "reading_B": -0.0098
+      },
+      {
+       "beta_deg": 5,
+       "value": -0.073,
+       "flag": "measured",
+       "reading_A": -0.073,
+       "reading_B": -0.0778
+      },
+      {
+       "beta_deg": 10,
+       "value": -0.1411,
+       "flag": "measured",
+       "reading_A": -0.1411,
+       "reading_B": -0.1427
+      },
+      {
+       "beta_deg": 15,
+       "value": -0.2124,
+       "flag": "measured",
+       "reading_A": -0.2124,
+       "reading_B": -0.214
+      },
+      {
+       "beta_deg": 20,
+       "value": -0.2724,
+       "flag": "measured",
+       "reading_A": -0.2724,
+       "reading_B": -0.2789
+      }
+     ],
+     "calibration": {
+      "y_px_per_unit": -616.86,
+      "y_px_at_zero": 558.0,
+      "labels_used": 6,
+      "label_fit_residual_px": 2.4
+     }
+    },
+    "Cn": {
+     "points": [
+      {
+       "beta_deg": -20,
+       "value": -0.0498,
+       "flag": "measured",
+       "reading_A": -0.0498,
+       "reading_B": -0.0508
+      },
+      {
+       "beta_deg": -15,
+       "value": -0.0345,
+       "flag": "measured",
+       "reading_A": -0.0345,
+       "reading_B": -0.0345
+      },
+      {
+       "beta_deg": -10,
+       "value": -0.0192,
+       "flag": "measured",
+       "reading_A": -0.0192,
+       "reading_B": -0.0192
+      },
+      {
+       "beta_deg": -5,
+       "value": -0.0061,
+       "flag": "measured",
+       "reading_A": -0.0061,
+       "reading_B": -0.0062
+      },
+      {
+       "beta_deg": 0,
+       "value": 0.004,
+       "flag": "measured",
+       "reading_A": 0.004,
+       "reading_B": 0.0045
+      },
+      {
+       "beta_deg": 5,
+       "value": 0.0154,
+       "flag": "measured",
+       "reading_A": 0.0154,
+       "reading_B": 0.0159
+      },
+      {
+       "beta_deg": 10,
+       "value": 0.0305,
+       "flag": "measured",
+       "reading_A": 0.0305,
+       "reading_B": 0.0312
+      },
+      {
+       "beta_deg": 15,
+       "value": 0.0456,
+       "flag": "measured",
+       "reading_A": 0.0456,
+       "reading_B": 0.0461
+      },
+      {
+       "beta_deg": 20,
+       "value": 0.0554,
+       "flag": "measured",
+       "reading_A": 0.0554,
+       "reading_B": 0.0562
+      }
+     ],
+     "calibration": {
+      "y_px_per_unit": -6152.27,
+      "y_px_at_zero": 1543.8,
+      "labels_used": 11,
+      "label_fit_residual_px": 1.8
+     }
+    },
+    "Cl": {
+     "points": [
+      {
+       "beta_deg": -20,
+       "value": -0.0083,
+       "flag": "measured",
+       "reading_A": -0.0083,
+       "reading_B": -0.0075
+      },
+      {
+       "beta_deg": -15,
+       "value": -0.0023,
+       "flag": "measured",
+       "reading_A": -0.0023,
+       "reading_B": -0.0031
+      },
+      {
+       "beta_deg": -10,
+       "value": -0.0061,
+       "flag": "measured",
+       "reading_A": -0.0061,
+       "reading_B": -0.0048
+      },
+      {
+       "beta_deg": -5,
+       "value": -0.0003,
+       "flag": "measured",
+       "reading_A": -0.0003,
+       "reading_B": -0.0011
+      },
+      {
+       "beta_deg": 0,
+       "value": -0.0009,
+       "flag": "measured",
+       "reading_A": -0.0009,
+       "reading_B": -0.0008
+      },
+      {
+       "beta_deg": 5,
+       "value": 0.0021,
+       "flag": "measured",
+       "reading_A": 0.0021,
+       "reading_B": 0.0016
+      },
+      {
+       "beta_deg": 10,
+       "value": 0.0044,
+       "flag": "measured",
+       "reading_A": 0.0044,
+       "reading_B": 0.0039
+      },
+      {
+       "beta_deg": 15,
+       "value": 0.0098,
+       "flag": "measured",
+       "reading_A": 0.0098,
+       "reading_B": 0.0086
+      },
+      {
+       "beta_deg": 20,
+       "value": 0.0152,
+       "flag": "measured",
+       "reading_A": 0.0152,
+       "reading_B": 0.0147
+      }
+     ],
+     "calibration": {
+      "y_px_per_unit": -5956.25,
+      "y_px_at_zero": 2273.5,
+      "labels_used": 3,
+      "label_fit_residual_px": 1.1
+     }
+    }
+   },
+   "beta_calibration": {
+    "px_per_deg": 12.66,
+    "x_px_at_zero": 892.1,
+    "lines_used": 9,
+    "fit_residual_px": 0.8
+   }
+  },
+  {
+   "alpha_deg": -5,
+   "pdf_page": 36,
+   "coefficients": {
+    "Cy": {
+     "points": [
+      {
+       "beta_deg": -20,
+       "value": 0.2545,
+       "flag": "measured",
+       "reading_A": 0.2545,
+       "reading_B": 0.2561
+      },
+      {
+       "beta_deg": -15,
+       "value": 0.188,
+       "flag": "measured",
+       "reading_A": 0.188,
+       "reading_B": 0.1848
+      },
+      {
+       "beta_deg": -10,
+       "value": 0.1264,
+       "flag": "measured",
+       "reading_A": 0.1264,
+       "reading_B": 0.1264
+      },
+      {
+       "beta_deg": -5,
+       "value": 0.0616,
+       "flag": "measured",
+       "reading_A": 0.0616,
+       "reading_B": 0.0616
+      },
+      {
+       "beta_deg": 0,
+       "value": 0.0048,
+       "flag": "measured",
+       "reading_A": 0.0048,
+       "reading_B": -0.0033
+      },
+      {
+       "beta_deg": 5,
+       "value": -0.0973,
+       "flag": "measured",
+       "reading_A": -0.0973,
+       "reading_B": -0.0778
+      },
+      {
+       "beta_deg": 10,
+       "value": -0.1232,
+       "flag": "measured",
+       "reading_A": -0.1232,
+       "reading_B": -0.1265
+      },
+      {
+       "beta_deg": 15,
+       "value": -0.1816,
+       "flag": "measured",
+       "reading_A": -0.1816,
+       "reading_B": -0.1881
+      },
+      {
+       "beta_deg": 20,
+       "value": -0.2432,
+       "flag": "measured",
+       "reading_A": -0.2432,
+       "reading_B": -0.2464
+      }
+     ],
+     "calibration": {
+      "y_px_per_unit": -616.86,
+      "y_px_at_zero": 558.0,
+      "labels_used": 6,
+      "label_fit_residual_px": 2.4
+     }
+    },
+    "Cn": {
+     "points": [
+      {
+       "beta_deg": -20,
+       "value": -0.0478,
+       "flag": "measured",
+       "reading_A": -0.0478,
+       "reading_B": -0.0482
+      },
+      {
+       "beta_deg": -15,
+       "value": -0.0343,
+       "flag": "measured",
+       "reading_A": -0.0343,
+       "reading_B": -0.0345
+      },
+      {
+       "beta_deg": -10,
+       "value": -0.0187,
+       "flag": "measured",
+       "reading_A": -0.0187,
+       "reading_B": -0.0182
+      },
+      {
+       "beta_deg": -5,
+       "value": -0.0052,
+       "flag": "measured",
+       "reading_A": -0.0052,
+       "reading_B": -0.0056
+      },
+      {
+       "beta_deg": 0,
+       "value": 0.0047,
+       "flag": "measured",
+       "reading_A": 0.0047,
+       "reading_B": 0.0045
+      },
+      {
+       "beta_deg": 5,
+       "value": 0.0183,
+       "flag": "measured",
+       "reading_A": 0.0183,
+       "reading_B": 0.0178
+      },
+      {
+       "beta_deg": 10,
+       "value": 0.0328,
+       "flag": "measured",
+       "reading_A": 0.0328,
+       "reading_B": 0.0325
+      },
+      {
+       "beta_deg": 15,
+       "value": 0.045,
+       "flag": "measured",
+       "reading_A": 0.045,
+       "reading_B": 0.0445
+      },
+      {
+       "beta_deg": 20,
+       "value": 0.0549,
+       "flag": "measured",
+       "reading_A": 0.0549,
+       "reading_B": 0.0552
+      }
+     ],
+     "calibration": {
+      "y_px_per_unit": -6152.27,
+      "y_px_at_zero": 1543.8,
+      "labels_used": 11,
+      "label_fit_residual_px": 1.8
+     }
+    },
+    "Cl": {
+     "points": [
+      {
+       "beta_deg": -20,
+       "value": -0.0028,
+       "flag": "measured",
+       "reading_A": -0.0028,
+       "reading_B": -0.0034
+      },
+      {
+       "beta_deg": -15,
+       "value": 0.0014,
+       "flag": "measured",
+       "reading_A": 0.0014,
+       "reading_B": -0.0004
+      },
+      {
+       "beta_deg": -10,
+       "value": 0.0029,
+       "flag": "measured",
+       "reading_A": 0.0029,
+       "reading_B": 0.0016
+      },
+      {
+       "beta_deg": -5,
+       "value": 0.0014,
+       "flag": "measured",
+       "reading_A": 0.0014,
+       "reading_B": 0.0006
+      },
+      {
+       "beta_deg": 0,
+       "value": -0.0008,
+       "flag": "measured",
+       "reading_A": -0.0008,
+       "reading_B": -0.0011
+      },
+      {
+       "beta_deg": 5,
+       "value": 0.0016,
+       "flag": "measured",
+       "reading_A": 0.0016,
+       "reading_B": 0.0016
+      },
+      {
+       "beta_deg": 10,
+       "value": 0.0039,
+       "flag": "measured",
+       "reading_A": 0.0039,
+       "reading_B": 0.0039
+      },
+      {
+       "beta_deg": 15,
+       "value": 0.0043,
+       "flag": "measured",
+       "reading_A": 0.0043,
+       "reading_B": 0.0049
+      },
+      {
+       "beta_deg": 20,
+       "value": 0.0078,
+       "flag": "measured",
+       "reading_A": 0.0078,
+       "reading_B": 0.0073
+      }
+     ],
+     "calibration": {
+      "y_px_per_unit": -5956.25,
+      "y_px_at_zero": 2273.5,
+      "labels_used": 3,
+      "label_fit_residual_px": 1.1
+     }
+    }
+   },
+   "beta_calibration": {
+    "px_per_deg": 12.6,
+    "x_px_at_zero": 1649.1,
+    "lines_used": 9,
+    "fit_residual_px": 1.1
+   }
+  },
+  {
+   "alpha_deg": 0,
+   "pdf_page": 37,
+   "coefficients": {
+    "Cy": {
+     "points": [
+      {
+       "beta_deg": -20,
+       "value": 0.2394,
+       "flag": "measured",
+       "reading_A": 0.2394,
+       "reading_B": 0.2452
+      },
+      {
+       "beta_deg": -15,
+       "value": 0.1681,
+       "flag": "measured",
+       "reading_A": 0.1681,
+       "reading_B": 0.184
+      },
+      {
+       "beta_deg": -10,
+       "value": 0.1246,
+       "flag": "measured",
+       "reading_A": 0.1246,
+       "reading_B": 0.1274
+      },
+      {
+       "beta_deg": -5,
+       "value": 0.0672,
+       "flag": "measured",
+       "reading_A": 0.0672,
+       "reading_B": 0.0567
+      },
+      {
+       "beta_deg": 0,
+       "value": -0.0041,
+       "flag": "measured",
+       "reading_A": -0.0041,
+       "reading_B": -0.0046
+      },
+      {
+       "beta_deg": 5,
+       "value": -0.0734,
+       "flag": "measured",
+       "reading_A": -0.0734,
+       "reading_B": -0.0659
+      },
+      {
+       "beta_deg": 10,
+       "value": -0.115,
+       "flag": "measured",
+       "reading_A": -0.115,
+       "reading_B": -0.1271
+      },
+      {
+       "beta_deg": 15,
+       "value": -0.2001,
+       "flag": "measured",
+       "reading_A": -0.2001,
+       "reading_B": -0.1884
+      },
+      {
+       "beta_deg": 20,
+       "value": -0.2654,
+       "flag": "measured",
+       "reading_A": -0.2654,
+       "reading_B": -0.2591
+      }
+     ],
+     "calibration": {
+      "y_px_per_unit": -505.15,
+      "y_px_at_zero": 492.9,
+      "labels_used": 5,
+      "label_fit_residual_px": 2.0
+     }
+    },
+    "Cn": {
+     "points": [
+      {
+       "beta_deg": -20,
+       "value": -0.051,
+       "flag": "measured",
+       "reading_A": -0.051,
+       "reading_B": -0.0504
+      },
+      {
+       "beta_deg": -15,
+       "value": -0.0362,
+       "flag": "measured",
+       "reading_A": -0.0362,
+       "reading_B": -0.0361
+      },
+      {
+       "beta_deg": -10,
+       "value": -0.0205,
+       "flag": "measured",
+       "reading_A": -0.0205,
+       "reading_B": -0.0199
+      },
+      {
+       "beta_deg": -5,
+       "value": -0.0071,
+       "flag": "measured",
+       "reading_A": -0.0071,
+       "reading_B": -0.0075
+      },
+      {
+       "beta_deg": 0,
+       "value": 0.0017,
+       "flag": "measured",
+       "reading_A": 0.0017,
+       "reading_B": 0.0015
+      },
+      {
+       "beta_deg": 5,
+       "value": 0.0147,
+       "flag": "measured",
+       "reading_A": 0.0147,
+       "reading_B": 0.0153
+      },
+      {
+       "beta_deg": 10,
+       "value": 0.0319,
+       "flag": "measured",
+       "reading_A": 0.0319,
+       "reading_B": 0.0324
+      },
+      {
+       "beta_deg": 15,
+       "value": 0.0435,
+       "flag": "measured",
+       "reading_A": 0.0435,
+       "reading_B": 0.0443
+      },
+      {
+       "beta_deg": 20,
+       "value": 0.0557,
+       "flag": "measured",
+       "reading_A": 0.0557,
+       "reading_B": 0.0567
+      }
+     ],
+     "calibration": {
+      "y_px_per_unit": -5003.28,
+      "y_px_at_zero": 1295.7,
+      "labels_used": 12,
+      "label_fit_residual_px": 2.0
+     }
+    },
+    "Cl": {
+     "points": [
+      {
+       "beta_deg": -20,
+       "value": 0.0235,
+       "flag": "measured",
+       "reading_A": 0.0235,
+       "reading_B": 0.0238
+      },
+      {
+       "beta_deg": -15,
+       "value": 0.0267,
+       "flag": "measured",
+       "reading_A": 0.0267,
+       "reading_B": 0.0262
+      },
+      {
+       "beta_deg": -10,
+       "value": 0.0177,
+       "flag": "measured",
+       "reading_A": 0.0177,
+       "reading_B": 0.0185
+      },
+      {
+       "beta_deg": -5,
+       "value": 0.014,
+       "flag": "measured",
+       "reading_A": 0.014,
+       "reading_B": 0.0137
+      },
+      {
+       "beta_deg": 0,
+       "value": 0.0125,
+       "flag": "measured",
+       "reading_A": 0.0125,
+       "reading_B": 0.009
+      },
+      {
+       "beta_deg": 5,
+       "value": 0.0045,
+       "flag": "measured",
+       "reading_A": 0.0045,
+       "reading_B": 0.0042
+      },
+      {
+       "beta_deg": 10,
+       "value": 0.0033,
+       "flag": "measured",
+       "reading_A": 0.0033,
+       "reading_B": 0.0024
+      },
+      {
+       "beta_deg": 15,
+       "value": -0.0012,
+       "flag": "measured",
+       "reading_A": -0.0012,
+       "reading_B": -0.0005
+      },
+      {
+       "beta_deg": 20,
+       "value": -0.0012,
+       "flag": "measured",
+       "reading_A": -0.0012,
+       "reading_B": -0.0017
+      }
+     ],
+     "calibration": {
+      "y_px_per_unit": -4010.0,
+      "y_px_at_zero": 2143.1,
+      "labels_used": 2,
+      "label_fit_residual_px": 0.0
+     }
+    }
+   },
+   "beta_calibration": {
+    "px_per_deg": 10.547,
+    "x_px_at_zero": 918.9,
+    "lines_used": 9,
+    "fit_residual_px": 0.8
+   }
+  },
+  {
+   "alpha_deg": 5,
+   "pdf_page": 37,
+   "coefficients": {
+    "Cy": {
+     "points": [
+      {
+       "beta_deg": -20,
+       "value": 0.2453,
+       "flag": "measured",
+       "reading_A": 0.2453,
+       "reading_B": 0.2452
+      },
+      {
+       "beta_deg": -15,
+       "value": 0.1661,
+       "flag": "measured",
+       "reading_A": 0.1661,
+       "reading_B": 0.1887
+      },
+      {
+       "beta_deg": -10,
+       "value": 0.1206,
+       "flag": "measured",
+       "reading_A": 0.1206,
+       "reading_B": 0.1227
+      },
+      {
+       "beta_deg": -5,
+       "value": 0.0434,
+       "flag": "measured",
+       "reading_A": 0.0434,
+       "reading_B": 0.0567
+      },
+      {
+       "beta_deg": 0,
+       "value": -0.012,
+       "flag": "measured",
+       "reading_A": -0.012,
+       "reading_B": -0.0046
+      },
+      {
+       "beta_deg": 5,
+       "value": -0.0714,
+       "flag": "measured",
+       "reading_A": -0.0714,
+       "reading_B": -0.0706
+      },
+      {
+       "beta_deg": 10,
+       "value": -0.1407,
+       "flag": "measured",
+       "reading_A": -0.1407,
+       "reading_B": -0.1318
+      },
+      {
+       "beta_deg": 15,
+       "value": -0.206,
+       "flag": "measured",
+       "reading_A": -0.206,
+       "reading_B": -0.1931
+      },
+      {
+       "beta_deg": 20,
+       "value": -0.2535,
+       "flag": "measured",
+       "reading_A": -0.2535,
+       "reading_B": -0.2544
+      }
+     ],
+     "calibration": {
+      "y_px_per_unit": -505.15,
+      "y_px_at_zero": 492.9,
+      "labels_used": 5,
+      "label_fit_residual_px": 2.0
+     }
+    },
+    "Cn": {
+     "points": [
+      {
+       "beta_deg": -20,
+       "value": -0.0562,
+       "flag": "measured",
+       "reading_A": -0.0562,
+       "reading_B": -0.0556
+      },
+      {
+       "beta_deg": -15,
+       "value": -0.0374,
+       "flag": "measured",
+       "reading_A": -0.0374,
+       "reading_B": -0.0389
+      },
+      {
+       "beta_deg": -10,
+       "value": -0.0213,
+       "flag": "measured",
+       "reading_A": -0.0213,
+       "reading_B": -0.0218
+      },
+      {
+       "beta_deg": -5,
+       "value": -0.0073,
+       "flag": "measured",
+       "reading_A": -0.0073,
+       "reading_B": -0.0094
+      },
+      {
+       "beta_deg": 0,
+       "value": 0.0015,
+       "flag": "measured",
+       "reading_A": 0.0015,
+       "reading_B": 0.0001
+      },
+      {
+       "beta_deg": 5,
+       "value": 0.0137,
+       "flag": "measured",
+       "reading_A": 0.0137,
+       "reading_B": 0.0139
+      },
+      {
+       "beta_deg": 10,
+       "value": 0.0297,
+       "flag": "measured",
+       "reading_A": 0.0297,
+       "reading_B": 0.0305
+      },
+      {
+       "beta_deg": 15,
+       "value": 0.0457,
+       "flag": "measured",
+       "reading_A": 0.0457,
+       "reading_B": 0.0453
+      },
+      {
+       "beta_deg": 20,
+       "value": 0.0589,
+       "flag": "measured",
+       "reading_A": 0.0589,
+       "reading_B": 0.0591
+      }
+     ],
+     "calibration": {
+      "y_px_per_unit": -5003.28,
+      "y_px_at_zero": 1295.7,
+      "labels_used": 12,
+      "label_fit_residual_px": 2.0
+     }
+    },
+    "Cl": {
+     "points": [
+      {
+       "beta_deg": -20,
+       "value": 0.0351,
+       "flag": "eyeballed",
+       "reading_A": null,
+       "reading_B": 0.0351
+      },
+      {
+       "beta_deg": -15,
+       "value": 0.0327,
+       "flag": "eyeballed",
+       "reading_A": null,
+       "reading_B": 0.0327
+      },
+      {
+       "beta_deg": -10,
+       "value": 0.0297,
+       "flag": "measured",
+       "reading_A": 0.0297,
+       "reading_B": 0.028
+      },
+      {
+       "beta_deg": -5,
+       "value": 0.0195,
+       "flag": "measured",
+       "reading_A": 0.0195,
+       "reading_B": 0.0191
+      },
+      {
+       "beta_deg": 0,
+       "value": 0.0085,
+       "flag": "measured",
+       "reading_A": 0.0085,
+       "reading_B": 0.009
+      },
+      {
+       "beta_deg": 5,
+       "value": 0.0,
+       "flag": "measured",
+       "reading_A": 0.0,
+       "reading_B": -0.0005
+      },
+      {
+       "beta_deg": 10,
+       "value": -0.0085,
+       "flag": "measured",
+       "reading_A": -0.0085,
+       "reading_B": -0.0077
+      },
+      {
+       "beta_deg": 15,
+       "value": -0.0159,
+       "flag": "measured",
+       "reading_A": -0.0159,
+       "reading_B": -0.0148
+      },
+      {
+       "beta_deg": 20,
+       "value": -0.0187,
+       "flag": "measured",
+       "reading_A": -0.0187,
+       "reading_B": -0.0172
+      }
+     ],
+     "calibration": {
+      "y_px_per_unit": -4010.0,
+      "y_px_at_zero": 2143.1,
+      "labels_used": 2,
+      "label_fit_residual_px": 0.0
+     }
+    }
+   },
+   "beta_calibration": {
+    "px_per_deg": 10.52,
+    "x_px_at_zero": 1548.3,
+    "lines_used": 9,
+    "fit_residual_px": 0.6
+   }
+  },
+  {
+   "alpha_deg": 10,
+   "pdf_page": 38,
+   "coefficients": {
+    "Cy": {
+     "points": [
+      {
+       "beta_deg": -20,
+       "value": 0.2559,
+       "flag": "measured",
+       "reading_A": 0.2559,
+       "reading_B": 0.2524
+      },
+      {
+       "beta_deg": -15,
+       "value": 0.2015,
+       "flag": "measured",
+       "reading_A": 0.2015,
+       "reading_B": 0.2015
+      },
+      {
+       "beta_deg": -10,
+       "value": 0.147,
+       "flag": "measured",
+       "reading_A": 0.147,
+       "reading_B": 0.1505
+      },
+      {
+       "beta_deg": -5,
+       "value": 0.0926,
+       "flag": "measured",
+       "reading_A": 0.0926,
+       "reading_B": 0.095
+      },
+      {
+       "beta_deg": 0,
+       "value": 0.04,
+       "flag": "measured",
+       "reading_A": 0.04,
+       "reading_B": 0.0301
+      },
+      {
+       "beta_deg": 5,
+       "value": -0.028,
+       "flag": "measured",
+       "reading_A": -0.028,
+       "reading_B": -0.0301
+      },
+      {
+       "beta_deg": 10,
+       "value": -0.0844,
+       "flag": "measured",
+       "reading_A": -0.0844,
+       "reading_B": -0.0903
+      },
+      {
+       "beta_deg": 15,
+       "value": -0.1408,
+       "flag": "measured",
+       "reading_A": -0.1408,
+       "reading_B": -0.1505
+      },
+      {
+       "beta_deg": 20,
+       "value": -0.2245,
+       "flag": "measured",
+       "reading_A": -0.2245,
+       "reading_B": -0.2199
+      }
+     ],
+     "calibration": {
+      "y_px_per_unit": -514.14,
+      "y_px_at_zero": 553.6,
+      "labels_used": 6,
+      "label_fit_residual_px": 2.2
+     }
+    },
+    "Cn": {
+     "points": [
+      {
+       "beta_deg": -20,
+       "value": -0.0556,
+       "flag": "measured",
+       "reading_A": -0.0556,
+       "reading_B": -0.0557
+      },
+      {
+       "beta_deg": -15,
+       "value": -0.0372,
+       "flag": "measured",
+       "reading_A": -0.0372,
+       "reading_B": -0.0366
+      },
+      {
+       "beta_deg": -10,
+       "value": -0.0187,
+       "flag": "measured",
+       "reading_A": -0.0187,
+       "reading_B": -0.0175
+      },
+      {
+       "beta_deg": -5,
+       "value": -0.0036,
+       "flag": "measured",
+       "reading_A": -0.0036,
+       "reading_B": -0.0036
+      },
+      {
+       "beta_deg": 0,
+       "value": 0.0022,
+       "flag": "measured",
+       "reading_A": 0.0022,
+       "reading_B": 0.002
+      },
+      {
+       "beta_deg": 5,
+       "value": 0.0134,
+       "flag": "measured",
+       "reading_A": 0.0134,
+       "reading_B": 0.0132
+      },
+      {
+       "beta_deg": 10,
+       "value": 0.029,
+       "flag": "measured",
+       "reading_A": 0.029,
+       "reading_B": 0.0308
+      },
+      {
+       "beta_deg": 15,
+       "value": 0.0482,
+       "flag": "measured",
+       "reading_A": 0.0482,
+       "reading_B": 0.0485
+      },
+      {
+       "beta_deg": 20,
+       "value": 0.063,
+       "flag": "measured",
+       "reading_A": 0.063,
+       "reading_B": 0.0634
+      }
+     ],
+     "calibration": {
+      "y_px_per_unit": -5117.25,
+      "y_px_at_zero": 1374.5,
+      "labels_used": 14,
+      "label_fit_residual_px": 2.4
+     }
+    },
+    "Cl": {
+     "points": [
+      {
+       "beta_deg": -20,
+       "value": 0.0383,
+       "flag": "measured",
+       "reading_A": 0.0383,
+       "reading_B": 0.0363
+      },
+      {
+       "beta_deg": -15,
+       "value": 0.032,
+       "flag": "measured",
+       "reading_A": 0.032,
+       "reading_B": 0.0293
+      },
+      {
+       "beta_deg": -10,
+       "value": 0.0236,
+       "flag": "measured",
+       "reading_A": 0.0236,
+       "reading_B": 0.0233
+      },
+      {
+       "beta_deg": -5,
+       "value": 0.0131,
+       "flag": "measured",
+       "reading_A": 0.0131,
+       "reading_B": 0.014
+      },
+      {
+       "beta_deg": 0,
+       "value": 0.0008,
+       "flag": "measured",
+       "reading_A": 0.0008,
+       "reading_B": 0.0005
+      },
+      {
+       "beta_deg": 5,
+       "value": -0.0121,
+       "flag": "measured",
+       "reading_A": -0.0121,
+       "reading_B": -0.0125
+      },
+      {
+       "beta_deg": 10,
+       "value": -0.0221,
+       "flag": "measured",
+       "reading_A": -0.0221,
+       "reading_B": -0.0209
+      },
+      {
+       "beta_deg": 15,
+       "value": -0.0262,
+       "flag": "measured",
+       "reading_A": -0.0262,
+       "reading_B": -0.0251
+      },
+      {
+       "beta_deg": 20,
+       "value": -0.0312,
+       "flag": "measured",
+       "reading_A": -0.0312,
+       "reading_B": -0.0288
+      }
+     ],
+     "calibration": {
+      "y_px_per_unit": -5121.79,
+      "y_px_at_zero": 2193.0,
+      "labels_used": 6,
+      "label_fit_residual_px": 0.7
+     }
+    }
+   },
+   "beta_calibration": {
+    "px_per_deg": 10.478,
+    "x_px_at_zero": 1025.0,
+    "lines_used": 8,
+    "fit_residual_px": 0.5
+   }
+  },
+  {
+   "alpha_deg": 12.5,
+   "pdf_page": 38,
+   "coefficients": {
+    "Cy": {
+     "points": [
+      {
+       "beta_deg": -20,
+       "value": 0.2754,
+       "flag": "measured",
+       "reading_A": 0.2754,
+       "reading_B": 0.2663
+      },
+      {
+       "beta_deg": -15,
+       "value": 0.2229,
+       "flag": "measured",
+       "reading_A": 0.2229,
+       "reading_B": 0.22
+      },
+      {
+       "beta_deg": -10,
+       "value": 0.1665,
+       "flag": "measured",
+       "reading_A": 0.1665,
+       "reading_B": 0.1737
+      },
+      {
+       "beta_deg": -5,
+       "value": 0.1081,
+       "flag": "measured",
+       "reading_A": 0.1081,
+       "reading_B": 0.1089
+      },
+      {
+       "beta_deg": 0,
+       "value": 0.0537,
+       "flag": "measured",
+       "reading_A": 0.0537,
+       "reading_B": 0.044
+      },
+      {
+       "beta_deg": 5,
+       "value": -0.028,
+       "flag": "measured",
+       "reading_A": -0.028,
+       "reading_B": -0.0254
+      },
+      {
+       "beta_deg": 10,
+       "value": -0.1058,
+       "flag": "measured",
+       "reading_A": -0.1058,
+       "reading_B": -0.0856
+      },
+      {
+       "beta_deg": 15,
+       "value": -0.1447,
+       "flag": "measured",
+       "reading_A": -0.1447,
+       "reading_B": -0.1505
+      },
+      {
+       "beta_deg": 20,
+       "value": -0.2439,
+       "flag": "measured",
+       "reading_A": -0.2439,
+       "reading_B": -0.206
+      }
+     ],
+     "calibration": {
+      "y_px_per_unit": -514.14,
+      "y_px_at_zero": 553.6,
+      "labels_used": 6,
+      "label_fit_residual_px": 2.2
+     }
+    },
+    "Cn": {
+     "points": [
+      {
+       "beta_deg": -20,
+       "value": -0.0562,
+       "flag": "measured",
+       "reading_A": -0.0562,
+       "reading_B": -0.0566
+      },
+      {
+       "beta_deg": -15,
+       "value": -0.0357,
+       "flag": "measured",
+       "reading_A": -0.0357,
+       "reading_B": -0.0362
+      },
+      {
+       "beta_deg": -10,
+       "value": -0.0175,
+       "flag": "measured",
+       "reading_A": -0.0175,
+       "reading_B": -0.0166
+      },
+      {
+       "beta_deg": -5,
+       "value": -0.0024,
+       "flag": "measured",
+       "reading_A": -0.0024,
+       "reading_B": -0.0036
+      },
+      {
+       "beta_deg": 0,
+       "value": 0.0026,
+       "flag": "measured",
+       "reading_A": 0.0026,
+       "reading_B": 0.0029
+      },
+      {
+       "beta_deg": 5,
+       "value": 0.013,
+       "flag": "measured",
+       "reading_A": 0.013,
+       "reading_B": 0.0136
+      },
+      {
+       "beta_deg": 10,
+       "value": 0.0314,
+       "flag": "measured",
+       "reading_A": 0.0314,
+       "reading_B": 0.0322
+      },
+      {
+       "beta_deg": 15,
+       "value": 0.0501,
+       "flag": "measured",
+       "reading_A": 0.0501,
+       "reading_B": 0.0495
+      },
+      {
+       "beta_deg": 20,
+       "value": 0.065,
+       "flag": "measured",
+       "reading_A": 0.065,
+       "reading_B": 0.0653
+      }
+     ],
+     "calibration": {
+      "y_px_per_unit": -5117.25,
+      "y_px_at_zero": 1374.5,
+      "labels_used": 14,
+      "label_fit_residual_px": 2.4
+     }
+    },
+    "Cl": {
+     "points": [
+      {
+       "beta_deg": -20,
+       "value": 0.0361,
+       "flag": "measured",
+       "reading_A": 0.0361,
+       "reading_B": 0.0368
+      },
+      {
+       "beta_deg": -15,
+       "value": 0.035,
+       "flag": "measured",
+       "reading_A": 0.035,
+       "reading_B": 0.0358
+      },
+      {
+       "beta_deg": -10,
+       "value": 0.0279,
+       "flag": "measured",
+       "reading_A": 0.0279,
+       "reading_B": 0.0316
+      },
+      {
+       "beta_deg": -5,
+       "value": 0.017,
+       "flag": "measured",
+       "reading_A": 0.017,
+       "reading_B": 0.0177
+      },
+      {
+       "beta_deg": 0,
+       "value": 0.0018,
+       "flag": "measured",
+       "reading_A": 0.0018,
+       "reading_B": 0.0047
+      },
+      {
+       "beta_deg": 5,
+       "value": -0.0109,
+       "flag": "measured",
+       "reading_A": -0.0109,
+       "reading_B": -0.0093
+      },
+      {
+       "beta_deg": 10,
+       "value": -0.0221,
+       "flag": "measured",
+       "reading_A": -0.0221,
+       "reading_B": -0.019
+      },
+      {
+       "beta_deg": 15,
+       "value": -0.0209,
+       "flag": "measured",
+       "reading_A": -0.0209,
+       "reading_B": -0.0204
+      },
+      {
+       "beta_deg": 20,
+       "value": -0.0258,
+       "flag": "measured",
+       "reading_A": -0.0258,
+       "reading_B": -0.0241
+      }
+     ],
+     "calibration": {
+      "y_px_per_unit": -5121.79,
+      "y_px_at_zero": 2193.0,
+      "labels_used": 6,
+      "label_fit_residual_px": 0.7
+     }
+    }
+   },
+   "beta_calibration": {
+    "px_per_deg": 10.56,
+    "x_px_at_zero": 1655.8,
+    "lines_used": 5,
+    "fit_residual_px": 1.0
+   }
+  },
+  {
+   "alpha_deg": 15,
+   "pdf_page": 39,
+   "coefficients": {
+    "Cy": {
+     "points": [
+      {
+       "beta_deg": -20,
+       "value": 0.2597,
+       "flag": "measured",
+       "reading_A": 0.2597,
+       "reading_B": 0.2499
+      },
+      {
+       "beta_deg": -15,
+       "value": 0.1836,
+       "flag": "measured",
+       "reading_A": 0.1836,
+       "reading_B": 0.1792
+      },
+      {
+       "beta_deg": -10,
+       "value": 0.1075,
+       "flag": "measured",
+       "reading_A": 0.1075,
+       "reading_B": 0.1173
+      },
+      {
+       "beta_deg": -5,
+       "value": 0.0444,
+       "flag": "measured",
+       "reading_A": 0.0444,
+       "reading_B": 0.0466
+      },
+      {
+       "beta_deg": 0,
+       "value": 0.0035,
+       "flag": "measured",
+       "reading_A": 0.0035,
+       "reading_B": 0.0024
+      },
+      {
+       "beta_deg": 5,
+       "value": -0.0522,
+       "flag": "measured",
+       "reading_A": -0.0522,
+       "reading_B": -0.0595
+      },
+      {
+       "beta_deg": 10,
+       "value": -0.1413,
+       "flag": "measured",
+       "reading_A": -0.1413,
+       "reading_B": -0.139
+      },
+      {
+       "beta_deg": 15,
+       "value": -0.2006,
+       "flag": "measured",
+       "reading_A": -0.2006,
+       "reading_B": -0.2053
+      },
+      {
+       "beta_deg": 20,
+       "value": -0.2693,
+       "flag": "measured",
+       "reading_A": -0.2693,
+       "reading_B": -0.2805
+      }
+     ],
+     "calibration": {
+      "y_px_per_unit": -538.75,
+      "y_px_at_zero": 498.9,
+      "labels_used": 5,
+      "label_fit_residual_px": 1.9
+     }
+    },
+    "Cn": {
+     "points": [
+      {
+       "beta_deg": -20,
+       "value": -0.0254,
+       "flag": "measured",
+       "reading_A": -0.0254,
+       "reading_B": -0.0249
+      },
+      {
+       "beta_deg": -15,
+       "value": -0.0107,
+       "flag": "measured",
+       "reading_A": -0.0107,
+       "reading_B": -0.0102
+      },
+      {
+       "beta_deg": -10,
+       "value": 0.0047,
+       "flag": "measured",
+       "reading_A": 0.0047,
+       "reading_B": 0.0045
+      },
+      {
+       "beta_deg": -5,
+       "value": 0.0164,
+       "flag": "measured",
+       "reading_A": 0.0164,
+       "reading_B": 0.0151
+      },
+      {
+       "beta_deg": 0,
+       "value": 0.0216,
+       "flag": "measured",
+       "reading_A": 0.0216,
+       "reading_B": 0.021
+      },
+      {
+       "beta_deg": 5,
+       "value": 0.0268,
+       "flag": "measured",
+       "reading_A": 0.0268,
+       "reading_B": 0.0272
+      },
+      {
+       "beta_deg": 10,
+       "value": 0.0404,
+       "flag": "measured",
+       "reading_A": 0.0404,
+       "reading_B": 0.04
+      },
+      {
+       "beta_deg": 15,
+       "value": 0.0565,
+       "flag": "measured",
+       "reading_A": 0.0565,
+       "reading_B": 0.0565
+      },
+      {
+       "beta_deg": 20,
+       "value": 0.0658,
+       "flag": "measured",
+       "reading_A": 0.0658,
+       "reading_B": 0.066
+      }
+     ],
+     "calibration": {
+      "y_px_per_unit": -6495.0,
+      "y_px_at_zero": 1493.2,
+      "labels_used": 3,
+      "label_fit_residual_px": 0.3
+     }
+    },
+    "Cl": {
+     "points": [
+      {
+       "beta_deg": -20,
+       "value": 0.0276,
+       "flag": "measured",
+       "reading_A": 0.0276,
+       "reading_B": 0.0262
+      },
+      {
+       "beta_deg": -15,
+       "value": 0.0215,
+       "flag": "measured",
+       "reading_A": 0.0215,
+       "reading_B": 0.0231
+      },
+      {
+       "beta_deg": -10,
+       "value": 0.0235,
+       "flag": "measured",
+       "reading_A": 0.0235,
+       "reading_B": 0.0253
+      },
+      {
+       "beta_deg": -5,
+       "value": 0.0109,
+       "flag": "measured",
+       "reading_A": 0.0109,
+       "reading_B": 0.0099
+      },
+      {
+       "beta_deg": 0,
+       "value": -0.0018,
+       "flag": "measured",
+       "reading_A": -0.0018,
+       "reading_B": -0.002
+      },
+      {
+       "beta_deg": 5,
+       "value": -0.01,
+       "flag": "measured",
+       "reading_A": -0.01,
+       "reading_B": -0.01
+      },
+      {
+       "beta_deg": 10,
+       "value": -0.0215,
+       "flag": "measured",
+       "reading_A": -0.0215,
+       "reading_B": -0.0201
+      },
+      {
+       "beta_deg": 15,
+       "value": -0.0157,
+       "flag": "measured",
+       "reading_A": -0.0157,
+       "reading_B": -0.0161
+      },
+      {
+       "beta_deg": 20,
+       "value": -0.0222,
+       "flag": "measured",
+       "reading_A": -0.0222,
+       "reading_B": -0.0232
+      }
+     ],
+     "calibration": {
+      "y_px_per_unit": -5398.21,
+      "y_px_at_zero": 2120.0,
+      "labels_used": 6,
+      "label_fit_residual_px": 1.0
+     }
+    }
+   },
+   "beta_calibration": {
+    "px_per_deg": 11.68,
+    "x_px_at_zero": 893.0,
+    "lines_used": 0,
+    "fit_residual_px": null
+   }
+  },
+  {
+   "alpha_deg": 17.5,
+   "pdf_page": 39,
+   "coefficients": {
+    "Cy": {
+     "points": [
+      {
+       "beta_deg": -20,
+       "value": 0.243,
+       "flag": "measured",
+       "reading_A": 0.243,
+       "reading_B": 0.241
+      },
+      {
+       "beta_deg": -15,
+       "value": 0.1891,
+       "flag": "measured",
+       "reading_A": 0.1891,
+       "reading_B": 0.1792
+      },
+      {
+       "beta_deg": -10,
+       "value": 0.126,
+       "flag": "measured",
+       "reading_A": 0.126,
+       "reading_B": 0.1173
+      },
+      {
+       "beta_deg": -5,
+       "value": 0.0462,
+       "flag": "measured",
+       "reading_A": 0.0462,
+       "reading_B": 0.0554
+      },
+      {
+       "beta_deg": 0,
+       "value": 0.0054,
+       "flag": "measured",
+       "reading_A": 0.0054,
+       "reading_B": 0.0024
+      },
+      {
+       "beta_deg": 5,
+       "value": -0.0466,
+       "flag": "measured",
+       "reading_A": -0.0466,
+       "reading_B": -0.0595
+      },
+      {
+       "beta_deg": 10,
+       "value": -0.1171,
+       "flag": "measured",
+       "reading_A": -0.1171,
+       "reading_B": -0.1169
+      },
+      {
+       "beta_deg": 15,
+       "value": -0.1858,
+       "flag": "measured",
+       "reading_A": -0.1858,
+       "reading_B": -0.1788
+      },
+      {
+       "beta_deg": 20,
+       "value": -0.2415,
+       "flag": "measured",
+       "reading_A": -0.2415,
+       "reading_B": -0.2363
+      }
+     ],
+     "calibration": {
+      "y_px_per_unit": -538.75,
+      "y_px_at_zero": 498.9,
+      "labels_used": 5,
+      "label_fit_residual_px": 1.9
+     }
+    },
+    "Cn": {
+     "points": [
+      {
+       "beta_deg": -20,
+       "value": -0.0154,
+       "flag": "measured",
+       "reading_A": -0.0154,
+       "reading_B": -0.015
+      },
+      {
+       "beta_deg": -15,
+       "value": -0.003,
+       "flag": "measured",
+       "reading_A": -0.003,
+       "reading_B": -0.0029
+      },
+      {
+       "beta_deg": -10,
+       "value": 0.0067,
+       "flag": "measured",
+       "reading_A": 0.0067,
+       "reading_B": 0.0059
+      },
+      {
+       "beta_deg": -5,
+       "value": 0.018,
+       "flag": "measured",
+       "reading_A": 0.018,
+       "reading_B": 0.0162
+      },
+      {
+       "beta_deg": 0,
+       "value": 0.0199,
+       "flag": "measured",
+       "reading_A": 0.0199,
+       "reading_B": 0.0199
+      },
+      {
+       "beta_deg": 5,
+       "value": 0.0256,
+       "flag": "measured",
+       "reading_A": 0.0256,
+       "reading_B": 0.025
+      },
+      {
+       "beta_deg": 10,
+       "value": 0.0365,
+       "flag": "measured",
+       "reading_A": 0.0365,
+       "reading_B": 0.036
+      },
+      {
+       "beta_deg": 15,
+       "value": 0.0471,
+       "flag": "measured",
+       "reading_A": 0.0471,
+       "reading_B": 0.0466
+      },
+      {
+       "beta_deg": 20,
+       "value": 0.0541,
+       "flag": "measured",
+       "reading_A": 0.0541,
+       "reading_B": 0.0536
+      }
+     ],
+     "calibration": {
+      "y_px_per_unit": -6495.0,
+      "y_px_at_zero": 1493.2,
+      "labels_used": 3,
+      "label_fit_residual_px": 0.3
+     }
+    },
+    "Cl": {
+     "points": [
+      {
+       "beta_deg": -20,
+       "value": 0.0206,
+       "flag": "measured",
+       "reading_A": 0.0206,
+       "reading_B": 0.02
+      },
+      {
+       "beta_deg": -15,
+       "value": 0.0176,
+       "flag": "measured",
+       "reading_A": 0.0176,
+       "reading_B": 0.0165
+      },
+      {
+       "beta_deg": -10,
+       "value": 0.0133,
+       "flag": "measured",
+       "reading_A": 0.0133,
+       "reading_B": 0.0143
+      },
+      {
+       "beta_deg": -5,
+       "value": 0.0059,
+       "flag": "measured",
+       "reading_A": 0.0059,
+       "reading_B": 0.0077
+      },
+      {
+       "beta_deg": 0,
+       "value": -0.0024,
+       "flag": "measured",
+       "reading_A": -0.0024,
+       "reading_B": -0.0011
+      },
+      {
+       "beta_deg": 5,
+       "value": -0.005,
+       "flag": "measured",
+       "reading_A": -0.005,
+       "reading_B": -0.0047
+      },
+      {
+       "beta_deg": 10,
+       "value": -0.0096,
+       "flag": "measured",
+       "reading_A": -0.0096,
+       "reading_B": -0.01
+      },
+      {
+       "beta_deg": 15,
+       "value": -0.012,
+       "flag": "measured",
+       "reading_A": -0.012,
+       "reading_B": -0.0135
+      },
+      {
+       "beta_deg": 20,
+       "value": -0.0196,
+       "flag": "measured",
+       "reading_A": -0.0196,
+       "reading_B": -0.0197
+      }
+     ],
+     "calibration": {
+      "y_px_per_unit": -5398.21,
+      "y_px_at_zero": 2120.0,
+      "labels_used": 6,
+      "label_fit_residual_px": 1.0
+     }
+    }
+   },
+   "beta_calibration": {
+    "px_per_deg": 11.308,
+    "x_px_at_zero": 1566.4,
+    "lines_used": 9,
+    "fit_residual_px": 0.6
+   }
+  },
+  {
+   "alpha_deg": 20,
+   "pdf_page": 40,
+   "coefficients": {
+    "Cy": {
+     "points": [
+      {
+       "beta_deg": -20,
+       "value": 0.2053,
+       "flag": "measured",
+       "reading_A": 0.2053,
+       "reading_B": 0.2071
+      },
+      {
+       "beta_deg": -15,
+       "value": 0.1432,
+       "flag": "measured",
+       "reading_A": 0.1432,
+       "reading_B": 0.1491
+      },
+      {
+       "beta_deg": -10,
+       "value": 0.0847,
+       "flag": "measured",
+       "reading_A": 0.0847,
+       "reading_B": 0.0911
+      },
+      {
+       "beta_deg": -5,
+       "value": 0.0433,
+       "flag": "measured",
+       "reading_A": 0.0433,
+       "reading_B": 0.0418
+      },
+      {
+       "beta_deg": 0,
+       "value": -0.0078,
+       "flag": "measured",
+       "reading_A": -0.0078,
+       "reading_B": -0.0104
+      },
+      {
+       "beta_deg": 5,
+       "value": -0.0565,
+       "flag": "measured",
+       "reading_A": -0.0565,
+       "reading_B": -0.0539
+      },
+      {
+       "beta_deg": 10,
+       "value": -0.1126,
+       "flag": "measured",
+       "reading_A": -0.1126,
+       "reading_B": -0.1119
+      },
+      {
+       "beta_deg": 15,
+       "value": -0.1674,
+       "flag": "measured",
+       "reading_A": -0.1674,
+       "reading_B": -0.1641
+      },
+      {
+       "beta_deg": 20,
+       "value": -0.2064,
+       "flag": "measured",
+       "reading_A": -0.2064,
+       "reading_B": -0.2047
+      }
+     ],
+     "calibration": {
+      "y_px_per_unit": -821.07,
+      "y_px_at_zero": 629.6,
+      "labels_used": 3,
+      "label_fit_residual_px": 1.1
+     }
+    },
+    "Cn": {
+     "points": [
+      {
+       "beta_deg": -20,
+       "value": -0.0177,
+       "flag": "measured",
+       "reading_A": -0.0177,
+       "reading_B": -0.017
+      },
+      {
+       "beta_deg": -15,
+       "value": -0.0136,
+       "flag": "measured",
+       "reading_A": -0.0136,
+       "reading_B": -0.0139
+      },
+      {
+       "beta_deg": -10,
+       "value": -0.0083,
+       "flag": "measured",
+       "reading_A": -0.0083,
+       "reading_B": -0.0083
+      },
+      {
+       "beta_deg": -5,
+       "value": -0.0002,
+       "flag": "measured",
+       "reading_A": -0.0002,
+       "reading_B": -0.0005
+      },
+      {
+       "beta_deg": 0,
+       "value": 0.0022,
+       "flag": "measured",
+       "reading_A": 0.0022,
+       "reading_B": 0.0021
+      },
+      {
+       "beta_deg": 5,
+       "value": 0.001,
+       "flag": "measured",
+       "reading_A": 0.001,
+       "reading_B": 0.0059
+      },
+      {
+       "beta_deg": 10,
+       "value": 0.0117,
+       "flag": "measured",
+       "reading_A": 0.0117,
+       "reading_B": 0.012
+      },
+      {
+       "beta_deg": 15,
+       "value": 0.012,
+       "flag": "measured",
+       "reading_A": 0.012,
+       "reading_B": 0.0126
+      },
+      {
+       "beta_deg": 20,
+       "value": 0.0173,
+       "flag": "measured",
+       "reading_A": 0.0173,
+       "reading_B": 0.0175
+      }
+     ],
+     "calibration": {
+      "y_px_per_unit": -8196.43,
+      "y_px_at_zero": 1453.1,
+      "labels_used": 3,
+      "label_fit_residual_px": 0.6
+     }
+    },
+    "Cl": {
+     "points": [
+      {
+       "beta_deg": -20,
+       "value": 0.0134,
+       "flag": "measured",
+       "reading_A": 0.0134,
+       "reading_B": 0.0134
+      },
+      {
+       "beta_deg": -15,
+       "value": 0.0118,
+       "flag": "measured",
+       "reading_A": 0.0118,
+       "reading_B": 0.0116
+      },
+      {
+       "beta_deg": -10,
+       "value": 0.0063,
+       "flag": "measured",
+       "reading_A": 0.0063,
+       "reading_B": 0.0069
+      },
+      {
+       "beta_deg": -5,
+       "value": 0.0043,
+       "flag": "measured",
+       "reading_A": 0.0043,
+       "reading_B": 0.0045
+      },
+      {
+       "beta_deg": 0,
+       "value": -0.0047,
+       "flag": "measured",
+       "reading_A": -0.0047,
+       "reading_B": -0.0044
+      },
+      {
+       "beta_deg": 5,
+       "value": -0.0053,
+       "flag": "measured",
+       "reading_A": -0.0053,
+       "reading_B": -0.0059
+      },
+      {
+       "beta_deg": 10,
+       "value": -0.0097,
+       "flag": "measured",
+       "reading_A": -0.0097,
+       "reading_B": -0.0092
+      },
+      {
+       "beta_deg": 15,
+       "value": -0.0088,
+       "flag": "measured",
+       "reading_A": -0.0088,
+       "reading_B": -0.0092
+      },
+      {
+       "beta_deg": 20,
+       "value": -0.0105,
+       "flag": "measured",
+       "reading_A": -0.0105,
+       "reading_B": -0.011
+      }
+     ],
+     "calibration": {
+      "y_px_per_unit": -8012.5,
+      "y_px_at_zero": 2114.5,
+      "labels_used": 2,
+      "label_fit_residual_px": 0.0
+     }
+    }
+   },
+   "beta_calibration": {
+    "px_per_deg": 16.874,
+    "x_px_at_zero": 824.6,
+    "lines_used": 9,
+    "fit_residual_px": 3.7
+   }
+  },
+  {
+   "alpha_deg": 22.5,
+   "pdf_page": 40,
+   "coefficients": {
+    "Cy": {
+     "points": [
+      {
+       "beta_deg": -20,
+       "value": 0.1481,
+       "flag": "measured",
+       "reading_A": 0.1481,
+       "reading_B": 0.1491
+      },
+      {
+       "beta_deg": -15,
+       "value": 0.103,
+       "flag": "measured",
+       "reading_A": 0.103,
+       "reading_B": 0.1027
+      },
+      {
+       "beta_deg": -10,
+       "value": 0.0738,
+       "flag": "measured",
+       "reading_A": 0.0738,
+       "reading_B": 0.0737
+      },
+      {
+       "beta_deg": -5,
+       "value": 0.0397,
+       "flag": "measured",
+       "reading_A": 0.0397,
+       "reading_B": 0.0447
+      },
+      {
+       "beta_deg": 0,
+       "value": -0.0017,
+       "flag": "measured",
+       "reading_A": -0.0017,
+       "reading_B": -0.0017
+      },
+      {
+       "beta_deg": 5,
+       "value": -0.0456,
+       "flag": "measured",
+       "reading_A": -0.0456,
+       "reading_B": -0.0394
+      },
+      {
+       "beta_deg": 10,
+       "value": -0.0785,
+       "flag": "measured",
+       "reading_A": -0.0785,
+       "reading_B": -0.0771
+      },
+      {
+       "beta_deg": 15,
+       "value": -0.1061,
+       "flag": "eyeballed",
+       "reading_A": null,
+       "reading_B": -0.1061
+      }
+     ],
+     "calibration": {
+      "y_px_per_unit": -821.07,
+      "y_px_at_zero": 629.6,
+      "labels_used": 3,
+      "label_fit_residual_px": 1.1
+     }
+    },
+    "Cn": {
+     "points": [
+      {
+       "beta_deg": -20,
+       "value": 0.0119,
+       "flag": "measured",
+       "reading_A": 0.0119,
+       "reading_B": 0.0123
+      },
+      {
+       "beta_deg": -15,
+       "value": 0.0194,
+       "flag": "measured",
+       "reading_A": 0.0194,
+       "reading_B": 0.0194
+      },
+      {
+       "beta_deg": -10,
+       "value": 0.0114,
+       "flag": "measured",
+       "reading_A": 0.0114,
+       "reading_B": 0.0116
+      },
+      {
+       "beta_deg": -5,
+       "value": 0.0047,
+       "flag": "measured",
+       "reading_A": 0.0047,
+       "reading_B": 0.0043
+      },
+      {
+       "beta_deg": 0,
+       "value": -0.0028,
+       "flag": "measured",
+       "reading_A": -0.0028,
+       "reading_B": -0.0028
+      },
+      {
+       "beta_deg": 5,
+       "value": -0.008,
+       "flag": "measured",
+       "reading_A": -0.008,
+       "reading_B": -0.0077
+      },
+      {
+       "beta_deg": 10,
+       "value": -0.0186,
+       "flag": "measured",
+       "reading_A": -0.0186,
+       "reading_B": -0.0182
+      },
+      {
+       "beta_deg": 15,
+       "value": -0.018,
+       "flag": "measured",
+       "reading_A": -0.018,
+       "reading_B": -0.0218
+      },
+      {
+       "beta_deg": 20,
+       "value": -0.009,
+       "flag": "measured",
+       "reading_A": -0.009,
+       "reading_B": -0.0147
+      }
+     ],
+     "calibration": {
+      "y_px_per_unit": -8196.43,
+      "y_px_at_zero": 1453.1,
+      "labels_used": 3,
+      "label_fit_residual_px": 0.6
+     }
+    },
+    "Cl": {
+     "points": [
+      {
+       "beta_deg": -20,
+       "value": 0.0097,
+       "flag": "measured",
+       "reading_A": 0.0097,
+       "reading_B": 0.0105
+      },
+      {
+       "beta_deg": -15,
+       "value": 0.0011,
+       "flag": "measured",
+       "reading_A": 0.0011,
+       "reading_B": 0.0006
+      },
+      {
+       "beta_deg": -10,
+       "value": -0.0011,
+       "flag": "measured",
+       "reading_A": -0.0011,
+       "reading_B": -0.0014
+      },
+      {
+       "beta_deg": -5,
+       "value": -0.0003,
+       "flag": "measured",
+       "reading_A": -0.0003,
+       "reading_B": 0.0001
+      },
+      {
+       "beta_deg": 0,
+       "value": 0.0011,
+       "flag": "measured",
+       "reading_A": 0.0011,
+       "reading_B": 0.0006
+      },
+      {
+       "beta_deg": 5,
+       "value": 0.0001,
+       "flag": "measured",
+       "reading_A": 0.0001,
+       "reading_B": 0.0001
+      },
+      {
+       "beta_deg": 10,
+       "value": 0.0003,
+       "flag": "measured",
+       "reading_A": 0.0003,
+       "reading_B": 0.0003
+      },
+      {
+       "beta_deg": 15,
+       "value": -0.0018,
+       "flag": "measured",
+       "reading_A": -0.0018,
+       "reading_B": -0.0024
+      },
+      {
+       "beta_deg": 20,
+       "value": -0.0119,
+       "flag": "measured",
+       "reading_A": -0.0119,
+       "reading_B": -0.0119
+      }
+     ],
+     "calibration": {
+      "y_px_per_unit": -8012.5,
+      "y_px_at_zero": 2114.5,
+      "labels_used": 2,
+      "label_fit_residual_px": 0.0
+     }
+    }
+   },
+   "beta_calibration": {
+    "px_per_deg": 16.365,
+    "x_px_at_zero": 1826.6,
+    "lines_used": 8,
+    "fit_residual_px": 3.6
+   }
+  },
+  {
+   "alpha_deg": 25,
+   "pdf_page": 41,
+   "coefficients": {
+    "Cy": {
+     "points": [
+      {
+       "beta_deg": -40,
+       "value": 0.4145,
+       "flag": "measured",
+       "reading_A": 0.4145,
+       "reading_B": 0.4
+      },
+      {
+       "beta_deg": -30,
+       "value": 0.3055,
+       "flag": "measured",
+       "reading_A": 0.3055,
+       "reading_B": 0.31
+      },
+      {
+       "beta_deg": -20,
+       "value": 0.1985,
+       "flag": "measured",
+       "reading_A": 0.1985,
+       "reading_B": 0.19
+      },
+      {
+       "beta_deg": -15,
+       "value": 0.1359,
+       "flag": "measured",
+       "reading_A": 0.1359,
+       "reading_B": 0.14
+      },
+      {
+       "beta_deg": -10,
+       "value": 0.0875,
+       "flag": "measured",
+       "reading_A": 0.0875,
+       "reading_B": 0.1
+      },
+      {
+       "beta_deg": -5,
+       "value": 0.0451,
+       "flag": "measured",
+       "reading_A": 0.0451,
+       "reading_B": 0.06
+      },
+      {
+       "beta_deg": 0,
+       "value": 0.0128,
+       "flag": "measured",
+       "reading_A": 0.0128,
+       "reading_B": 0.02
+      },
+      {
+       "beta_deg": 5,
+       "value": -0.0215,
+       "flag": "measured",
+       "reading_A": -0.0215,
+       "reading_B": -0.03
+      },
+      {
+       "beta_deg": 10,
+       "value": -0.0498,
+       "flag": "measured",
+       "reading_A": -0.0498,
+       "reading_B": -0.06
+      },
+      {
+       "beta_deg": 15,
+       "value": -0.1063,
+       "flag": "measured",
+       "reading_A": -0.1063,
+       "reading_B": -0.12
+      },
+      {
+       "beta_deg": 20,
+       "value": -0.1689,
+       "flag": "measured",
+       "reading_A": -0.1689,
+       "reading_B": -0.17
+      },
+      {
+       "beta_deg": 30,
+       "value": -0.2779,
+       "flag": "measured",
+       "reading_A": -0.2779,
+       "reading_B": -0.28
+      },
+      {
+       "beta_deg": 40,
+       "value": -0.3849,
+       "flag": "measured",
+       "reading_A": -0.3849,
+       "reading_B": -0.38
+      }
+     ],
+     "calibration": {
+      "y_px_per_unit": -495.42,
+      "y_px_at_zero": 607.3,
+      "labels_used": 4,
+      "label_fit_residual_px": 1.8
+     }
+    },
+    "Cn": {
+     "points": [
+      {
+       "beta_deg": -40,
+       "value": -0.0438,
+       "flag": "measured",
+       "reading_A": -0.0438,
+       "reading_B": -0.043
+      },
+      {
+       "beta_deg": -30,
+       "value": -0.0149,
+       "flag": "measured",
+       "reading_A": -0.0149,
+       "reading_B": -0.0148
+      },
+      {
+       "beta_deg": -20,
+       "value": 0.0018,
+       "flag": "measured",
+       "reading_A": 0.0018,
+       "reading_B": 0.002
+      },
+      {
+       "beta_deg": -15,
+       "value": 0.0142,
+       "flag": "measured",
+       "reading_A": 0.0142,
+       "reading_B": 0.0155
+      },
+      {
+       "beta_deg": -10,
+       "value": 0.0106,
+       "flag": "measured",
+       "reading_A": 0.0106,
+       "reading_B": 0.011
+      },
+      {
+       "beta_deg": -5,
+       "value": 0.0078,
+       "flag": "measured",
+       "reading_A": 0.0078,
+       "reading_B": 0.009
+      },
+      {
+       "beta_deg": 0,
+       "value": 0.0018,
+       "flag": "measured",
+       "reading_A": 0.0018,
+       "reading_B": 0.002
+      },
+      {
+       "beta_deg": 5,
+       "value": -0.0041,
+       "flag": "measured",
+       "reading_A": -0.0041,
+       "reading_B": -0.004
+      },
+      {
+       "beta_deg": 10,
+       "value": -0.0115,
+       "flag": "measured",
+       "reading_A": -0.0115,
+       "reading_B": -0.011
+      },
+      {
+       "beta_deg": 15,
+       "value": -0.0119,
+       "flag": "measured",
+       "reading_A": -0.0119,
+       "reading_B": -0.011
+      },
+      {
+       "beta_deg": 20,
+       "value": -0.0093,
+       "flag": "measured",
+       "reading_A": -0.0093,
+       "reading_B": -0.009
+      },
+      {
+       "beta_deg": 30,
+       "value": 0.008,
+       "flag": "measured",
+       "reading_A": 0.008,
+       "reading_B": 0.008
+      },
+      {
+       "beta_deg": 40,
+       "value": 0.0359,
+       "flag": "measured",
+       "reading_A": 0.0359,
+       "reading_B": 0.036
+      }
+     ],
+     "calibration": {
+      "y_px_per_unit": -5018.96,
+      "y_px_at_zero": 1207.2,
+      "labels_used": 9,
+      "label_fit_residual_px": 0.7
+     }
+    },
+    "Cl": {
+     "points": [
+      {
+       "beta_deg": -40,
+       "value": 0.0648,
+       "flag": "measured",
+       "reading_A": 0.0648,
+       "reading_B": 0.064
+      },
+      {
+       "beta_deg": -30,
+       "value": 0.0343,
+       "flag": "measured",
+       "reading_A": 0.0343,
+       "reading_B": 0.034
+      },
+      {
+       "beta_deg": -20,
+       "value": 0.0089,
+       "flag": "measured",
+       "reading_A": 0.0089,
+       "reading_B": 0.008
+      },
+      {
+       "beta_deg": -15,
+       "value": 0.003,
+       "flag": "measured",
+       "reading_A": 0.003,
+       "reading_B": 0.003
+      },
+      {
+       "beta_deg": -10,
+       "value": -0.0,
+       "flag": "measured",
+       "reading_A": -0.0,
+       "reading_B": 0.0
+      },
+      {
+       "beta_deg": -5,
+       "value": -0.0014,
+       "flag": "measured",
+       "reading_A": -0.0014,
+       "reading_B": -0.001
+      },
+      {
+       "beta_deg": 0,
+       "value": -0.0006,
+       "flag": "measured",
+       "reading_A": -0.0006,
+       "reading_B": 0.0
+      },
+      {
+       "beta_deg": 5,
+       "value": -0.0014,
+       "flag": "measured",
+       "reading_A": -0.0014,
+       "reading_B": -0.001
+      },
+      {
+       "beta_deg": 10,
+       "value": -0.002,
+       "flag": "measured",
+       "reading_A": -0.002,
+       "reading_B": -0.002
+      },
+      {
+       "beta_deg": 15,
+       "value": -0.0041,
+       "flag": "measured",
+       "reading_A": -0.0041,
+       "reading_B": -0.004
+      },
+      {
+       "beta_deg": 20,
+       "value": -0.0077,
+       "flag": "measured",
+       "reading_A": -0.0077,
+       "reading_B": -0.007
+      },
+      {
+       "beta_deg": 30,
+       "value": -0.0215,
+       "flag": "measured",
+       "reading_A": -0.0215,
+       "reading_B": -0.022
+      },
+      {
+       "beta_deg": 40,
+       "value": -0.0567,
+       "flag": "measured",
+       "reading_A": -0.0567,
+       "reading_B": -0.055
+      }
+     ],
+     "calibration": {
+      "y_px_per_unit": -4920.0,
+      "y_px_at_zero": 2006.0,
+      "labels_used": "manual",
+      "label_fit_residual_px": null
+     }
+    }
+   },
+   "beta_calibration": {
+    "px_per_deg": 10.543,
+    "x_px_at_zero": 1190.0,
+    "lines_used": 11,
+    "fit_residual_px": 3.3
+   }
+  },
+  {
+   "alpha_deg": 30,
+   "pdf_page": 42,
+   "coefficients": {
+    "Cy": {
+     "points": [
+      {
+       "beta_deg": -40,
+       "value": 0.3589,
+       "flag": "measured",
+       "reading_A": 0.3589,
+       "reading_B": 0.36
+      },
+      {
+       "beta_deg": -30,
+       "value": 0.3041,
+       "flag": "measured",
+       "reading_A": 0.3041,
+       "reading_B": 0.31
+      },
+      {
+       "beta_deg": -20,
+       "value": 0.1612,
+       "flag": "measured",
+       "reading_A": 0.1612,
+       "reading_B": 0.16
+      },
+      {
+       "beta_deg": -15,
+       "value": 0.1084,
+       "flag": "measured",
+       "reading_A": 0.1084,
+       "reading_B": 0.11
+      },
+      {
+       "beta_deg": -10,
+       "value": 0.0614,
+       "flag": "measured",
+       "reading_A": 0.0614,
+       "reading_B": 0.07
+      },
+      {
+       "beta_deg": -5,
+       "value": 0.032,
+       "flag": "measured",
+       "reading_A": 0.032,
+       "reading_B": 0.03
+      },
+      {
+       "beta_deg": 0,
+       "value": 0.0105,
+       "flag": "measured",
+       "reading_A": 0.0105,
+       "reading_B": 0.02
+      },
+      {
+       "beta_deg": 5,
+       "value": 0.0125,
+       "flag": "measured",
+       "reading_A": 0.0125,
+       "reading_B": 0.01
+      },
+      {
+       "beta_deg": 10,
+       "value": -0.0012,
+       "flag": "measured",
+       "reading_A": -0.0012,
+       "reading_B": -0.03
+      },
+      {
+       "beta_deg": 15,
+       "value": -0.0404,
+       "flag": "measured",
+       "reading_A": -0.0404,
+       "reading_B": -0.05
+      },
+      {
+       "beta_deg": 20,
+       "value": -0.1089,
+       "flag": "measured",
+       "reading_A": -0.1089,
+       "reading_B": -0.1
+      },
+      {
+       "beta_deg": 30,
+       "value": -0.2224,
+       "flag": "measured",
+       "reading_A": -0.2224,
+       "reading_B": -0.22
+      },
+      {
+       "beta_deg": 40,
+       "value": -0.3105,
+       "flag": "measured",
+       "reading_A": -0.3105,
+       "reading_B": -0.31
+      }
+     ],
+     "calibration": {
+      "y_px_per_unit": -510.84,
+      "y_px_at_zero": 528.4,
+      "labels_used": 5,
+      "label_fit_residual_px": 1.5
+     }
+    },
+    "Cn": {
+     "points": [
+      {
+       "beta_deg": -40,
+       "value": -0.0243,
+       "flag": "measured",
+       "reading_A": -0.0243,
+       "reading_B": -0.026
+      },
+      {
+       "beta_deg": -30,
+       "value": -0.0053,
+       "flag": "measured",
+       "reading_A": -0.0053,
+       "reading_B": -0.006
+      },
+      {
+       "beta_deg": -20,
+       "value": 0.0288,
+       "flag": "measured",
+       "reading_A": 0.0288,
+       "reading_B": 0.028
+      },
+      {
+       "beta_deg": -15,
+       "value": 0.0453,
+       "flag": "measured",
+       "reading_A": 0.0453,
+       "reading_B": 0.042
+      },
+      {
+       "beta_deg": -10,
+       "value": 0.0296,
+       "flag": "measured",
+       "reading_A": 0.0296,
+       "reading_B": 0.034
+      },
+      {
+       "beta_deg": -5,
+       "value": 0.0241,
+       "flag": "measured",
+       "reading_A": 0.0241,
+       "reading_B": 0.022
+      },
+      {
+       "beta_deg": 0,
+       "value": 0.0059,
+       "flag": "measured",
+       "reading_A": 0.0059,
+       "reading_B": 0.006
+      },
+      {
+       "beta_deg": 5,
+       "value": -0.0119,
+       "flag": "measured",
+       "reading_A": -0.0119,
+       "reading_B": -0.011
+      },
+      {
+       "beta_deg": 10,
+       "value": -0.029,
+       "flag": "measured",
+       "reading_A": -0.029,
+       "reading_B": -0.026
+      },
+      {
+       "beta_deg": 15,
+       "value": -0.0384,
+       "flag": "measured",
+       "reading_A": -0.0384,
+       "reading_B": -0.037
+      },
+      {
+       "beta_deg": 20,
+       "value": -0.0317,
+       "flag": "measured",
+       "reading_A": -0.0317,
+       "reading_B": -0.032
+      },
+      {
+       "beta_deg": 30,
+       "value": -0.0019,
+       "flag": "measured",
+       "reading_A": -0.0019,
+       "reading_B": -0.002
+      },
+      {
+       "beta_deg": 40,
+       "value": 0.0218,
+       "flag": "measured",
+       "reading_A": 0.0218,
+       "reading_B": 0.021
+      }
+     ],
+     "calibration": {
+      "y_px_per_unit": -5106.55,
+      "y_px_at_zero": 1141.1,
+      "labels_used": 6,
+      "label_fit_residual_px": 2.1
+     }
+    },
+    "Cl": {
+     "points": [
+      {
+       "beta_deg": -40,
+       "value": 0.0729,
+       "flag": "measured",
+       "reading_A": 0.0729,
+       "reading_B": 0.074
+      },
+      {
+       "beta_deg": -30,
+       "value": 0.0427,
+       "flag": "measured",
+       "reading_A": 0.0427,
+       "reading_B": 0.043
+      },
+      {
+       "beta_deg": -20,
+       "value": 0.0125,
+       "flag": "measured",
+       "reading_A": 0.0125,
+       "reading_B": 0.012
+      },
+      {
+       "beta_deg": -15,
+       "value": 0.001,
+       "flag": "measured",
+       "reading_A": 0.001,
+       "reading_B": 0.002
+      },
+      {
+       "beta_deg": -10,
+       "value": 0.0012,
+       "flag": "measured",
+       "reading_A": 0.0012,
+       "reading_B": 0.0
+      },
+      {
+       "beta_deg": -5,
+       "value": 0.0014,
+       "flag": "measured",
+       "reading_A": 0.0014,
+       "reading_B": 0.002
+      },
+      {
+       "beta_deg": 0,
+       "value": 0.0037,
+       "flag": "measured",
+       "reading_A": 0.0037,
+       "reading_B": 0.004
+      },
+      {
+       "beta_deg": 5,
+       "value": 0.007,
+       "flag": "measured",
+       "reading_A": 0.007,
+       "reading_B": 0.006
+      },
+      {
+       "beta_deg": 10,
+       "value": 0.0068,
+       "flag": "measured",
+       "reading_A": 0.0068,
+       "reading_B": 0.006
+      },
+      {
+       "beta_deg": 15,
+       "value": 0.0043,
+       "flag": "measured",
+       "reading_A": 0.0043,
+       "reading_B": 0.005
+      },
+      {
+       "beta_deg": 20,
+       "value": -0.0027,
+       "flag": "measured",
+       "reading_A": -0.0027,
+       "reading_B": -0.004
+      },
+      {
+       "beta_deg": 30,
+       "value": -0.0343,
+       "flag": "measured",
+       "reading_A": -0.0343,
+       "reading_B": -0.031
+      },
+      {
+       "beta_deg": 40,
+       "value": -0.0567,
+       "flag": "measured",
+       "reading_A": -0.0567,
+       "reading_B": -0.057
+      }
+     ],
+     "calibration": {
+      "y_px_per_unit": -5128.11,
+      "y_px_at_zero": 1961.0,
+      "labels_used": 10,
+      "label_fit_residual_px": 2.8
+     }
+    }
+   },
+   "beta_calibration": {
+    "px_per_deg": 10.42,
+    "x_px_at_zero": 1281.0,
+    "lines_used": 0,
+    "fit_residual_px": null
+   }
+  },
+  {
+   "alpha_deg": 35,
+   "pdf_page": 43,
+   "coefficients": {
+    "Cy": {
+     "points": [
+      {
+       "beta_deg": -40,
+       "value": 0.3374,
+       "flag": "measured",
+       "reading_A": 0.3374,
+       "reading_B": 0.38
+      },
+      {
+       "beta_deg": -30,
+       "value": 0.2747,
+       "flag": "measured",
+       "reading_A": 0.2747,
+       "reading_B": 0.28
+      },
+      {
+       "beta_deg": -20,
+       "value": 0.1115,
+       "flag": "measured",
+       "reading_A": 0.1115,
+       "reading_B": 0.14
+      },
+      {
+       "beta_deg": -15,
+       "value": 0.0509,
+       "flag": "measured",
+       "reading_A": 0.0509,
+       "reading_B": 0.08
+      },
+      {
+       "beta_deg": -10,
+       "value": 0.0279,
+       "flag": "measured",
+       "reading_A": 0.0279,
+       "reading_B": 0.065
+      },
+      {
+       "beta_deg": -5,
+       "value": 0.0195,
+       "flag": "measured",
+       "reading_A": 0.0195,
+       "reading_B": 0.04
+      },
+      {
+       "beta_deg": 0,
+       "value": 0.0132,
+       "flag": "measured",
+       "reading_A": 0.0132,
+       "reading_B": 0.04
+      },
+      {
+       "beta_deg": 5,
+       "value": -0.0202,
+       "flag": "measured",
+       "reading_A": -0.0202,
+       "reading_B": 0.005
+      },
+      {
+       "beta_deg": 10,
+       "value": -0.01,
+       "flag": "eyeballed",
+       "reading_A": null,
+       "reading_B": -0.01
+      },
+      {
+       "beta_deg": 15,
+       "value": -0.0704,
+       "flag": "measured",
+       "reading_A": -0.0704,
+       "reading_B": -0.03
+      },
+      {
+       "beta_deg": 20,
+       "value": -0.0913,
+       "flag": "measured",
+       "reading_A": -0.0913,
+       "reading_B": -0.075
+      },
+      {
+       "beta_deg": 30,
+       "value": -0.1959,
+       "flag": "measured",
+       "reading_A": -0.1959,
+       "reading_B": -0.2
+      },
+      {
+       "beta_deg": 40,
+       "value": -0.3465,
+       "flag": "measured",
+       "reading_A": -0.3465,
+       "reading_B": -0.33
+      }
+     ],
+     "calibration": {
+      "y_px_per_unit": -478.12,
+      "y_px_at_zero": 478.3,
+      "labels_used": 5,
+      "label_fit_residual_px": 1.1
+     }
+    },
+    "Cn": {
+     "points": [
+      {
+       "beta_deg": -40,
+       "value": -0.023,
+       "flag": "measured",
+       "reading_A": -0.023,
+       "reading_B": -0.023
+      },
+      {
+       "beta_deg": -30,
+       "value": 0.0035,
+       "flag": "measured",
+       "reading_A": 0.0035,
+       "reading_B": 0.004
+      },
+      {
+       "beta_deg": -20,
+       "value": 0.0417,
+       "flag": "measured",
+       "reading_A": 0.0417,
+       "reading_B": 0.045
+      },
+      {
+       "beta_deg": -15,
+       "value": 0.0467,
+       "flag": "measured",
+       "reading_A": 0.0467,
+       "reading_B": 0.047
+      },
+      {
+       "beta_deg": -10,
+       "value": 0.0426,
+       "flag": "measured",
+       "reading_A": 0.0426,
+       "reading_B": 0.043
+      },
+      {
+       "beta_deg": -5,
+       "value": 0.027,
+       "flag": "measured",
+       "reading_A": 0.027,
+       "reading_B": 0.026
+      },
+      {
+       "beta_deg": 0,
+       "value": 0.0074,
+       "flag": "measured",
+       "reading_A": 0.0074,
+       "reading_B": 0.006
+      },
+      {
+       "beta_deg": 5,
+       "value": -0.017,
+       "flag": "measured",
+       "reading_A": -0.017,
+       "reading_B": -0.016
+      },
+      {
+       "beta_deg": 10,
+       "value": -0.0349,
+       "flag": "measured",
+       "reading_A": -0.0349,
+       "reading_B": -0.035
+      },
+      {
+       "beta_deg": 15,
+       "value": -0.0452,
+       "flag": "measured",
+       "reading_A": -0.0452,
+       "reading_B": -0.044
+      },
+      {
+       "beta_deg": 20,
+       "value": -0.0465,
+       "flag": "measured",
+       "reading_A": -0.0465,
+       "reading_B": -0.045
+      },
+      {
+       "beta_deg": 30,
+       "value": -0.02,
+       "flag": "measured",
+       "reading_A": -0.02,
+       "reading_B": -0.021
+      },
+      {
+       "beta_deg": 40,
+       "value": 0.0165,
+       "flag": "measured",
+       "reading_A": 0.0165,
+       "reading_B": 0.017
+      }
+     ],
+     "calibration": {
+      "y_px_per_unit": -4635.98,
+      "y_px_at_zero": 1040.3,
+      "labels_used": 7,
+      "label_fit_residual_px": 2.8
+     }
+    },
+    "Cl": {
+     "points": [
+      {
+       "beta_deg": -40,
+       "value": 0.0853,
+       "flag": "measured",
+       "reading_A": 0.0853,
+       "reading_B": 0.084
+      },
+      {
+       "beta_deg": -30,
+       "value": 0.0572,
+       "flag": "measured",
+       "reading_A": 0.0572,
+       "reading_B": 0.058
+      },
+      {
+       "beta_deg": -20,
+       "value": 0.0275,
+       "flag": "measured",
+       "reading_A": 0.0275,
+       "reading_B": 0.026
+      },
+      {
+       "beta_deg": -15,
+       "value": 0.0204,
+       "flag": "measured",
+       "reading_A": 0.0204,
+       "reading_B": 0.021
+      },
+      {
+       "beta_deg": -10,
+       "value": 0.0085,
+       "flag": "measured",
+       "reading_A": 0.0085,
+       "reading_B": 0.008
+      },
+      {
+       "beta_deg": -5,
+       "value": 0.0048,
+       "flag": "measured",
+       "reading_A": 0.0048,
+       "reading_B": 0.003
+      },
+      {
+       "beta_deg": 0,
+       "value": 0.0022,
+       "flag": "measured",
+       "reading_A": 0.0022,
+       "reading_B": 0.003
+      },
+      {
+       "beta_deg": 5,
+       "value": 0.0027,
+       "flag": "measured",
+       "reading_A": 0.0027,
+       "reading_B": 0.003
+      },
+      {
+       "beta_deg": 10,
+       "value": 0.0022,
+       "flag": "measured",
+       "reading_A": 0.0022,
+       "reading_B": 0.001
+      },
+      {
+       "beta_deg": 15,
+       "value": -0.0077,
+       "flag": "measured",
+       "reading_A": -0.0077,
+       "reading_B": -0.008
+      },
+      {
+       "beta_deg": 20,
+       "value": -0.0228,
+       "flag": "measured",
+       "reading_A": -0.0228,
+       "reading_B": -0.023
+      },
+      {
+       "beta_deg": 30,
+       "value": -0.0413,
+       "flag": "measured",
+       "reading_A": -0.0413,
+       "reading_B": -0.042
+      },
+      {
+       "beta_deg": 40,
+       "value": -0.0816,
+       "flag": "measured",
+       "reading_A": -0.0816,
+       "reading_B": -0.081
+      }
+     ],
+     "calibration": {
+      "y_px_per_unit": -4636.93,
+      "y_px_at_zero": 1873.4,
+      "labels_used": 11,
+      "label_fit_residual_px": 3.3
+     }
+    }
+   },
+   "beta_calibration": {
+    "px_per_deg": 9.708,
+    "x_px_at_zero": 678.6,
+    "lines_used": 9,
+    "fit_residual_px": 1.7
+   }
+  },
+  {
+   "alpha_deg": 40,
+   "pdf_page": 43,
+   "coefficients": {
+    "Cy": {
+     "points": [
+      {
+       "beta_deg": -40,
+       "value": 0.3184,
+       "flag": "measured",
+       "reading_A": 0.3184,
+       "reading_B": 0.33
+      },
+      {
+       "beta_deg": -30,
+       "value": 0.2517,
+       "flag": "measured",
+       "reading_A": 0.2517,
+       "reading_B": 0.24
+      },
+      {
+       "beta_deg": -20,
+       "value": 0.1052,
+       "flag": "measured",
+       "reading_A": 0.1052,
+       "reading_B": 0.11
+      },
+      {
+       "beta_deg": -15,
+       "value": 0.0427,
+       "flag": "measured",
+       "reading_A": 0.0427,
+       "reading_B": 0.065
+      },
+      {
+       "beta_deg": -10,
+       "value": 0.0276,
+       "flag": "measured",
+       "reading_A": 0.0276,
+       "reading_B": 0.045
+      },
+      {
+       "beta_deg": -5,
+       "value": 0.03,
+       "flag": "eyeballed",
+       "reading_A": null,
+       "reading_B": 0.03
+      },
+      {
+       "beta_deg": 0,
+       "value": 0.0018,
+       "flag": "measured",
+       "reading_A": 0.0018,
+       "reading_B": 0.02
+      },
+      {
+       "beta_deg": 5,
+       "value": -0.009,
+       "flag": "measured",
+       "reading_A": -0.009,
+       "reading_B": 0.005
+      },
+      {
+       "beta_deg": 10,
+       "value": -0.0305,
+       "flag": "measured",
+       "reading_A": -0.0305,
+       "reading_B": -0.01
+      },
+      {
+       "beta_deg": 15,
+       "value": -0.0413,
+       "flag": "measured",
+       "reading_A": -0.0413,
+       "reading_B": -0.02
+      },
+      {
+       "beta_deg": 20,
+       "value": -0.065,
+       "flag": "measured",
+       "reading_A": -0.065,
+       "reading_B": -0.06
+      },
+      {
+       "beta_deg": 30,
+       "value": -0.1727,
+       "flag": "measured",
+       "reading_A": -0.1727,
+       "reading_B": -0.15
+      },
+      {
+       "beta_deg": 40,
+       "value": -0.3213,
+       "flag": "measured",
+       "reading_A": -0.3213,
+       "reading_B": -0.3
+      }
+     ],
+     "calibration": {
+      "y_px_per_unit": -464.21,
+      "y_px_at_zero": 485.8,
+      "labels_used": 6,
+      "label_fit_residual_px": 0.5
+     }
+    },
+    "Cn": {
+     "points": [
+      {
+       "beta_deg": -40,
+       "value": -0.0207,
+       "flag": "measured",
+       "reading_A": -0.0207,
+       "reading_B": -0.021
+      },
+      {
+       "beta_deg": -30,
+       "value": 0.016,
+       "flag": "measured",
+       "reading_A": 0.016,
+       "reading_B": 0.016
+      },
+      {
+       "beta_deg": -20,
+       "value": 0.0477,
+       "flag": "measured",
+       "reading_A": 0.0477,
+       "reading_B": 0.046
+      },
+      {
+       "beta_deg": -15,
+       "value": 0.0468,
+       "flag": "measured",
+       "reading_A": 0.0468,
+       "reading_B": 0.047
+      },
+      {
+       "beta_deg": -10,
+       "value": 0.0319,
+       "flag": "measured",
+       "reading_A": 0.0319,
+       "reading_B": 0.031
+      },
+      {
+       "beta_deg": -5,
+       "value": 0.0147,
+       "flag": "measured",
+       "reading_A": 0.0147,
+       "reading_B": 0.014
+      },
+      {
+       "beta_deg": 0,
+       "value": 0.002,
+       "flag": "measured",
+       "reading_A": 0.002,
+       "reading_B": 0.002
+      },
+      {
+       "beta_deg": 5,
+       "value": -0.0125,
+       "flag": "measured",
+       "reading_A": -0.0125,
+       "reading_B": -0.01
+      },
+      {
+       "beta_deg": 10,
+       "value": -0.0246,
+       "flag": "measured",
+       "reading_A": -0.0246,
+       "reading_B": -0.022
+      },
+      {
+       "beta_deg": 15,
+       "value": -0.0386,
+       "flag": "measured",
+       "reading_A": -0.0386,
+       "reading_B": -0.039
+      },
+      {
+       "beta_deg": 20,
+       "value": -0.0472,
+       "flag": "measured",
+       "reading_A": -0.0472,
+       "reading_B": -0.048
+      },
+      {
+       "beta_deg": 30,
+       "value": -0.031,
+       "flag": "measured",
+       "reading_A": -0.031,
+       "reading_B": -0.032
+      },
+      {
+       "beta_deg": 40,
+       "value": -0.008,
+       "flag": "measured",
+       "reading_A": -0.008,
+       "reading_B": -0.008
+      }
+     ],
+     "calibration": {
+      "y_px_per_unit": -4638.75,
+      "y_px_at_zero": 1042.1,
+      "labels_used": 9,
+      "label_fit_residual_px": 2.7
+     }
+    },
+    "Cl": {
+     "points": [
+      {
+       "beta_deg": -40,
+       "value": 0.0994,
+       "flag": "measured",
+       "reading_A": 0.0994,
+       "reading_B": 0.099
+      },
+      {
+       "beta_deg": -30,
+       "value": 0.0675,
+       "flag": "measured",
+       "reading_A": 0.0675,
+       "reading_B": 0.067
+      },
+      {
+       "beta_deg": -20,
+       "value": 0.0405,
+       "flag": "measured",
+       "reading_A": 0.0405,
+       "reading_B": 0.041
+      },
+      {
+       "beta_deg": -15,
+       "value": 0.0291,
+       "flag": "measured",
+       "reading_A": 0.0291,
+       "reading_B": 0.033
+      },
+      {
+       "beta_deg": -10,
+       "value": 0.0196,
+       "flag": "measured",
+       "reading_A": 0.0196,
+       "reading_B": 0.021
+      },
+      {
+       "beta_deg": -5,
+       "value": 0.016,
+       "flag": "measured",
+       "reading_A": 0.016,
+       "reading_B": 0.016
+      },
+      {
+       "beta_deg": 0,
+       "value": 0.0099,
+       "flag": "measured",
+       "reading_A": 0.0099,
+       "reading_B": 0.009
+      },
+      {
+       "beta_deg": 5,
+       "value": 0.0011,
+       "flag": "measured",
+       "reading_A": 0.0011,
+       "reading_B": 0.0
+      },
+      {
+       "beta_deg": 10,
+       "value": -0.0097,
+       "flag": "measured",
+       "reading_A": -0.0097,
+       "reading_B": -0.009
+      },
+      {
+       "beta_deg": 15,
+       "value": -0.0151,
+       "flag": "measured",
+       "reading_A": -0.0151,
+       "reading_B": -0.018
+      },
+      {
+       "beta_deg": 20,
+       "value": -0.0291,
+       "flag": "measured",
+       "reading_A": -0.0291,
+       "reading_B": -0.027
+      },
+      {
+       "beta_deg": 30,
+       "value": -0.0565,
+       "flag": "measured",
+       "reading_A": -0.0565,
+       "reading_B": -0.057
+      },
+      {
+       "beta_deg": 40,
+       "value": -0.0899,
+       "flag": "measured",
+       "reading_A": -0.0899,
+       "reading_B": -0.091
+      }
+     ],
+     "calibration": {
+      "y_px_per_unit": -4638.31,
+      "y_px_at_zero": 1878.0,
+      "labels_used": 11,
+      "label_fit_residual_px": 0.3
+     }
+    }
+   },
+   "beta_calibration": {
+    "px_per_deg": 9.745,
+    "x_px_at_zero": 1685.9,
+    "lines_used": 9,
+    "fit_residual_px": 0.5
+   }
+  },
+  {
+   "alpha_deg": 45,
+   "pdf_page": 44,
+   "coefficients": {
+    "Cy": {
+     "points": [
+      {
+       "beta_deg": -40,
+       "value": 0.2847,
+       "flag": "measured",
+       "reading_A": 0.2847,
+       "reading_B": 0.29
+      },
+      {
+       "beta_deg": -30,
+       "value": 0.1889,
+       "flag": "measured",
+       "reading_A": 0.1889,
+       "reading_B": 0.19
+      },
+      {
+       "beta_deg": -20,
+       "value": 0.073,
+       "flag": "measured",
+       "reading_A": 0.073,
+       "reading_B": 0.08
+      },
+      {
+       "beta_deg": -15,
+       "value": 0.044,
+       "flag": "measured",
+       "reading_A": 0.044,
+       "reading_B": 0.05
+      },
+      {
+       "beta_deg": -10,
+       "value": 0.015,
+       "flag": "measured",
+       "reading_A": 0.015,
+       "reading_B": 0.02
+      },
+      {
+       "beta_deg": -5,
+       "value": 0.0084,
+       "flag": "measured",
+       "reading_A": 0.0084,
+       "reading_B": 0.01
+      },
+      {
+       "beta_deg": 0,
+       "value": -0.0006,
+       "flag": "measured",
+       "reading_A": -0.0006,
+       "reading_B": 0.0
+      },
+      {
+       "beta_deg": 5,
+       "value": -0.0518,
+       "flag": "measured",
+       "reading_A": -0.0518,
+       "reading_B": -0.045
+      },
+      {
+       "beta_deg": 10,
+       "value": -0.0407,
+       "flag": "measured",
+       "reading_A": -0.0407,
+       "reading_B": -0.035
+      },
+      {
+       "beta_deg": 15,
+       "value": -0.0162,
+       "flag": "measured",
+       "reading_A": -0.0162,
+       "reading_B": -0.02
+      },
+      {
+       "beta_deg": 20,
+       "value": -0.0518,
+       "flag": "measured",
+       "reading_A": -0.0518,
+       "reading_B": -0.05
+      },
+      {
+       "beta_deg": 30,
+       "value": -0.1454,
+       "flag": "measured",
+       "reading_A": -0.1454,
+       "reading_B": -0.15
+      },
+      {
+       "beta_deg": 40,
+       "value": -0.2591,
+       "flag": "measured",
+       "reading_A": -0.2591,
+       "reading_B": -0.26
+      }
+     ],
+     "calibration": {
+      "y_px_per_unit": -448.75,
+      "y_px_at_zero": 501.7,
+      "labels_used": 2,
+      "label_fit_residual_px": 0.0
+     }
+    },
+    "Cn": {
+     "points": [
+      {
+       "beta_deg": -40,
+       "value": -0.0142,
+       "flag": "measured",
+       "reading_A": -0.0142,
+       "reading_B": -0.016
+      },
+      {
+       "beta_deg": -30,
+       "value": 0.02,
+       "flag": "measured",
+       "reading_A": 0.02,
+       "reading_B": 0.021
+      },
+      {
+       "beta_deg": -20,
+       "value": 0.0498,
+       "flag": "measured",
+       "reading_A": 0.0498,
+       "reading_B": 0.051
+      },
+      {
+       "beta_deg": -15,
+       "value": 0.0399,
+       "flag": "measured",
+       "reading_A": 0.0399,
+       "reading_B": 0.041
+      },
+      {
+       "beta_deg": -10,
+       "value": 0.024,
+       "flag": "measured",
+       "reading_A": 0.024,
+       "reading_B": 0.025
+      },
+      {
+       "beta_deg": -5,
+       "value": 0.0162,
+       "flag": "measured",
+       "reading_A": 0.0162,
+       "reading_B": 0.017
+      },
+      {
+       "beta_deg": 0,
+       "value": 0.0054,
+       "flag": "measured",
+       "reading_A": 0.0054,
+       "reading_B": 0.008
+      },
+      {
+       "beta_deg": 5,
+       "value": -0.0018,
+       "flag": "measured",
+       "reading_A": -0.0018,
+       "reading_B": 0.002
+      },
+      {
+       "beta_deg": 10,
+       "value": -0.0096,
+       "flag": "measured",
+       "reading_A": -0.0096,
+       "reading_B": -0.01
+      },
+      {
+       "beta_deg": 15,
+       "value": -0.0254,
+       "flag": "measured",
+       "reading_A": -0.0254,
+       "reading_B": -0.031
+      },
+      {
+       "beta_deg": 20,
+       "value": -0.0415,
+       "flag": "measured",
+       "reading_A": -0.0415,
+       "reading_B": -0.042
+      },
+      {
+       "beta_deg": 30,
+       "value": -0.0434,
+       "flag": "measured",
+       "reading_A": -0.0434,
+       "reading_B": -0.046
+      },
+      {
+       "beta_deg": 40,
+       "value": -0.0007,
+       "flag": "measured",
+       "reading_A": -0.0007,
+       "reading_B": -0.004
+      }
+     ],
+     "calibration": {
+      "y_px_per_unit": -4730.52,
+      "y_px_at_zero": 1074.7,
+      "labels_used": 8,
+      "label_fit_residual_px": 0.7
+     }
+    },
+    "Cl": {
+     "points": [
+      {
+       "beta_deg": -40,
+       "value": 0.1054,
+       "flag": "measured",
+       "reading_A": 0.1054,
+       "reading_B": 0.106
+      },
+      {
+       "beta_deg": -30,
+       "value": 0.0734,
+       "flag": "measured",
+       "reading_A": 0.0734,
+       "reading_B": 0.072
+      },
+      {
+       "beta_deg": -20,
+       "value": 0.0434,
+       "flag": "measured",
+       "reading_A": 0.0434,
+       "reading_B": 0.042
+      },
+      {
+       "beta_deg": -15,
+       "value": 0.0358,
+       "flag": "measured",
+       "reading_A": 0.0358,
+       "reading_B": 0.036
+      },
+      {
+       "beta_deg": -10,
+       "value": 0.031,
+       "flag": "measured",
+       "reading_A": 0.031,
+       "reading_B": 0.03
+      },
+      {
+       "beta_deg": -5,
+       "value": 0.02,
+       "flag": "measured",
+       "reading_A": 0.02,
+       "reading_B": 0.019
+      },
+      {
+       "beta_deg": 0,
+       "value": 0.0104,
+       "flag": "measured",
+       "reading_A": 0.0104,
+       "reading_B": 0.011
+      },
+      {
+       "beta_deg": 5,
+       "value": 0.0007,
+       "flag": "measured",
+       "reading_A": 0.0007,
+       "reading_B": 0.0
+      },
+      {
+       "beta_deg": 10,
+       "value": -0.0144,
+       "flag": "measured",
+       "reading_A": -0.0144,
+       "reading_B": -0.014
+      },
+      {
+       "beta_deg": 15,
+       "value": -0.0256,
+       "flag": "measured",
+       "reading_A": -0.0256,
+       "reading_B": -0.026
+      },
+      {
+       "beta_deg": 20,
+       "value": -0.0308,
+       "flag": "measured",
+       "reading_A": -0.0308,
+       "reading_B": -0.031
+      },
+      {
+       "beta_deg": 30,
+       "value": -0.0548,
+       "flag": "measured",
+       "reading_A": -0.0548,
+       "reading_B": -0.055
+      },
+      {
+       "beta_deg": 40,
+       "value": -0.089,
+       "flag": "measured",
+       "reading_A": -0.089,
+       "reading_B": -0.095
+      }
+     ],
+     "calibration": {
+      "y_px_per_unit": -4757.81,
+      "y_px_at_zero": 2022.3,
+      "labels_used": 9,
+      "label_fit_residual_px": 2.9
+     }
+    }
+   },
+   "beta_calibration": {
+    "px_per_deg": 9.749,
+    "x_px_at_zero": 748.0,
+    "lines_used": 10,
+    "fit_residual_px": 1.7
+   }
+  },
+  {
+   "alpha_deg": 50,
+   "pdf_page": 44,
+   "coefficients": {
+    "Cy": {
+     "points": [
+      {
+       "beta_deg": -40,
+       "value": 0.277,
+       "flag": "magnified eye reading",
+       "reading_A": 0.277,
+       "reading_B": 0.27
+      },
+      {
+       "beta_deg": -30,
+       "value": 0.109,
+       "flag": "magnified eye reading",
+       "reading_A": 0.109,
+       "reading_B": 0.1
+      },
+      {
+       "beta_deg": -20,
+       "value": 0.058,
+       "flag": "magnified eye reading",
+       "reading_A": 0.058,
+       "reading_B": 0.06
+      },
+      {
+       "beta_deg": -15,
+       "value": 0.032,
+       "flag": "magnified eye reading",
+       "reading_A": 0.032,
+       "reading_B": 0.04
+      },
+      {
+       "beta_deg": -10,
+       "value": 0.009,
+       "flag": "magnified eye reading",
+       "reading_A": 0.009,
+       "reading_B": 0.01
+      },
+      {
+       "beta_deg": -5,
+       "value": 0.0,
+       "flag": "magnified eye reading",
+       "reading_A": 0.0,
+       "reading_B": 0.01
+      },
+      {
+       "beta_deg": 0,
+       "value": 0.005,
+       "flag": "magnified eye reading",
+       "reading_A": 0.005,
+       "reading_B": 0.01
+      },
+      {
+       "beta_deg": 5,
+       "value": -0.037,
+       "flag": "magnified eye reading",
+       "reading_A": -0.037,
+       "reading_B": 0.0
+      },
+      {
+       "beta_deg": 10,
+       "value": -0.035,
+       "flag": "magnified eye reading",
+       "reading_A": -0.035,
+       "reading_B": -0.03
+      },
+      {
+       "beta_deg": 15,
+       "value": -0.026,
+       "flag": "magnified eye reading",
+       "reading_A": -0.026,
+       "reading_B": -0.03
+      },
+      {
+       "beta_deg": 20,
+       "value": -0.046,
+       "flag": "magnified eye reading",
+       "reading_A": -0.046,
+       "reading_B": -0.04
+      },
+      {
+       "beta_deg": 30,
+       "value": -0.105,
+       "flag": "magnified eye reading",
+       "reading_A": -0.105,
+       "reading_B": -0.09
+      },
+      {
+       "beta_deg": 40,
+       "value": -0.228,
+       "flag": "magnified eye reading",
+       "reading_A": -0.228,
+       "reading_B": -0.25
+      }
+     ],
+     "calibration": {
+      "y_px_per_unit": -427.75,
+      "y_px_at_zero": 577.3,
+      "labels_used": "manual",
+      "label_fit_residual_px": null
+     }
+    },
+    "Cn": {
+     "points": [
+      {
+       "beta_deg": -40,
+       "value": -0.009,
+       "flag": "magnified eye reading",
+       "reading_A": -0.009,
+       "reading_B": -0.008
+      },
+      {
+       "beta_deg": -30,
+       "value": 0.055,
+       "flag": "magnified eye reading",
+       "reading_A": 0.055,
+       "reading_B": 0.047
+      },
+      {
+       "beta_deg": -20,
+       "value": 0.043,
+       "flag": "magnified eye reading",
+       "reading_A": 0.043,
+       "reading_B": 0.039
+      },
+      {
+       "beta_deg": -15,
+       "value": 0.036,
+       "flag": "magnified eye reading",
+       "reading_A": 0.036,
+       "reading_B": 0.032
+      },
+      {
+       "beta_deg": -10,
+       "value": 0.026,
+       "flag": "magnified eye reading",
+       "reading_A": 0.026,
+       "reading_B": 0.023
+      },
+      {
+       "beta_deg": -5,
+       "value": 0.0064,
+       "flag": "magnified eye reading",
+       "reading_A": 0.0064,
+       "reading_B": 0.006
+      },
+      {
+       "beta_deg": 0,
+       "value": 0.0028,
+       "flag": "magnified eye reading",
+       "reading_A": 0.0028,
+       "reading_B": 0.004
+      },
+      {
+       "beta_deg": 5,
+       "value": -0.0028,
+       "flag": "magnified eye reading",
+       "reading_A": -0.0028,
+       "reading_B": -0.002
+      },
+      {
+       "beta_deg": 10,
+       "value": -0.003,
+       "flag": "magnified eye reading",
+       "reading_A": -0.003,
+       "reading_B": -0.002
+      },
+      {
+       "beta_deg": 15,
+       "value": -0.025,
+       "flag": "magnified eye reading",
+       "reading_A": -0.025,
+       "reading_B": -0.022
+      },
+      {
+       "beta_deg": 20,
+       "value": -0.037,
+       "flag": "magnified eye reading",
+       "reading_A": -0.037,
+       "reading_B": -0.028
+      },
+      {
+       "beta_deg": 30,
+       "value": -0.052,
+       "flag": "magnified eye reading",
+       "reading_A": -0.052,
+       "reading_B": -0.044
+      },
+      {
+       "beta_deg": 40,
+       "value": -0.013,
+       "flag": "magnified eye reading",
+       "reading_A": -0.013,
+       "reading_B": -0.009
+      }
+     ],
+     "calibration": {
+      "y_px_per_unit": -4325.0,
+      "y_px_at_zero": 1097.5,
+      "labels_used": "manual",
+      "label_fit_residual_px": null
+     }
+    },
+    "Cl": {
+     "points": [
+      {
+       "beta_deg": -40,
+       "value": 0.111,
+       "flag": "magnified eye reading",
+       "reading_A": 0.111,
+       "reading_B": 0.102
+      },
+      {
+       "beta_deg": -30,
+       "value": 0.07,
+       "flag": "magnified eye reading",
+       "reading_A": 0.07,
+       "reading_B": 0.065
+      },
+      {
+       "beta_deg": -20,
+       "value": 0.05,
+       "flag": "magnified eye reading",
+       "reading_A": 0.05,
+       "reading_B": 0.044
+      },
+      {
+       "beta_deg": -15,
+       "value": 0.04,
+       "flag": "magnified eye reading",
+       "reading_A": 0.04,
+       "reading_B": 0.035
+      },
+      {
+       "beta_deg": -10,
+       "value": 0.03,
+       "flag": "magnified eye reading",
+       "reading_A": 0.03,
+       "reading_B": 0.024
+      },
+      {
+       "beta_deg": -5,
+       "value": 0.019,
+       "flag": "magnified eye reading",
+       "reading_A": 0.019,
+       "reading_B": 0.012
+      },
+      {
+       "beta_deg": 0,
+       "value": 0.005,
+       "flag": "magnified eye reading",
+       "reading_A": 0.005,
+       "reading_B": 0.003
+      },
+      {
+       "beta_deg": 5,
+       "value": -0.005,
+       "flag": "magnified eye reading",
+       "reading_A": -0.005,
+       "reading_B": -0.004
+      },
+      {
+       "beta_deg": 10,
+       "value": -0.019,
+       "flag": "magnified eye reading",
+       "reading_A": -0.019,
+       "reading_B": -0.019
+      },
+      {
+       "beta_deg": 15,
+       "value": -0.03,
+       "flag": "magnified eye reading",
+       "reading_A": -0.03,
+       "reading_B": -0.029
+      },
+      {
+       "beta_deg": 20,
+       "value": -0.04,
+       "flag": "magnified eye reading",
+       "reading_A": -0.04,
+       "reading_B": -0.036
+      },
+      {
+       "beta_deg": 30,
+       "value": -0.058,
+       "flag": "magnified eye reading",
+       "reading_A": -0.058,
+       "reading_B": -0.058
+      },
+      {
+       "beta_deg": 40,
+       "value": -0.099,
+       "flag": "magnified eye reading",
+       "reading_A": -0.099,
+       "reading_B": -0.1
+      }
+     ],
+     "calibration": {
+      "y_px_per_unit": -4360.0,
+      "y_px_at_zero": 1972.8,
+      "labels_used": "manual",
+      "label_fit_residual_px": null
+     }
+    }
+   },
+   "beta_calibration": {
+    "px_per_deg": 9.0,
+    "x_px_at_zero": 1790.0,
+    "lines_used": "fixed",
+    "fit_residual_px": null
+   }
+  },
+  {
+   "alpha_deg": 55,
+   "pdf_page": 45,
+   "coefficients": {
+    "Cy": {
+     "points": [
+      {
+       "beta_deg": -40,
+       "value": 0.2473,
+       "flag": "measured",
+       "reading_A": 0.2473,
+       "reading_B": 0.26
+      },
+      {
+       "beta_deg": -30,
+       "value": 0.0602,
+       "flag": "measured",
+       "reading_A": 0.0602,
+       "reading_B": 0.07
+      },
+      {
+       "beta_deg": -20,
+       "value": 0.0538,
+       "flag": "measured",
+       "reading_A": 0.0538,
+       "reading_B": 0.06
+      },
+      {
+       "beta_deg": -15,
+       "value": 0.043,
+       "flag": "measured",
+       "reading_A": 0.043,
+       "reading_B": 0.05
+      },
+      {
+       "beta_deg": -10,
+       "value": 0.0409,
+       "flag": "measured",
+       "reading_A": 0.0409,
+       "reading_B": 0.04
+      },
+      {
+       "beta_deg": -5,
+       "value": 0.0258,
+       "flag": "measured",
+       "reading_A": 0.0258,
+       "reading_B": 0.03
+      },
+      {
+       "beta_deg": 0,
+       "value": 0.0108,
+       "flag": "measured",
+       "reading_A": 0.0108,
+       "reading_B": 0.02
+      },
+      {
+       "beta_deg": 5,
+       "value": -0.0108,
+       "flag": "measured",
+       "reading_A": -0.0108,
+       "reading_B": 0.0
+      },
+      {
+       "beta_deg": 10,
+       "value": -0.0323,
+       "flag": "measured",
+       "reading_A": -0.0323,
+       "reading_B": -0.01
+      },
+      {
+       "beta_deg": 15,
+       "value": -0.0366,
+       "flag": "measured",
+       "reading_A": -0.0366,
+       "reading_B": -0.02
+      },
+      {
+       "beta_deg": 20,
+       "value": -0.0409,
+       "flag": "measured",
+       "reading_A": -0.0409,
+       "reading_B": -0.02
+      },
+      {
+       "beta_deg": 30,
+       "value": -0.02,
+       "flag": "eyeballed",
+       "reading_A": null,
+       "reading_B": -0.02
+      },
+      {
+       "beta_deg": 40,
+       "value": -0.1591,
+       "flag": "measured",
+       "reading_A": -0.1591,
+       "reading_B": -0.15
+      }
+     ],
+     "calibration": {
+      "y_px_per_unit": -465.0,
+      "y_px_at_zero": 479.0,
+      "labels_used": 5,
+      "label_fit_residual_px": 0.0
+     }
+    },
+    "Cn": {
+     "points": [
+      {
+       "beta_deg": -40,
+       "value": -0.0022,
+       "flag": "measured",
+       "reading_A": -0.0022,
+       "reading_B": -0.001
+      },
+      {
+       "beta_deg": -30,
+       "value": 0.0405,
+       "flag": "measured",
+       "reading_A": 0.0405,
+       "reading_B": 0.039
+      },
+      {
+       "beta_deg": -20,
+       "value": 0.0355,
+       "flag": "measured",
+       "reading_A": 0.0355,
+       "reading_B": 0.035
+      },
+      {
+       "beta_deg": -15,
+       "value": 0.0314,
+       "flag": "measured",
+       "reading_A": 0.0314,
+       "reading_B": 0.029
+      },
+      {
+       "beta_deg": -10,
+       "value": 0.0191,
+       "flag": "measured",
+       "reading_A": 0.0191,
+       "reading_B": 0.018
+      },
+      {
+       "beta_deg": -5,
+       "value": 0.0071,
+       "flag": "measured",
+       "reading_A": 0.0071,
+       "reading_B": 0.007
+      },
+      {
+       "beta_deg": 0,
+       "value": 0.003,
+       "flag": "eyeballed",
+       "reading_A": null,
+       "reading_B": 0.003
+      },
+      {
+       "beta_deg": 5,
+       "value": -0.004,
+       "flag": "measured",
+       "reading_A": -0.004,
+       "reading_B": -0.004
+      },
+      {
+       "beta_deg": 10,
+       "value": -0.0106,
+       "flag": "measured",
+       "reading_A": -0.0106,
+       "reading_B": -0.013
+      },
+      {
+       "beta_deg": 15,
+       "value": -0.0206,
+       "flag": "measured",
+       "reading_A": -0.0206,
+       "reading_B": -0.026
+      },
+      {
+       "beta_deg": 20,
+       "value": -0.0299,
+       "flag": "measured",
+       "reading_A": -0.0299,
+       "reading_B": -0.031
+      },
+      {
+       "beta_deg": 30,
+       "value": -0.0357,
+       "flag": "measured",
+       "reading_A": -0.0357,
+       "reading_B": -0.036
+      },
+      {
+       "beta_deg": 40,
+       "value": -0.007,
+       "flag": "measured",
+       "reading_A": -0.007,
+       "reading_B": -0.006
+      }
+     ],
+     "calibration": {
+      "y_px_per_unit": -4633.48,
+      "y_px_at_zero": 942.7,
+      "labels_used": 7,
+      "label_fit_residual_px": 2.2
+     }
+    },
+    "Cl": {
+     "points": [
+      {
+       "beta_deg": -40,
+       "value": 0.1138,
+       "flag": "measured",
+       "reading_A": 0.1138,
+       "reading_B": 0.114
+      },
+      {
+       "beta_deg": -30,
+       "value": 0.0754,
+       "flag": "measured",
+       "reading_A": 0.0754,
+       "reading_B": 0.076
+      },
+      {
+       "beta_deg": -20,
+       "value": 0.0538,
+       "flag": "measured",
+       "reading_A": 0.0538,
+       "reading_B": 0.055
+      },
+      {
+       "beta_deg": -15,
+       "value": 0.0411,
+       "flag": "measured",
+       "reading_A": 0.0411,
+       "reading_B": 0.043
+      },
+      {
+       "beta_deg": -10,
+       "value": 0.0305,
+       "flag": "measured",
+       "reading_A": 0.0305,
+       "reading_B": 0.031
+      },
+      {
+       "beta_deg": -5,
+       "value": 0.0188,
+       "flag": "measured",
+       "reading_A": 0.0188,
+       "reading_B": 0.019
+      },
+      {
+       "beta_deg": 0,
+       "value": 0.0035,
+       "flag": "measured",
+       "reading_A": 0.0035,
+       "reading_B": 0.007
+      },
+      {
+       "beta_deg": 5,
+       "value": -0.0058,
+       "flag": "measured",
+       "reading_A": -0.0058,
+       "reading_B": -0.005
+      },
+      {
+       "beta_deg": 10,
+       "value": -0.0183,
+       "flag": "measured",
+       "reading_A": -0.0183,
+       "reading_B": -0.018
+      },
+      {
+       "beta_deg": 15,
+       "value": -0.031,
+       "flag": "eyeballed",
+       "reading_A": null,
+       "reading_B": -0.031
+      },
+      {
+       "beta_deg": 20,
+       "value": -0.044,
+       "flag": "eyeballed",
+       "reading_A": null,
+       "reading_B": -0.044
+      },
+      {
+       "beta_deg": 30,
+       "value": -0.0608,
+       "flag": "measured",
+       "reading_A": -0.0608,
+       "reading_B": -0.06
+      },
+      {
+       "beta_deg": 40,
+       "value": -0.0966,
+       "flag": "measured",
+       "reading_A": -0.0966,
+       "reading_B": -0.097
+      }
+     ],
+     "calibration": {
+      "y_px_per_unit": -4633.19,
+      "y_px_at_zero": 1869.3,
+      "labels_used": 12,
+      "label_fit_residual_px": 1.5
+     }
+    }
+   },
+   "beta_calibration": {
+    "px_per_deg": 9.78,
+    "x_px_at_zero": 678.0,
+    "lines_used": 0,
+    "fit_residual_px": null
+   }
+  },
+  {
+   "alpha_deg": 60,
+   "pdf_page": 45,
+   "coefficients": {
+    "Cy": {
+     "points": [
+      {
+       "beta_deg": -40,
+       "value": 0.1905,
+       "flag": "measured",
+       "reading_A": 0.1905,
+       "reading_B": 0.19
+      },
+      {
+       "beta_deg": -30,
+       "value": 0.06,
+       "flag": "eyeballed",
+       "reading_A": null,
+       "reading_B": 0.06
+      },
+      {
+       "beta_deg": -20,
+       "value": 0.0298,
+       "flag": "measured",
+       "reading_A": 0.0298,
+       "reading_B": 0.03
+      },
+      {
+       "beta_deg": -15,
+       "value": 0.0437,
+       "flag": "measured",
+       "reading_A": 0.0437,
+       "reading_B": 0.05
+      },
+      {
+       "beta_deg": -10,
+       "value": 0.0595,
+       "flag": "measured",
+       "reading_A": 0.0595,
+       "reading_B": 0.06
+      },
+      {
+       "beta_deg": -5,
+       "value": 0.05,
+       "flag": "eyeballed",
+       "reading_A": null,
+       "reading_B": 0.05
+      },
+      {
+       "beta_deg": 0,
+       "value": 0.0099,
+       "flag": "measured",
+       "reading_A": 0.0099,
+       "reading_B": 0.02
+      },
+      {
+       "beta_deg": 5,
+       "value": -0.0198,
+       "flag": "measured",
+       "reading_A": -0.0198,
+       "reading_B": 0.0
+      },
+      {
+       "beta_deg": 10,
+       "value": -0.03,
+       "flag": "eyeballed",
+       "reading_A": null,
+       "reading_B": -0.03
+      },
+      {
+       "beta_deg": 15,
+       "value": -0.0774,
+       "flag": "measured",
+       "reading_A": -0.0774,
+       "reading_B": -0.07
+      },
+      {
+       "beta_deg": 20,
+       "value": -0.0754,
+       "flag": "measured",
+       "reading_A": -0.0754,
+       "reading_B": -0.06
+      },
+      {
+       "beta_deg": 30,
+       "value": -0.0119,
+       "flag": "measured",
+       "reading_A": -0.0119,
+       "reading_B": -0.05
+      },
+      {
+       "beta_deg": 40,
+       "value": -0.1349,
+       "flag": "measured",
+       "reading_A": -0.1349,
+       "reading_B": -0.13
+      }
+     ],
+     "calibration": {
+      "y_px_per_unit": -504.0,
+      "y_px_at_zero": 538.0,
+      "labels_used": "manual",
+      "label_fit_residual_px": null
+     }
+    },
+    "Cn": {
+     "points": [
+      {
+       "beta_deg": -40,
+       "value": -0.0077,
+       "flag": "measured",
+       "reading_A": -0.0077,
+       "reading_B": -0.008
+      },
+      {
+       "beta_deg": -30,
+       "value": 0.0361,
+       "flag": "measured",
+       "reading_A": 0.0361,
+       "reading_B": 0.037
+      },
+      {
+       "beta_deg": -20,
+       "value": 0.0339,
+       "flag": "measured",
+       "reading_A": 0.0339,
+       "reading_B": 0.032
+      },
+      {
+       "beta_deg": -15,
+       "value": 0.0279,
+       "flag": "measured",
+       "reading_A": 0.0279,
+       "reading_B": 0.026
+      },
+      {
+       "beta_deg": -10,
+       "value": 0.0195,
+       "flag": "measured",
+       "reading_A": 0.0195,
+       "reading_B": 0.015
+      },
+      {
+       "beta_deg": -5,
+       "value": 0.0109,
+       "flag": "measured",
+       "reading_A": 0.0109,
+       "reading_B": 0.008
+      },
+      {
+       "beta_deg": 0,
+       "value": 0.0015,
+       "flag": "measured",
+       "reading_A": 0.0015,
+       "reading_B": 0.002
+      },
+      {
+       "beta_deg": 5,
+       "value": -0.0037,
+       "flag": "measured",
+       "reading_A": -0.0037,
+       "reading_B": -0.004
+      },
+      {
+       "beta_deg": 10,
+       "value": -0.0123,
+       "flag": "measured",
+       "reading_A": -0.0123,
+       "reading_B": -0.012
+      },
+      {
+       "beta_deg": 15,
+       "value": -0.0205,
+       "flag": "measured",
+       "reading_A": -0.0205,
+       "reading_B": -0.021
+      },
+      {
+       "beta_deg": 20,
+       "value": -0.0245,
+       "flag": "measured",
+       "reading_A": -0.0245,
+       "reading_B": -0.029
+      },
+      {
+       "beta_deg": 30,
+       "value": -0.036,
+       "flag": "eyeballed",
+       "reading_A": null,
+       "reading_B": -0.036
+      },
+      {
+       "beta_deg": 40,
+       "value": -0.0169,
+       "flag": "measured",
+       "reading_A": -0.0169,
+       "reading_B": -0.016
+      }
+     ],
+     "calibration": {
+      "y_px_per_unit": -5000.0,
+      "y_px_at_zero": 939.5,
+      "labels_used": "manual",
+      "label_fit_residual_px": null
+     }
+    },
+    "Cl": {
+     "points": [
+      {
+       "beta_deg": -40,
+       "value": 0.105,
+       "flag": "measured",
+       "reading_A": 0.105,
+       "reading_B": 0.105
+      },
+      {
+       "beta_deg": -30,
+       "value": 0.0755,
+       "flag": "measured",
+       "reading_A": 0.0755,
+       "reading_B": 0.074
+      },
+      {
+       "beta_deg": -20,
+       "value": 0.051,
+       "flag": "measured",
+       "reading_A": 0.051,
+       "reading_B": 0.051
+      },
+      {
+       "beta_deg": -15,
+       "value": 0.0425,
+       "flag": "measured",
+       "reading_A": 0.0425,
+       "reading_B": 0.042
+      },
+      {
+       "beta_deg": -10,
+       "value": 0.0333,
+       "flag": "measured",
+       "reading_A": 0.0333,
+       "reading_B": 0.033
+      },
+      {
+       "beta_deg": -5,
+       "value": 0.0204,
+       "flag": "measured",
+       "reading_A": 0.0204,
+       "reading_B": 0.021
+      },
+      {
+       "beta_deg": 0,
+       "value": 0.0075,
+       "flag": "measured",
+       "reading_A": 0.0075,
+       "reading_B": 0.008
+      },
+      {
+       "beta_deg": 5,
+       "value": -0.0067,
+       "flag": "measured",
+       "reading_A": -0.0067,
+       "reading_B": -0.006
+      },
+      {
+       "beta_deg": 10,
+       "value": -0.0214,
+       "flag": "measured",
+       "reading_A": -0.0214,
+       "reading_B": -0.02
+      },
+      {
+       "beta_deg": 15,
+       "value": -0.0329,
+       "flag": "measured",
+       "reading_A": -0.0329,
+       "reading_B": -0.032
+      },
+      {
+       "beta_deg": 20,
+       "value": -0.0419,
+       "flag": "measured",
+       "reading_A": -0.0419,
+       "reading_B": -0.043
+      },
+      {
+       "beta_deg": 30,
+       "value": -0.063,
+       "flag": "eyeballed",
+       "reading_A": null,
+       "reading_B": -0.063
+      },
+      {
+       "beta_deg": 40,
+       "value": -0.0918,
+       "flag": "measured",
+       "reading_A": -0.0918,
+       "reading_B": -0.093
+      }
+     ],
+     "calibration": {
+      "y_px_per_unit": -5025.0,
+      "y_px_at_zero": 1842.5,
+      "labels_used": "manual",
+      "label_fit_residual_px": null
+     }
+    }
+   },
+   "beta_calibration": {
+    "px_per_deg": 10.534,
+    "x_px_at_zero": 1704.5,
+    "lines_used": 13,
+    "fit_residual_px": 1.1
+   }
+  },
+  {
+   "alpha_deg": 65,
+   "pdf_page": 46,
+   "coefficients": {
+    "Cy": {
+     "points": [
+      {
+       "beta_deg": -40,
+       "value": 0.1602,
+       "flag": "measured",
+       "reading_A": 0.1602,
+       "reading_B": 0.16
+      },
+      {
+       "beta_deg": -30,
+       "value": 0.0546,
+       "flag": "measured",
+       "reading_A": 0.0546,
+       "reading_B": 0.06
+      },
+      {
+       "beta_deg": -20,
+       "value": 0.0057,
+       "flag": "measured",
+       "reading_A": 0.0057,
+       "reading_B": 0.0
+      },
+      {
+       "beta_deg": -15,
+       "value": 0.0077,
+       "flag": "measured",
+       "reading_A": 0.0077,
+       "reading_B": 0.0
+      },
+      {
+       "beta_deg": -10,
+       "value": 0.0077,
+       "flag": "measured",
+       "reading_A": 0.0077,
+       "reading_B": 0.01
+      },
+      {
+       "beta_deg": -5,
+       "value": 0.0077,
+       "flag": "measured",
+       "reading_A": 0.0077,
+       "reading_B": 0.01
+      },
+      {
+       "beta_deg": 0,
+       "value": 0.0057,
+       "flag": "measured",
+       "reading_A": 0.0057,
+       "reading_B": 0.0
+      },
+      {
+       "beta_deg": 5,
+       "value": -0.0001,
+       "flag": "measured",
+       "reading_A": -0.0001,
+       "reading_B": 0.0
+      },
+      {
+       "beta_deg": 10,
+       "value": -0.008,
+       "flag": "measured",
+       "reading_A": -0.008,
+       "reading_B": -0.01
+      },
+      {
+       "beta_deg": 15,
+       "value": -0.006,
+       "flag": "measured",
+       "reading_A": -0.006,
+       "reading_B": -0.01
+      },
+      {
+       "beta_deg": 20,
+       "value": -0.0177,
+       "flag": "measured",
+       "reading_A": -0.0177,
+       "reading_B": -0.01
+      },
+      {
+       "beta_deg": 30,
+       "value": -0.02,
+       "flag": "eyeballed",
+       "reading_A": null,
+       "reading_B": -0.02
+      },
+      {
+       "beta_deg": 40,
+       "value": -0.1175,
+       "flag": "measured",
+       "reading_A": -0.1175,
+       "reading_B": -0.11
+      }
+     ],
+     "calibration": {
+      "y_px_per_unit": -511.37,
+      "y_px_at_zero": 403.9,
+      "labels_used": 4,
+      "label_fit_residual_px": 1.8
+     }
+    },
+    "Cn": {
+     "points": [
+      {
+       "beta_deg": -40,
+       "value": 0.0007,
+       "flag": "measured",
+       "reading_A": 0.0007,
+       "reading_B": 0.0
+      },
+      {
+       "beta_deg": -30,
+       "value": 0.0393,
+       "flag": "measured",
+       "reading_A": 0.0393,
+       "reading_B": 0.04
+      },
+      {
+       "beta_deg": -20,
+       "value": 0.0358,
+       "flag": "measured",
+       "reading_A": 0.0358,
+       "reading_B": 0.035
+      },
+      {
+       "beta_deg": -15,
+       "value": 0.0321,
+       "flag": "measured",
+       "reading_A": 0.0321,
+       "reading_B": 0.033
+      },
+      {
+       "beta_deg": -10,
+       "value": 0.0294,
+       "flag": "measured",
+       "reading_A": 0.0294,
+       "reading_B": 0.03
+      },
+      {
+       "beta_deg": -5,
+       "value": 0.0231,
+       "flag": "measured",
+       "reading_A": 0.0231,
+       "reading_B": 0.022
+      },
+      {
+       "beta_deg": 0,
+       "value": 0.0058,
+       "flag": "measured",
+       "reading_A": 0.0058,
+       "reading_B": 0.007
+      },
+      {
+       "beta_deg": 5,
+       "value": -0.003,
+       "flag": "eyeballed",
+       "reading_A": null,
+       "reading_B": -0.003
+      },
+      {
+       "beta_deg": 10,
+       "value": -0.01,
+       "flag": "measured",
+       "reading_A": -0.01,
+       "reading_B": -0.01
+      },
+      {
+       "beta_deg": 15,
+       "value": -0.0197,
+       "flag": "measured",
+       "reading_A": -0.0197,
+       "reading_B": -0.021
+      },
+      {
+       "beta_deg": 20,
+       "value": -0.0295,
+       "flag": "measured",
+       "reading_A": -0.0295,
+       "reading_B": -0.028
+      },
+      {
+       "beta_deg": 30,
+       "value": -0.0344,
+       "flag": "measured",
+       "reading_A": -0.0344,
+       "reading_B": -0.033
+      },
+      {
+       "beta_deg": 40,
+       "value": -0.0145,
+       "flag": "measured",
+       "reading_A": -0.0145,
+       "reading_B": -0.016
+      }
+     ],
+     "calibration": {
+      "y_px_per_unit": -5130.8,
+      "y_px_at_zero": 915.7,
+      "labels_used": 7,
+      "label_fit_residual_px": 2.5
+     }
+    },
+    "Cl": {
+     "points": [
+      {
+       "beta_deg": -40,
+       "value": 0.1019,
+       "flag": "measured",
+       "reading_A": 0.1019,
+       "reading_B": 0.102
+      },
+      {
+       "beta_deg": -30,
+       "value": 0.0756,
+       "flag": "measured",
+       "reading_A": 0.0756,
+       "reading_B": 0.077
+      },
+      {
+       "beta_deg": -20,
+       "value": 0.0556,
+       "flag": "measured",
+       "reading_A": 0.0556,
+       "reading_B": 0.057
+      },
+      {
+       "beta_deg": -15,
+       "value": 0.0427,
+       "flag": "measured",
+       "reading_A": 0.0427,
+       "reading_B": 0.043
+      },
+      {
+       "beta_deg": -10,
+       "value": 0.031,
+       "flag": "measured",
+       "reading_A": 0.031,
+       "reading_B": 0.032
+      },
+      {
+       "beta_deg": -5,
+       "value": 0.0178,
+       "flag": "measured",
+       "reading_A": 0.0178,
+       "reading_B": 0.019
+      },
+      {
+       "beta_deg": 0,
+       "value": 0.0075,
+       "flag": "measured",
+       "reading_A": 0.0075,
+       "reading_B": 0.007
+      },
+      {
+       "beta_deg": 5,
+       "value": -0.0079,
+       "flag": "measured",
+       "reading_A": -0.0079,
+       "reading_B": -0.008
+      },
+      {
+       "beta_deg": 10,
+       "value": -0.019,
+       "flag": "measured",
+       "reading_A": -0.019,
+       "reading_B": -0.019
+      },
+      {
+       "beta_deg": 15,
+       "value": -0.0321,
+       "flag": "measured",
+       "reading_A": -0.0321,
+       "reading_B": -0.031
+      },
+      {
+       "beta_deg": 20,
+       "value": -0.0418,
+       "flag": "measured",
+       "reading_A": -0.0418,
+       "reading_B": -0.042
+      },
+      {
+       "beta_deg": 30,
+       "value": -0.0675,
+       "flag": "measured",
+       "reading_A": -0.0675,
+       "reading_B": -0.068
+      },
+      {
+       "beta_deg": 40,
+       "value": -0.09,
+       "flag": "eyeballed",
+       "reading_A": null,
+       "reading_B": -0.09
+      }
+     ],
+     "calibration": {
+      "y_px_per_unit": -5135.27,
+      "y_px_at_zero": 1839.3,
+      "labels_used": 12,
+      "label_fit_residual_px": 2.3
+     }
+    }
+   },
+   "beta_calibration": {
+    "px_per_deg": 10.5,
+    "x_px_at_zero": 1250.0,
+    "lines_used": 0,
+    "fit_residual_px": null
+   }
+  },
+  {
+   "alpha_deg": 70,
+   "pdf_page": 47,
+   "coefficients": {
+    "Cy": {
+     "points": [
+      {
+       "beta_deg": -40,
+       "value": 0.16,
+       "flag": "eyeballed",
+       "reading_A": null,
+       "reading_B": 0.16
+      },
+      {
+       "beta_deg": -30,
+       "value": 0.0518,
+       "flag": "measured",
+       "reading_A": 0.0518,
+       "reading_B": 0.07
+      },
+      {
+       "beta_deg": -20,
+       "value": -0.0004,
+       "flag": "measured",
+       "reading_A": -0.0004,
+       "reading_B": 0.01
+      },
+      {
+       "beta_deg": -15,
+       "value": -0.0205,
+       "flag": "measured",
+       "reading_A": -0.0205,
+       "reading_B": 0.01
+      },
+      {
+       "beta_deg": -10,
+       "value": -0.0325,
+       "flag": "measured",
+       "reading_A": -0.0325,
+       "reading_B": -0.01
+      },
+      {
+       "beta_deg": -5,
+       "value": -0.0225,
+       "flag": "measured",
+       "reading_A": -0.0225,
+       "reading_B": -0.01
+      },
+      {
+       "beta_deg": 0,
+       "value": 0.0,
+       "flag": "eyeballed",
+       "reading_A": null,
+       "reading_B": 0.0
+      },
+      {
+       "beta_deg": 5,
+       "value": -0.0004,
+       "flag": "measured",
+       "reading_A": -0.0004,
+       "reading_B": 0.0
+      },
+      {
+       "beta_deg": 10,
+       "value": -0.0004,
+       "flag": "measured",
+       "reading_A": -0.0004,
+       "reading_B": 0.0
+      },
+      {
+       "beta_deg": 15,
+       "value": -0.0004,
+       "flag": "measured",
+       "reading_A": -0.0004,
+       "reading_B": 0.0
+      },
+      {
+       "beta_deg": 20,
+       "value": -0.0004,
+       "flag": "measured",
+       "reading_A": -0.0004,
+       "reading_B": 0.0
+      },
+      {
+       "beta_deg": 30,
+       "value": -0.0064,
+       "flag": "measured",
+       "reading_A": -0.0064,
+       "reading_B": 0.0
+      },
+      {
+       "beta_deg": 40,
+       "value": -0.1208,
+       "flag": "measured",
+       "reading_A": -0.1208,
+       "reading_B": -0.11
+      }
+     ],
+     "calibration": {
+      "y_px_per_unit": -498.25,
+      "y_px_at_zero": 387.8,
+      "labels_used": 4,
+      "label_fit_residual_px": 2.3
+     }
+    },
+    "Cn": {
+     "points": [
+      {
+       "beta_deg": -40,
+       "value": -0.0062,
+       "flag": "measured",
+       "reading_A": -0.0062,
+       "reading_B": -0.006
+      },
+      {
+       "beta_deg": -30,
+       "value": 0.0307,
+       "flag": "measured",
+       "reading_A": 0.0307,
+       "reading_B": 0.031
+      },
+      {
+       "beta_deg": -20,
+       "value": 0.0403,
+       "flag": "measured",
+       "reading_A": 0.0403,
+       "reading_B": 0.041
+      },
+      {
+       "beta_deg": -15,
+       "value": 0.0353,
+       "flag": "measured",
+       "reading_A": 0.0353,
+       "reading_B": 0.037
+      },
+      {
+       "beta_deg": -10,
+       "value": 0.0279,
+       "flag": "measured",
+       "reading_A": 0.0279,
+       "reading_B": 0.029
+      },
+      {
+       "beta_deg": -5,
+       "value": 0.0165,
+       "flag": "measured",
+       "reading_A": 0.0165,
+       "reading_B": 0.021
+      },
+      {
+       "beta_deg": 0,
+       "value": 0.014,
+       "flag": "eyeballed",
+       "reading_A": null,
+       "reading_B": 0.014
+      },
+      {
+       "beta_deg": 5,
+       "value": -0.0004,
+       "flag": "measured",
+       "reading_A": -0.0004,
+       "reading_B": 0.007
+      },
+      {
+       "beta_deg": 10,
+       "value": -0.0086,
+       "flag": "measured",
+       "reading_A": -0.0086,
+       "reading_B": -0.002
+      },
+      {
+       "beta_deg": 15,
+       "value": -0.0204,
+       "flag": "measured",
+       "reading_A": -0.0204,
+       "reading_B": -0.013
+      },
+      {
+       "beta_deg": 20,
+       "value": -0.0318,
+       "flag": "measured",
+       "reading_A": -0.0318,
+       "reading_B": -0.033
+      },
+      {
+       "beta_deg": 30,
+       "value": -0.0206,
+       "flag": "measured",
+       "reading_A": -0.0206,
+       "reading_B": -0.023
+      },
+      {
+       "beta_deg": 40,
+       "value": -0.0124,
+       "flag": "measured",
+       "reading_A": -0.0124,
+       "reading_B": -0.014
+      }
+     ],
+     "calibration": {
+      "y_px_per_unit": -4993.75,
+      "y_px_at_zero": 887.2,
+      "labels_used": 8,
+      "label_fit_residual_px": 1.8
+     }
+    },
+    "Cl": {
+     "points": [
+      {
+       "beta_deg": -40,
+       "value": 0.1045,
+       "flag": "measured",
+       "reading_A": 0.1045,
+       "reading_B": 0.103
+      },
+      {
+       "beta_deg": -30,
+       "value": 0.0769,
+       "flag": "measured",
+       "reading_A": 0.0769,
+       "reading_B": 0.076
+      },
+      {
+       "beta_deg": -20,
+       "value": 0.0549,
+       "flag": "measured",
+       "reading_A": 0.0549,
+       "reading_B": 0.056
+      },
+      {
+       "beta_deg": -15,
+       "value": 0.0424,
+       "flag": "measured",
+       "reading_A": 0.0424,
+       "reading_B": 0.044
+      },
+      {
+       "beta_deg": -10,
+       "value": 0.0325,
+       "flag": "measured",
+       "reading_A": 0.0325,
+       "reading_B": 0.032
+      },
+      {
+       "beta_deg": -5,
+       "value": 0.0186,
+       "flag": "measured",
+       "reading_A": 0.0186,
+       "reading_B": 0.018
+      },
+      {
+       "beta_deg": 0,
+       "value": 0.0039,
+       "flag": "measured",
+       "reading_A": 0.0039,
+       "reading_B": 0.006
+      },
+      {
+       "beta_deg": 5,
+       "value": -0.0096,
+       "flag": "measured",
+       "reading_A": -0.0096,
+       "reading_B": -0.009
+      },
+      {
+       "beta_deg": 10,
+       "value": -0.0215,
+       "flag": "measured",
+       "reading_A": -0.0215,
+       "reading_B": -0.021
+      },
+      {
+       "beta_deg": 15,
+       "value": -0.0341,
+       "flag": "measured",
+       "reading_A": -0.0341,
+       "reading_B": -0.033
+      },
+      {
+       "beta_deg": 20,
+       "value": -0.0466,
+       "flag": "measured",
+       "reading_A": -0.0466,
+       "reading_B": -0.046
+      },
+      {
+       "beta_deg": 30,
+       "value": -0.07,
+       "flag": "measured",
+       "reading_A": -0.07,
+       "reading_B": -0.069
+      },
+      {
+       "beta_deg": 40,
+       "value": -0.0944,
+       "flag": "measured",
+       "reading_A": -0.0944,
+       "reading_B": -0.092
+      }
+     ],
+     "calibration": {
+      "y_px_per_unit": -4963.46,
+      "y_px_at_zero": 1785.5,
+      "labels_used": 10,
+      "label_fit_residual_px": 2.1
+     }
+    }
+   },
+   "beta_calibration": {
+    "px_per_deg": 10.58,
+    "x_px_at_zero": 689.0,
+    "lines_used": 0,
+    "fit_residual_px": null
+   }
+  },
+  {
+   "alpha_deg": 75,
+   "pdf_page": 47,
+   "coefficients": {
+    "Cy": {
+     "points": [
+      {
+       "beta_deg": -40,
+       "value": 0.1445,
+       "flag": "measured",
+       "reading_A": 0.1445,
+       "reading_B": 0.18
+      },
+      {
+       "beta_deg": -30,
+       "value": 0.0022,
+       "flag": "measured",
+       "reading_A": 0.0022,
+       "reading_B": 0.05
+      },
+      {
+       "beta_deg": -20,
+       "value": 0.03,
+       "flag": "eyeballed",
+       "reading_A": null,
+       "reading_B": 0.03
+      },
+      {
+       "beta_deg": -15,
+       "value": -0.0084,
+       "flag": "measured",
+       "reading_A": -0.0084,
+       "reading_B": 0.02
+      },
+      {
+       "beta_deg": -10,
+       "value": -0.0424,
+       "flag": "measured",
+       "reading_A": -0.0424,
+       "reading_B": 0.0
+      },
+      {
+       "beta_deg": -5,
+       "value": 0.0,
+       "flag": "eyeballed",
+       "reading_A": null,
+       "reading_B": 0.0
+      },
+      {
+       "beta_deg": 0,
+       "value": -0.019,
+       "flag": "measured",
+       "reading_A": -0.019,
+       "reading_B": 0.0
+      },
+      {
+       "beta_deg": 5,
+       "value": 0.0,
+       "flag": "eyeballed",
+       "reading_A": null,
+       "reading_B": 0.0
+      },
+      {
+       "beta_deg": 10,
+       "value": -0.002,
+       "flag": "measured",
+       "reading_A": -0.002,
+       "reading_B": 0.01
+      },
+      {
+       "beta_deg": 15,
+       "value": -0.0105,
+       "flag": "measured",
+       "reading_A": -0.0105,
+       "reading_B": 0.0
+      },
+      {
+       "beta_deg": 20,
+       "value": -0.0509,
+       "flag": "measured",
+       "reading_A": -0.0509,
+       "reading_B": -0.04
+      },
+      {
+       "beta_deg": 30,
+       "value": 0.0,
+       "flag": "eyeballed",
+       "reading_A": null,
+       "reading_B": 0.0
+      },
+      {
+       "beta_deg": 40,
+       "value": -0.1358,
+       "flag": "measured",
+       "reading_A": -0.1358,
+       "reading_B": -0.11
+      }
+     ],
+     "calibration": {
+      "y_px_per_unit": -470.83,
+      "y_px_at_zero": 363.1,
+      "labels_used": 3,
+      "label_fit_residual_px": 0.8
+     }
+    },
+    "Cn": {
+     "points": [
+      {
+       "beta_deg": -40,
+       "value": -0.01,
+       "flag": "measured",
+       "reading_A": -0.01,
+       "reading_B": -0.01
+      },
+      {
+       "beta_deg": -30,
+       "value": 0.0165,
+       "flag": "measured",
+       "reading_A": 0.0165,
+       "reading_B": 0.016
+      },
+      {
+       "beta_deg": -20,
+       "value": 0.0578,
+       "flag": "measured",
+       "reading_A": 0.0578,
+       "reading_B": 0.059
+      },
+      {
+       "beta_deg": -15,
+       "value": 0.0514,
+       "flag": "measured",
+       "reading_A": 0.0514,
+       "reading_B": 0.054
+      },
+      {
+       "beta_deg": -10,
+       "value": 0.029,
+       "flag": "eyeballed",
+       "reading_A": null,
+       "reading_B": 0.029
+      },
+      {
+       "beta_deg": -5,
+       "value": 0.0216,
+       "flag": "measured",
+       "reading_A": 0.0216,
+       "reading_B": 0.023
+      },
+      {
+       "beta_deg": 0,
+       "value": 0.0068,
+       "flag": "measured",
+       "reading_A": 0.0068,
+       "reading_B": 0.006
+      },
+      {
+       "beta_deg": 5,
+       "value": -0.004,
+       "flag": "measured",
+       "reading_A": -0.004,
+       "reading_B": -0.007
+      },
+      {
+       "beta_deg": 10,
+       "value": -0.0204,
+       "flag": "measured",
+       "reading_A": -0.0204,
+       "reading_B": -0.019
+      },
+      {
+       "beta_deg": 15,
+       "value": -0.0346,
+       "flag": "measured",
+       "reading_A": -0.0346,
+       "reading_B": -0.033
+      },
+      {
+       "beta_deg": 20,
+       "value": -0.052,
+       "flag": "eyeballed",
+       "reading_A": null,
+       "reading_B": -0.052
+      },
+      {
+       "beta_deg": 30,
+       "value": -0.0163,
+       "flag": "measured",
+       "reading_A": -0.0163,
+       "reading_B": -0.017
+      },
+      {
+       "beta_deg": 40,
+       "value": -0.005,
+       "flag": "eyeballed",
+       "reading_A": null,
+       "reading_B": -0.005
+      }
+     ],
+     "calibration": {
+      "y_px_per_unit": -4641.99,
+      "y_px_at_zero": 922.4,
+      "labels_used": 8,
+      "label_fit_residual_px": 0.3
+     }
+    },
+    "Cl": {
+     "points": [
+      {
+       "beta_deg": -40,
+       "value": 0.1052,
+       "flag": "measured",
+       "reading_A": 0.1052,
+       "reading_B": 0.103
+      },
+      {
+       "beta_deg": -30,
+       "value": 0.0795,
+       "flag": "measured",
+       "reading_A": 0.0795,
+       "reading_B": 0.074
+      },
+      {
+       "beta_deg": -20,
+       "value": 0.0549,
+       "flag": "measured",
+       "reading_A": 0.0549,
+       "reading_B": 0.053
+      },
+      {
+       "beta_deg": -15,
+       "value": 0.0432,
+       "flag": "measured",
+       "reading_A": 0.0432,
+       "reading_B": 0.043
+      },
+      {
+       "beta_deg": -10,
+       "value": 0.0314,
+       "flag": "measured",
+       "reading_A": 0.0314,
+       "reading_B": 0.032
+      },
+      {
+       "beta_deg": -5,
+       "value": 0.0212,
+       "flag": "measured",
+       "reading_A": 0.0212,
+       "reading_B": 0.022
+      },
+      {
+       "beta_deg": 0,
+       "value": 0.005,
+       "flag": "eyeballed",
+       "reading_A": null,
+       "reading_B": 0.005
+      },
+      {
+       "beta_deg": 5,
+       "value": -0.0101,
+       "flag": "measured",
+       "reading_A": -0.0101,
+       "reading_B": -0.01
+      },
+      {
+       "beta_deg": 10,
+       "value": -0.0219,
+       "flag": "measured",
+       "reading_A": -0.0219,
+       "reading_B": -0.021
+      },
+      {
+       "beta_deg": 15,
+       "value": -0.031,
+       "flag": "eyeballed",
+       "reading_A": null,
+       "reading_B": -0.031
+      },
+      {
+       "beta_deg": 20,
+       "value": -0.045,
+       "flag": "measured",
+       "reading_A": -0.045,
+       "reading_B": -0.044
+      },
+      {
+       "beta_deg": 30,
+       "value": -0.0687,
+       "flag": "measured",
+       "reading_A": -0.0687,
+       "reading_B": -0.067
+      },
+      {
+       "beta_deg": 40,
+       "value": -0.0949,
+       "flag": "measured",
+       "reading_A": -0.0949,
+       "reading_B": -0.091
+      }
+     ],
+     "calibration": {
+      "y_px_per_unit": -4634.57,
+      "y_px_at_zero": 1849.4,
+      "labels_used": 13,
+      "label_fit_residual_px": 3.1
+     }
+    }
+   },
+   "beta_calibration": {
+    "px_per_deg": 9.732,
+    "x_px_at_zero": 1713.1,
+    "lines_used": 9,
+    "fit_residual_px": 0.7
+   }
+  },
+  {
+   "alpha_deg": 80,
+   "pdf_page": 48,
+   "coefficients": {
+    "Cy": {
+     "points": [
+      {
+       "beta_deg": -40,
+       "value": 0.197,
+       "flag": "measured",
+       "reading_A": 0.197,
+       "reading_B": 0.2
+      },
+      {
+       "beta_deg": -30,
+       "value": 0.0408,
+       "flag": "measured",
+       "reading_A": 0.0408,
+       "reading_B": 0.05
+      },
+      {
+       "beta_deg": -20,
+       "value": 0.0471,
+       "flag": "measured",
+       "reading_A": 0.0471,
+       "reading_B": 0.04
+      },
+      {
+       "beta_deg": -15,
+       "value": 0.03,
+       "flag": "eyeballed",
+       "reading_A": null,
+       "reading_B": 0.03
+      },
+      {
+       "beta_deg": -10,
+       "value": 0.0091,
+       "flag": "measured",
+       "reading_A": 0.0091,
+       "reading_B": 0.0
+      },
+      {
+       "beta_deg": -5,
+       "value": 0.0091,
+       "flag": "measured",
+       "reading_A": 0.0091,
+       "reading_B": 0.0
+      },
+      {
+       "beta_deg": 0,
+       "value": 0.0091,
+       "flag": "measured",
+       "reading_A": 0.0091,
+       "reading_B": 0.0
+      },
+      {
+       "beta_deg": 5,
+       "value": 0.0049,
+       "flag": "measured",
+       "reading_A": 0.0049,
+       "reading_B": 0.0
+      },
+      {
+       "beta_deg": 10,
+       "value": 0.0,
+       "flag": "eyeballed",
+       "reading_A": null,
+       "reading_B": 0.0
+      },
+      {
+       "beta_deg": 15,
+       "value": 0.0027,
+       "flag": "measured",
+       "reading_A": 0.0027,
+       "reading_B": -0.01
+      },
+      {
+       "beta_deg": 20,
+       "value": -0.0268,
+       "flag": "measured",
+       "reading_A": -0.0268,
+       "reading_B": -0.02
+      },
+      {
+       "beta_deg": 30,
+       "value": -0.0289,
+       "flag": "measured",
+       "reading_A": -0.0289,
+       "reading_B": -0.02
+      },
+      {
+       "beta_deg": 40,
+       "value": -0.105,
+       "flag": "measured",
+       "reading_A": -0.105,
+       "reading_B": -0.11
+      }
+     ],
+     "calibration": {
+      "y_px_per_unit": -473.5,
+      "y_px_at_zero": 503.3,
+      "labels_used": 5,
+      "label_fit_residual_px": 0.6
+     }
+    },
+    "Cn": {
+     "points": [
+      {
+       "beta_deg": -40,
+       "value": -0.0168,
+       "flag": "measured",
+       "reading_A": -0.0168,
+       "reading_B": -0.009
+      },
+      {
+       "beta_deg": -30,
+       "value": 0.008,
+       "flag": "eyeballed",
+       "reading_A": null,
+       "reading_B": 0.008
+      },
+      {
+       "beta_deg": -20,
+       "value": 0.0557,
+       "flag": "measured",
+       "reading_A": 0.0557,
+       "reading_B": 0.06
+      },
+      {
+       "beta_deg": -15,
+       "value": 0.0548,
+       "flag": "measured",
+       "reading_A": 0.0548,
+       "reading_B": 0.06
+      },
+      {
+       "beta_deg": -10,
+       "value": 0.0542,
+       "flag": "measured",
+       "reading_A": 0.0542,
+       "reading_B": 0.06
+      },
+      {
+       "beta_deg": -5,
+       "value": 0.047,
+       "flag": "measured",
+       "reading_A": 0.047,
+       "reading_B": 0.054
+      },
+      {
+       "beta_deg": 0,
+       "value": 0.0198,
+       "flag": "measured",
+       "reading_A": 0.0198,
+       "reading_B": 0.017
+      },
+      {
+       "beta_deg": 5,
+       "value": -0.0054,
+       "flag": "measured",
+       "reading_A": -0.0054,
+       "reading_B": -0.01
+      },
+      {
+       "beta_deg": 10,
+       "value": -0.0399,
+       "flag": "measured",
+       "reading_A": -0.0399,
+       "reading_B": -0.035
+      },
+      {
+       "beta_deg": 15,
+       "value": -0.0438,
+       "flag": "measured",
+       "reading_A": -0.0438,
+       "reading_B": -0.047
+      },
+      {
+       "beta_deg": 20,
+       "value": -0.0466,
+       "flag": "measured",
+       "reading_A": -0.0466,
+       "reading_B": -0.052
+      },
+      {
+       "beta_deg": 30,
+       "value": -0.0252,
+       "flag": "measured",
+       "reading_A": -0.0252,
+       "reading_B": -0.032
+      },
+      {
+       "beta_deg": 40,
+       "value": -0.014,
+       "flag": "measured",
+       "reading_A": -0.014,
+       "reading_B": -0.012
+      }
+     ],
+     "calibration": {
+      "y_px_per_unit": -4635.0,
+      "y_px_at_zero": 1070.0,
+      "labels_used": "manual",
+      "label_fit_residual_px": null
+     }
+    },
+    "Cl": {
+     "points": [
+      {
+       "beta_deg": -40,
+       "value": 0.1142,
+       "flag": "measured",
+       "reading_A": 0.1142,
+       "reading_B": 0.113
+      },
+      {
+       "beta_deg": -30,
+       "value": 0.0825,
+       "flag": "measured",
+       "reading_A": 0.0825,
+       "reading_B": 0.081
+      },
+      {
+       "beta_deg": -20,
+       "value": 0.0566,
+       "flag": "measured",
+       "reading_A": 0.0566,
+       "reading_B": 0.055
+      },
+      {
+       "beta_deg": -15,
+       "value": 0.0456,
+       "flag": "measured",
+       "reading_A": 0.0456,
+       "reading_B": 0.045
+      },
+      {
+       "beta_deg": -10,
+       "value": 0.0325,
+       "flag": "measured",
+       "reading_A": 0.0325,
+       "reading_B": 0.031
+      },
+      {
+       "beta_deg": -5,
+       "value": 0.0195,
+       "flag": "measured",
+       "reading_A": 0.0195,
+       "reading_B": 0.017
+      },
+      {
+       "beta_deg": 0,
+       "value": 0.0017,
+       "flag": "measured",
+       "reading_A": 0.0017,
+       "reading_B": 0.001
+      },
+      {
+       "beta_deg": 5,
+       "value": -0.0103,
+       "flag": "measured",
+       "reading_A": -0.0103,
+       "reading_B": -0.012
+      },
+      {
+       "beta_deg": 10,
+       "value": -0.0194,
+       "flag": "measured",
+       "reading_A": -0.0194,
+       "reading_B": -0.021
+      },
+      {
+       "beta_deg": 15,
+       "value": -0.034,
+       "flag": "eyeballed",
+       "reading_A": null,
+       "reading_B": -0.034
+      },
+      {
+       "beta_deg": 20,
+       "value": -0.0466,
+       "flag": "measured",
+       "reading_A": -0.0466,
+       "reading_B": -0.046
+      },
+      {
+       "beta_deg": 30,
+       "value": -0.0705,
+       "flag": "measured",
+       "reading_A": -0.0705,
+       "reading_B": -0.071
+      },
+      {
+       "beta_deg": 40,
+       "value": -0.1042,
+       "flag": "measured",
+       "reading_A": -0.1042,
+       "reading_B": -0.097
+      }
+     ],
+     "calibration": {
+      "y_px_per_unit": -4720.5,
+      "y_px_at_zero": 2019.2,
+      "labels_used": 10,
+      "label_fit_residual_px": 3.3
+     }
+    }
+   },
+   "beta_calibration": {
+    "px_per_deg": 9.702,
+    "x_px_at_zero": 743.5,
+    "lines_used": 9,
+    "fit_residual_px": 1.0
+   }
+  },
+  {
+   "alpha_deg": 85,
+   "pdf_page": 48,
+   "coefficients": {
+    "Cy": {
+     "points": [
+      {
+       "beta_deg": -40,
+       "value": 0.1973,
+       "flag": "measured",
+       "reading_A": 0.1973,
+       "reading_B": 0.2
+      },
+      {
+       "beta_deg": -30,
+       "value": 0.0619,
+       "flag": "measured",
+       "reading_A": 0.0619,
+       "reading_B": 0.1
+      },
+      {
+       "beta_deg": -20,
+       "value": 0.0217,
+       "flag": "measured",
+       "reading_A": 0.0217,
+       "reading_B": 0.03
+      },
+      {
+       "beta_deg": -15,
+       "value": 0.0047,
+       "flag": "measured",
+       "reading_A": 0.0047,
+       "reading_B": 0.02
+      },
+      {
+       "beta_deg": -10,
+       "value": -0.0079,
+       "flag": "measured",
+       "reading_A": -0.0079,
+       "reading_B": 0.0
+      },
+      {
+       "beta_deg": -5,
+       "value": -0.0228,
+       "flag": "measured",
+       "reading_A": -0.0228,
+       "reading_B": 0.0
+      },
+      {
+       "beta_deg": 0,
+       "value": 0.0026,
+       "flag": "measured",
+       "reading_A": 0.0026,
+       "reading_B": 0.0
+      },
+      {
+       "beta_deg": 5,
+       "value": -0.0291,
+       "flag": "measured",
+       "reading_A": -0.0291,
+       "reading_B": 0.0
+      },
+      {
+       "beta_deg": 10,
+       "value": 0.0,
+       "flag": "eyeballed",
+       "reading_A": null,
+       "reading_B": 0.0
+      },
+      {
+       "beta_deg": 15,
+       "value": -0.0143,
+       "flag": "measured",
+       "reading_A": -0.0143,
+       "reading_B": 0.0
+      },
+      {
+       "beta_deg": 20,
+       "value": -0.0164,
+       "flag": "measured",
+       "reading_A": -0.0164,
+       "reading_B": 0.0
+      },
+      {
+       "beta_deg": 30,
+       "value": -0.0524,
+       "flag": "measured",
+       "reading_A": -0.0524,
+       "reading_B": -0.04
+      },
+      {
+       "beta_deg": 40,
+       "value": -0.1116,
+       "flag": "measured",
+       "reading_A": -0.1116,
+       "reading_B": -0.12
+      }
+     ],
+     "calibration": {
+      "y_px_per_unit": -472.64,
+      "y_px_at_zero": 490.2,
+      "labels_used": 4,
+      "label_fit_residual_px": 1.2
+     }
+    },
+    "Cn": {
+     "points": [
+      {
+       "beta_deg": -40,
+       "value": -0.0247,
+       "flag": "measured",
+       "reading_A": -0.0247,
+       "reading_B": -0.026
+      },
+      {
+       "beta_deg": -30,
+       "value": 0.0099,
+       "flag": "measured",
+       "reading_A": 0.0099,
+       "reading_B": 0.01
+      },
+      {
+       "beta_deg": -20,
+       "value": 0.043,
+       "flag": "measured",
+       "reading_A": 0.043,
+       "reading_B": 0.043
+      },
+      {
+       "beta_deg": -15,
+       "value": 0.0416,
+       "flag": "measured",
+       "reading_A": 0.0416,
+       "reading_B": 0.043
+      },
+      {
+       "beta_deg": -10,
+       "value": 0.0414,
+       "flag": "measured",
+       "reading_A": 0.0414,
+       "reading_B": 0.042
+      },
+      {
+       "beta_deg": -5,
+       "value": 0.0418,
+       "flag": "measured",
+       "reading_A": 0.0418,
+       "reading_B": 0.041
+      },
+      {
+       "beta_deg": 0,
+       "value": 0.0253,
+       "flag": "measured",
+       "reading_A": 0.0253,
+       "reading_B": 0.025
+      },
+      {
+       "beta_deg": 5,
+       "value": -0.01,
+       "flag": "eyeballed",
+       "reading_A": null,
+       "reading_B": -0.01
+      },
+      {
+       "beta_deg": 10,
+       "value": -0.0414,
+       "flag": "measured",
+       "reading_A": -0.0414,
+       "reading_B": -0.04
+      },
+      {
+       "beta_deg": 15,
+       "value": -0.035,
+       "flag": "measured",
+       "reading_A": -0.035,
+       "reading_B": -0.036
+      },
+      {
+       "beta_deg": 20,
+       "value": -0.0376,
+       "flag": "measured",
+       "reading_A": -0.0376,
+       "reading_B": -0.039
+      },
+      {
+       "beta_deg": 30,
+       "value": -0.0203,
+       "flag": "measured",
+       "reading_A": -0.0203,
+       "reading_B": -0.02
+      },
+      {
+       "beta_deg": 40,
+       "value": 0.0049,
+       "flag": "measured",
+       "reading_A": 0.0049,
+       "reading_B": 0.005
+      }
+     ],
+     "calibration": {
+      "y_px_per_unit": -4740.0,
+      "y_px_at_zero": 964.0,
+      "labels_used": "manual",
+      "label_fit_residual_px": null
+     }
+    },
+    "Cl": {
+     "points": [
+      {
+       "beta_deg": -40,
+       "value": 0.1202,
+       "flag": "measured",
+       "reading_A": 0.1202,
+       "reading_B": 0.12
+      },
+      {
+       "beta_deg": -30,
+       "value": 0.0833,
+       "flag": "measured",
+       "reading_A": 0.0833,
+       "reading_B": 0.083
+      },
+      {
+       "beta_deg": -20,
+       "value": 0.0598,
+       "flag": "measured",
+       "reading_A": 0.0598,
+       "reading_B": 0.06
+      },
+      {
+       "beta_deg": -15,
+       "value": 0.048,
+       "flag": "measured",
+       "reading_A": 0.048,
+       "reading_B": 0.048
+      },
+      {
+       "beta_deg": -10,
+       "value": 0.035,
+       "flag": "eyeballed",
+       "reading_A": null,
+       "reading_B": 0.035
+      },
+      {
+       "beta_deg": -5,
+       "value": 0.0227,
+       "flag": "measured",
+       "reading_A": 0.0227,
+       "reading_B": 0.02
+      },
+      {
+       "beta_deg": 0,
+       "value": 0.0033,
+       "flag": "measured",
+       "reading_A": 0.0033,
+       "reading_B": 0.005
+      },
+      {
+       "beta_deg": 5,
+       "value": -0.012,
+       "flag": "eyeballed",
+       "reading_A": null,
+       "reading_B": -0.012
+      },
+      {
+       "beta_deg": 10,
+       "value": -0.024,
+       "flag": "measured",
+       "reading_A": -0.024,
+       "reading_B": -0.025
+      },
+      {
+       "beta_deg": 15,
+       "value": -0.035,
+       "flag": "measured",
+       "reading_A": -0.035,
+       "reading_B": -0.037
+      },
+      {
+       "beta_deg": 20,
+       "value": -0.0491,
+       "flag": "measured",
+       "reading_A": -0.0491,
+       "reading_B": -0.049
+      },
+      {
+       "beta_deg": 30,
+       "value": -0.0731,
+       "flag": "measured",
+       "reading_A": -0.0731,
+       "reading_B": -0.073
+      },
+      {
+       "beta_deg": 40,
+       "value": -0.0948,
+       "flag": "measured",
+       "reading_A": -0.0948,
+       "reading_B": -0.095
+      }
+     ],
+     "calibration": {
+      "y_px_per_unit": -4749.89,
+      "y_px_at_zero": 1916.8,
+      "labels_used": 14,
+      "label_fit_residual_px": 1.8
+     }
+    }
+   },
+   "beta_calibration": {
+    "px_per_deg": 9.692,
+    "x_px_at_zero": 1783.2,
+    "lines_used": 13,
+    "fit_residual_px": 3.8
+   }
+  },
+  {
+   "alpha_deg": 90,
+   "pdf_page": 49,
+   "coefficients": {
+    "Cy": {
+     "points": [
+      {
+       "beta_deg": -40,
+       "value": 0.2047,
+       "flag": "measured",
+       "reading_A": 0.2047,
+       "reading_B": 0.22
+      },
+      {
+       "beta_deg": -30,
+       "value": 0.0984,
+       "flag": "measured",
+       "reading_A": 0.0984,
+       "reading_B": 0.1
+      },
+      {
+       "beta_deg": -20,
+       "value": 0.0312,
+       "flag": "measured",
+       "reading_A": 0.0312,
+       "reading_B": 0.05
+      },
+      {
+       "beta_deg": -15,
+       "value": 0.0052,
+       "flag": "measured",
+       "reading_A": 0.0052,
+       "reading_B": 0.02
+      },
+      {
+       "beta_deg": -10,
+       "value": -0.0056,
+       "flag": "measured",
+       "reading_A": -0.0056,
+       "reading_B": 0.02
+      },
+      {
+       "beta_deg": -5,
+       "value": -0.0295,
+       "flag": "measured",
+       "reading_A": -0.0295,
+       "reading_B": 0.01
+      },
+      {
+       "beta_deg": 0,
+       "value": -0.0208,
+       "flag": "measured",
+       "reading_A": -0.0208,
+       "reading_B": 0.0
+      },
+      {
+       "beta_deg": 5,
+       "value": -0.0013,
+       "flag": "measured",
+       "reading_A": -0.0013,
+       "reading_B": 0.01
+      },
+      {
+       "beta_deg": 10,
+       "value": 0.0074,
+       "flag": "measured",
+       "reading_A": 0.0074,
+       "reading_B": 0.0
+      },
+      {
+       "beta_deg": 15,
+       "value": -0.01,
+       "flag": "measured",
+       "reading_A": -0.01,
+       "reading_B": -0.01
+      },
+      {
+       "beta_deg": 20,
+       "value": -0.0403,
+       "flag": "measured",
+       "reading_A": -0.0403,
+       "reading_B": -0.03
+      },
+      {
+       "beta_deg": 30,
+       "value": -0.0859,
+       "flag": "measured",
+       "reading_A": -0.0859,
+       "reading_B": -0.07
+      },
+      {
+       "beta_deg": 40,
+       "value": -0.1227,
+       "flag": "measured",
+       "reading_A": -0.1227,
+       "reading_B": -0.12
+      }
+     ],
+     "calibration": {
+      "y_px_per_unit": -461.25,
+      "y_px_at_zero": 479.4,
+      "labels_used": 5,
+      "label_fit_residual_px": 1.9
+     }
+    },
+    "Cn": {
+     "points": [
+      {
+       "beta_deg": -40,
+       "value": -0.034,
+       "flag": "measured",
+       "reading_A": -0.034,
+       "reading_B": -0.033
+      },
+      {
+       "beta_deg": -30,
+       "value": -0.0018,
+       "flag": "measured",
+       "reading_A": -0.0018,
+       "reading_B": -0.003
+      },
+      {
+       "beta_deg": -20,
+       "value": 0.026,
+       "flag": "measured",
+       "reading_A": 0.026,
+       "reading_B": 0.028
+      },
+      {
+       "beta_deg": -15,
+       "value": 0.032,
+       "flag": "eyeballed",
+       "reading_A": null,
+       "reading_B": 0.032
+      },
+      {
+       "beta_deg": -10,
+       "value": 0.0353,
+       "flag": "measured",
+       "reading_A": 0.0353,
+       "reading_B": 0.035
+      },
+      {
+       "beta_deg": -5,
+       "value": 0.0387,
+       "flag": "measured",
+       "reading_A": 0.0387,
+       "reading_B": 0.039
+      },
+      {
+       "beta_deg": 0,
+       "value": 0.0152,
+       "flag": "measured",
+       "reading_A": 0.0152,
+       "reading_B": 0.015
+      },
+      {
+       "beta_deg": 5,
+       "value": -0.0211,
+       "flag": "measured",
+       "reading_A": -0.0211,
+       "reading_B": -0.022
+      },
+      {
+       "beta_deg": 10,
+       "value": -0.0334,
+       "flag": "measured",
+       "reading_A": -0.0334,
+       "reading_B": -0.033
+      },
+      {
+       "beta_deg": 15,
+       "value": -0.0267,
+       "flag": "measured",
+       "reading_A": -0.0267,
+       "reading_B": -0.026
+      },
+      {
+       "beta_deg": 20,
+       "value": -0.0321,
+       "flag": "measured",
+       "reading_A": -0.0321,
+       "reading_B": -0.031
+      },
+      {
+       "beta_deg": 30,
+       "value": -0.0016,
+       "flag": "measured",
+       "reading_A": -0.0016,
+       "reading_B": -0.006
+      },
+      {
+       "beta_deg": 40,
+       "value": 0.0221,
+       "flag": "measured",
+       "reading_A": 0.0221,
+       "reading_B": 0.026
+      }
+     ],
+     "calibration": {
+      "y_px_per_unit": -4631.55,
+      "y_px_at_zero": 942.4,
+      "labels_used": 8,
+      "label_fit_residual_px": 1.5
+     }
+    },
+    "Cl": {
+     "points": [
+      {
+       "beta_deg": -40,
+       "value": 0.1213,
+       "flag": "measured",
+       "reading_A": 0.1213,
+       "reading_B": 0.12
+      },
+      {
+       "beta_deg": -30,
+       "value": 0.0861,
+       "flag": "measured",
+       "reading_A": 0.0861,
+       "reading_B": 0.086
+      },
+      {
+       "beta_deg": -20,
+       "value": 0.0608,
+       "flag": "measured",
+       "reading_A": 0.0608,
+       "reading_B": 0.061
+      },
+      {
+       "beta_deg": -15,
+       "value": 0.047,
+       "flag": "measured",
+       "reading_A": 0.047,
+       "reading_B": 0.049
+      },
+      {
+       "beta_deg": -10,
+       "value": 0.0331,
+       "flag": "measured",
+       "reading_A": 0.0331,
+       "reading_B": 0.036
+      },
+      {
+       "beta_deg": -5,
+       "value": 0.024,
+       "flag": "eyeballed",
+       "reading_A": null,
+       "reading_B": 0.024
+      },
+      {
+       "beta_deg": 0,
+       "value": 0.0046,
+       "flag": "measured",
+       "reading_A": 0.0046,
+       "reading_B": 0.005
+      },
+      {
+       "beta_deg": 5,
+       "value": -0.011,
+       "flag": "measured",
+       "reading_A": -0.011,
+       "reading_B": -0.01
+      },
+      {
+       "beta_deg": 10,
+       "value": -0.0269,
+       "flag": "measured",
+       "reading_A": -0.0269,
+       "reading_B": -0.022
+      },
+      {
+       "beta_deg": 15,
+       "value": -0.032,
+       "flag": "eyeballed",
+       "reading_A": null,
+       "reading_B": -0.032
+      },
+      {
+       "beta_deg": 20,
+       "value": -0.0492,
+       "flag": "measured",
+       "reading_A": -0.0492,
+       "reading_B": -0.044
+      },
+      {
+       "beta_deg": 30,
+       "value": -0.0758,
+       "flag": "measured",
+       "reading_A": -0.0758,
+       "reading_B": -0.072
+      },
+      {
+       "beta_deg": 40,
+       "value": -0.0935,
+       "flag": "measured",
+       "reading_A": -0.0935,
+       "reading_B": -0.098
+      }
+     ],
+     "calibration": {
+      "y_px_per_unit": -4627.46,
+      "y_px_at_zero": 1868.3,
+      "labels_used": 15,
+      "label_fit_residual_px": 1.2
+     }
+    }
+   },
+   "beta_calibration": {
+    "px_per_deg": 9.732,
+    "x_px_at_zero": 1187.3,
+    "lines_used": 13,
+    "fit_residual_px": 0.9
+   }
+  },
+  {
+   "alpha_deg": 100,
+   "pdf_page": 50,
+   "coefficients": {
+    "Cy": {
+     "points": [
+      {
+       "beta_deg": -40,
+       "value": 0.2626,
+       "flag": "measured",
+       "reading_A": 0.2626,
+       "reading_B": 0.27
+      },
+      {
+       "beta_deg": -30,
+       "value": 0.1294,
+       "flag": "measured",
+       "reading_A": 0.1294,
+       "reading_B": 0.15
+      },
+      {
+       "beta_deg": -20,
+       "value": 0.0306,
+       "flag": "measured",
+       "reading_A": 0.0306,
+       "reading_B": 0.05
+      },
+      {
+       "beta_deg": -15,
+       "value": -0.0108,
+       "flag": "measured",
+       "reading_A": -0.0108,
+       "reading_B": 0.02
+      },
+      {
+       "beta_deg": -10,
+       "value": -0.0131,
+       "flag": "measured",
+       "reading_A": -0.0131,
+       "reading_B": 0.01
+      },
+      {
+       "beta_deg": -5,
+       "value": -0.0315,
+       "flag": "measured",
+       "reading_A": -0.0315,
+       "reading_B": 0.0
+      },
+      {
+       "beta_deg": 0,
+       "value": 0.02,
+       "flag": "eyeballed",
+       "reading_A": null,
+       "reading_B": 0.02
+      },
+      {
+       "beta_deg": 5,
+       "value": 0.0352,
+       "flag": "measured",
+       "reading_A": 0.0352,
+       "reading_B": 0.04
+      },
+      {
+       "beta_deg": 10,
+       "value": 0.0145,
+       "flag": "measured",
+       "reading_A": 0.0145,
+       "reading_B": 0.03
+      },
+      {
+       "beta_deg": 15,
+       "value": 0.03,
+       "flag": "eyeballed",
+       "reading_A": null,
+       "reading_B": 0.03
+      },
+      {
+       "beta_deg": 20,
+       "value": 0.0053,
+       "flag": "measured",
+       "reading_A": 0.0053,
+       "reading_B": 0.02
+      },
+      {
+       "beta_deg": 30,
+       "value": -0.06,
+       "flag": "eyeballed",
+       "reading_A": null,
+       "reading_B": -0.06
+      },
+      {
+       "beta_deg": 40,
+       "value": -0.1854,
+       "flag": "measured",
+       "reading_A": -0.1854,
+       "reading_B": -0.16
+      }
+     ],
+     "calibration": {
+      "y_px_per_unit": -435.25,
+      "y_px_at_zero": 452.3,
+      "labels_used": 5,
+      "label_fit_residual_px": 1.8
+     }
+    },
+    "Cn": {
+     "points": [
+      {
+       "beta_deg": -40,
+       "value": -0.054,
+       "flag": "eyeballed",
+       "reading_A": null,
+       "reading_B": -0.054
+      },
+      {
+       "beta_deg": -30,
+       "value": -0.0146,
+       "flag": "measured",
+       "reading_A": -0.0146,
+       "reading_B": -0.022
+      },
+      {
+       "beta_deg": -20,
+       "value": 0.0054,
+       "flag": "measured",
+       "reading_A": 0.0054,
+       "reading_B": 0.0
+      },
+      {
+       "beta_deg": -15,
+       "value": 0.0144,
+       "flag": "measured",
+       "reading_A": 0.0144,
+       "reading_B": 0.01
+      },
+      {
+       "beta_deg": -10,
+       "value": 0.0223,
+       "flag": "measured",
+       "reading_A": 0.0223,
+       "reading_B": 0.018
+      },
+      {
+       "beta_deg": -5,
+       "value": 0.0267,
+       "flag": "measured",
+       "reading_A": 0.0267,
+       "reading_B": 0.023
+      },
+      {
+       "beta_deg": 0,
+       "value": 0.0217,
+       "flag": "measured",
+       "reading_A": 0.0217,
+       "reading_B": 0.021
+      },
+      {
+       "beta_deg": 5,
+       "value": -0.009,
+       "flag": "measured",
+       "reading_A": -0.009,
+       "reading_B": -0.014
+      },
+      {
+       "beta_deg": 10,
+       "value": -0.0098,
+       "flag": "measured",
+       "reading_A": -0.0098,
+       "reading_B": -0.014
+      },
+      {
+       "beta_deg": 15,
+       "value": -0.0065,
+       "flag": "measured",
+       "reading_A": -0.0065,
+       "reading_B": -0.011
+      },
+      {
+       "beta_deg": 20,
+       "value": -0.0006,
+       "flag": "measured",
+       "reading_A": -0.0006,
+       "reading_B": -0.002
+      },
+      {
+       "beta_deg": 30,
+       "value": 0.0142,
+       "flag": "measured",
+       "reading_A": 0.0142,
+       "reading_B": 0.015
+      },
+      {
+       "beta_deg": 40,
+       "value": 0.0469,
+       "flag": "measured",
+       "reading_A": 0.0469,
+       "reading_B": 0.048
+      }
+     ],
+     "calibration": {
+      "y_px_per_unit": -4800.0,
+      "y_px_at_zero": 998.0,
+      "labels_used": "manual",
+      "label_fit_residual_px": null
+     }
+    },
+    "Cl": {
+     "points": [
+      {
+       "beta_deg": -40,
+       "value": 0.1208,
+       "flag": "measured",
+       "reading_A": 0.1208,
+       "reading_B": 0.12
+      },
+      {
+       "beta_deg": -30,
+       "value": 0.0901,
+       "flag": "measured",
+       "reading_A": 0.0901,
+       "reading_B": 0.09
+      },
+      {
+       "beta_deg": -20,
+       "value": 0.0644,
+       "flag": "measured",
+       "reading_A": 0.0644,
+       "reading_B": 0.065
+      },
+      {
+       "beta_deg": -15,
+       "value": 0.051,
+       "flag": "eyeballed",
+       "reading_A": null,
+       "reading_B": 0.051
+      },
+      {
+       "beta_deg": -10,
+       "value": 0.036,
+       "flag": "eyeballed",
+       "reading_A": null,
+       "reading_B": 0.036
+      },
+      {
+       "beta_deg": -5,
+       "value": 0.0224,
+       "flag": "measured",
+       "reading_A": 0.0224,
+       "reading_B": 0.022
+      },
+      {
+       "beta_deg": 0,
+       "value": 0.005,
+       "flag": "eyeballed",
+       "reading_A": null,
+       "reading_B": 0.005
+      },
+      {
+       "beta_deg": 5,
+       "value": -0.009,
+       "flag": "eyeballed",
+       "reading_A": null,
+       "reading_B": -0.009
+      },
+      {
+       "beta_deg": 10,
+       "value": -0.0224,
+       "flag": "measured",
+       "reading_A": -0.0224,
+       "reading_B": -0.022
+      },
+      {
+       "beta_deg": 15,
+       "value": -0.036,
+       "flag": "eyeballed",
+       "reading_A": null,
+       "reading_B": -0.036
+      },
+      {
+       "beta_deg": 20,
+       "value": -0.05,
+       "flag": "eyeballed",
+       "reading_A": null,
+       "reading_B": -0.05
+      },
+      {
+       "beta_deg": 30,
+       "value": -0.0786,
+       "flag": "measured",
+       "reading_A": -0.0786,
+       "reading_B": -0.077
+      },
+      {
+       "beta_deg": 40,
+       "value": -0.1038,
+       "flag": "measured",
+       "reading_A": -0.1038,
+       "reading_B": -0.105
+      }
+     ],
+     "calibration": {
+      "y_px_per_unit": -4357.41,
+      "y_px_at_zero": 1931.5,
+      "labels_used": 15,
+      "label_fit_residual_px": 1.0
+     }
+    }
+   },
+   "beta_calibration": {
+    "px_per_deg": 8.965,
+    "x_px_at_zero": 756.3,
+    "lines_used": 13,
+    "fit_residual_px": 1.0
+   }
+  },
+  {
+   "alpha_deg": 110,
+   "pdf_page": 50,
+   "coefficients": {
+    "Cy": {
+     "points": [
+      {
+       "beta_deg": -40,
+       "value": 0.301,
+       "flag": "magnified eye reading",
+       "reading_A": 0.301,
+       "reading_B": 0.32
+      },
+      {
+       "beta_deg": -30,
+       "value": 0.13,
+       "flag": "magnified eye reading",
+       "reading_A": 0.13,
+       "reading_B": 0.17
+      },
+      {
+       "beta_deg": -20,
+       "value": 0.029,
+       "flag": "magnified eye reading",
+       "reading_A": 0.029,
+       "reading_B": 0.05
+      },
+      {
+       "beta_deg": -15,
+       "value": 0.0,
+       "flag": "magnified eye reading",
+       "reading_A": 0.0,
+       "reading_B": 0.0
+      },
+      {
+       "beta_deg": -10,
+       "value": -0.018,
+       "flag": "magnified eye reading",
+       "reading_A": -0.018,
+       "reading_B": -0.03
+      },
+      {
+       "beta_deg": -5,
+       "value": -0.023,
+       "flag": "magnified eye reading",
+       "reading_A": -0.023,
+       "reading_B": -0.03
+      },
+      {
+       "beta_deg": 0,
+       "value": -0.01,
+       "flag": "magnified eye reading",
+       "reading_A": -0.01,
+       "reading_B": -0.02
+      },
+      {
+       "beta_deg": 5,
+       "value": 0.026,
+       "flag": "magnified eye reading",
+       "reading_A": 0.026,
+       "reading_B": 0.02
+      },
+      {
+       "beta_deg": 10,
+       "value": 0.021,
+       "flag": "magnified eye reading",
+       "reading_A": 0.021,
+       "reading_B": 0.03
+      },
+      {
+       "beta_deg": 15,
+       "value": -0.005,
+       "flag": "magnified eye reading",
+       "reading_A": -0.005,
+       "reading_B": 0.02
+      },
+      {
+       "beta_deg": 20,
+       "value": -0.01,
+       "flag": "magnified eye reading",
+       "reading_A": -0.01,
+       "reading_B": -0.01
+      },
+      {
+       "beta_deg": 30,
+       "value": -0.096,
+       "flag": "magnified eye reading",
+       "reading_A": -0.096,
+       "reading_B": -0.08
+      },
+      {
+       "beta_deg": 40,
+       "value": -0.208,
+       "flag": "magnified eye reading",
+       "reading_A": -0.208,
+       "reading_B": -0.21
+      }
+     ],
+     "calibration": {
+      "y_px_per_unit": -380.0,
+      "y_px_at_zero": 539.0,
+      "labels_used": "manual",
+      "label_fit_residual_px": null
+     }
+    },
+    "Cn": {
+     "points": [
+      {
+       "beta_deg": -40,
+       "value": -0.068,
+       "flag": "magnified eye reading",
+       "reading_A": -0.068,
+       "reading_B": -0.057
+      },
+      {
+       "beta_deg": -30,
+       "value": -0.047,
+       "flag": "magnified eye reading",
+       "reading_A": -0.047,
+       "reading_B": -0.042
+      },
+      {
+       "beta_deg": -20,
+       "value": -0.014,
+       "flag": "magnified eye reading",
+       "reading_A": -0.014,
+       "reading_B": -0.012
+      },
+      {
+       "beta_deg": -15,
+       "value": -0.001,
+       "flag": "magnified eye reading",
+       "reading_A": -0.001,
+       "reading_B": -0.005
+      },
+      {
+       "beta_deg": -10,
+       "value": 0.006,
+       "flag": "magnified eye reading",
+       "reading_A": 0.006,
+       "reading_B": 0.005
+      },
+      {
+       "beta_deg": -5,
+       "value": 0.017,
+       "flag": "magnified eye reading",
+       "reading_A": 0.017,
+       "reading_B": 0.016
+      },
+      {
+       "beta_deg": 0,
+       "value": 0.017,
+       "flag": "magnified eye reading",
+       "reading_A": 0.017,
+       "reading_B": 0.015
+      },
+      {
+       "beta_deg": 5,
+       "value": -0.0055,
+       "flag": "magnified eye reading",
+       "reading_A": -0.0055,
+       "reading_B": -0.007
+      },
+      {
+       "beta_deg": 10,
+       "value": -0.0036,
+       "flag": "magnified eye reading",
+       "reading_A": -0.0036,
+       "reading_B": -0.004
+      },
+      {
+       "beta_deg": 15,
+       "value": 0.0047,
+       "flag": "magnified eye reading",
+       "reading_A": 0.0047,
+       "reading_B": 0.002
+      },
+      {
+       "beta_deg": 20,
+       "value": 0.0105,
+       "flag": "magnified eye reading",
+       "reading_A": 0.0105,
+       "reading_B": 0.011
+      },
+      {
+       "beta_deg": 30,
+       "value": 0.039,
+       "flag": "magnified eye reading",
+       "reading_A": 0.039,
+       "reading_B": 0.032
+      },
+      {
+       "beta_deg": 40,
+       "value": 0.063,
+       "flag": "magnified eye reading",
+       "reading_A": 0.063,
+       "reading_B": 0.06
+      }
+     ],
+     "calibration": {
+      "y_px_per_unit": -3760.0,
+      "y_px_at_zero": 1077.0,
+      "labels_used": "manual",
+      "label_fit_residual_px": null
+     }
+    },
+    "Cl": {
+     "points": [
+      {
+       "beta_deg": -40,
+       "value": 0.12,
+       "flag": "magnified eye reading",
+       "reading_A": 0.12,
+       "reading_B": 0.12
+      },
+      {
+       "beta_deg": -30,
+       "value": 0.0937,
+       "flag": "magnified eye reading",
+       "reading_A": 0.0937,
+       "reading_B": 0.095
+      },
+      {
+       "beta_deg": -20,
+       "value": 0.061,
+       "flag": "magnified eye reading",
+       "reading_A": 0.061,
+       "reading_B": 0.063
+      },
+      {
+       "beta_deg": -15,
+       "value": 0.0468,
+       "flag": "magnified eye reading",
+       "reading_A": 0.0468,
+       "reading_B": 0.049
+      },
+      {
+       "beta_deg": -10,
+       "value": 0.0316,
+       "flag": "magnified eye reading",
+       "reading_A": 0.0316,
+       "reading_B": 0.036
+      },
+      {
+       "beta_deg": -5,
+       "value": 0.0158,
+       "flag": "magnified eye reading",
+       "reading_A": 0.0158,
+       "reading_B": 0.019
+      },
+      {
+       "beta_deg": 0,
+       "value": 0.001,
+       "flag": "magnified eye reading",
+       "reading_A": 0.001,
+       "reading_B": 0.002
+      },
+      {
+       "beta_deg": 5,
+       "value": -0.01,
+       "flag": "magnified eye reading",
+       "reading_A": -0.01,
+       "reading_B": -0.01
+      },
+      {
+       "beta_deg": 10,
+       "value": -0.024,
+       "flag": "magnified eye reading",
+       "reading_A": -0.024,
+       "reading_B": -0.023
+      },
+      {
+       "beta_deg": 15,
+       "value": -0.0395,
+       "flag": "magnified eye reading",
+       "reading_A": -0.0395,
+       "reading_B": -0.037
+      },
+      {
+       "beta_deg": 20,
+       "value": -0.0547,
+       "flag": "magnified eye reading",
+       "reading_A": -0.0547,
+       "reading_B": -0.05
+      },
+      {
+       "beta_deg": 30,
+       "value": -0.0847,
+       "flag": "magnified eye reading",
+       "reading_A": -0.0847,
+       "reading_B": -0.083
+      },
+      {
+       "beta_deg": 40,
+       "value": -0.12,
+       "flag": "magnified eye reading",
+       "reading_A": -0.12,
+       "reading_B": -0.112
+      }
+     ],
+     "calibration": {
+      "y_px_per_unit": -3795.0,
+      "y_px_at_zero": 1994.0,
+      "labels_used": "manual",
+      "label_fit_residual_px": null
+     }
+    }
+   },
+   "beta_calibration": {
+    "px_per_deg": 7.851,
+    "x_px_at_zero": 1818.3,
+    "lines_used": 9,
+    "fit_residual_px": 1.2
+   }
+  }
+ ]
+}

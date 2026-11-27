@@ -110,6 +110,12 @@
       "original": "c9846c7a080998c96d889d932d4a4199af21ad51bc6c8391a50cd99f5f43dbe4",
       "commit": "6d689b789fedb783d7ad6ae8cc990904a12fe32e"
     },
+    "src/render/camera.js": {
+      "from": "wings:src/render/camera.js",
+      "how": "adapted",
+      "original": "b7204490412e345f66ef3ffa3bd9e9638a0bfe59d9c76ecf72491909bf152648",
+      "commit": "6d689b789fedb783d7ad6ae8cc990904a12fe32e"
+    },
     "src/input/look.js": {
       "from": "wings:src/input/look.js",
       "how": "adapted",

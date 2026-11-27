@@ -14,6 +14,7 @@ import { createAircraft } from './render/aircraft.js';
 import { createBetween } from './render/between.js';
 import { createChaseCamera } from './render/camera.js';
 import { attitude, blend, poseReader, toPicture } from './render/frames.js';
+import { buffetOf } from './sim/buffet.js';
 import { surfaceReader } from './render/surfaces.js';
 import { FAR, createWorld } from './render/world.js';
 
@@ -74,7 +75,7 @@ export function startFlight(canvas, aircraft, field = FIELD, { onReadout } = {})
     vsi.set(instruments(start.state).climb);
     const index = (name) => start.stateNames.indexOf(name);
     at = { time: index('simulation/sim-time-sec'), lat: index('position/lat-geod-rad'), lon: index('position/long-gc-rad'), agl: index('position/h-agl-ft'),
-      heading: index('attitude/psi-rad'), knots: index('velocities/vc-kts'), vn: index('velocities/v-north-fps'), ve: index('velocities/v-east-fps'),
+      heading: index('attitude/psi-rad'), knots: index('velocities/vc-kts'), alpha: index('aero/alpha-rad'), flaps: index('fcs/flap-pos-norm'), vn: index('velocities/v-north-fps'), ve: index('velocities/v-east-fps'),
       wheels: start.stateNames.map((name, i) => (/^gear\/unit\[\d+\]\/WOW$/.test(name) ? i : -1)).filter((i) => i >= 0) };
     newest = { state: start.state, propellerRpm: start.propellerRpm, engines: start.engines ?? null, ended: null, totalSteps: 0 };
     between.reset();
@@ -158,7 +159,10 @@ export function startFlight(canvas, aircraft, field = FIELD, { onReadout } = {})
     }
     fit();   // every frame: iOS can report the new size late after a rotation
     look.update(elapsed);
-    chase.update(airplane.position, airplane.quaternion, elapsed, groundY, 0, look);
+    // The buffet shakes the camera near the stall (milestone 3, pull request 10): from the newest state, as the moving parts
+    // are, through the aircraft's own band (src/sim/buffet.js). Only while time runs: a paused picture stands still.
+    const buffet = read && flying ? buffetOf(aircraft.buffet, newest.state[at.alpha] * 180 / Math.PI, newest.state[at.knots], newest.state[at.flaps]) : 0;
+    chase.update(airplane.position, airplane.quaternion, elapsed, groundY, buffet, look);
     world.follow(chase.camera);
     renderer.render(scene, chase.camera);
     if (instruments) {
@@ -232,6 +236,7 @@ export function startFlight(canvas, aircraft, field = FIELD, { onReadout } = {})
         out.model = airplane.shown();   // where the model's own motions stand, 0 to 1: its flaps, elevator, ailerons and rudder as drawn
         out.drawn = drawnParts;         // and where JSBSim had those parts in the state that frame was drawn from
         out.plumes = airplane.plumes.map((plume) => plume.shown());   // each engine's plume as drawn: lit or not, where it starts, how long
+        out.shake = { ...chase.shaking };   // the camera's buffet shake at the last frame drawn: the buffet (0 to 1) and how far it moved the camera, metres
       }
       if (newest) {
         const s = newest.state, place = toWorld(s[at.lat], s[at.lon]);

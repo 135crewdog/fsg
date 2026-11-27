@@ -819,6 +819,42 @@ check(!js.error && js.build === 'weh' && (await text('#dev')).includes('wasm exc
     await until((m) => window.fsg.picture.flight > m && window.fsg.picture.flying, n, 10000);
     await c.waitForTimeout(1500);
   }
+  // Buffet (docs/milestones/3.md, PR 10): the chase camera's shake, read from the scene (src/render/camera.js, `shaking`, through
+  // the flight's status) every 50 ms. Off the runway in full afterburner, gear up; then held at neutral tilt with the wings level
+  // until it passes 350 knots, and read for 2 s there ("level flight at 350 knots" is read as: 340 to 360 knots, wings within 10
+  // degrees of level, within 0.3 g of 1 g): no shake. Then the throttle to idle and the device tipped full back: once the angle of
+  // attack is past the stall (22 degrees, AFWAL's nose slice; tests/f4c-edge.test.js), the camera shakes, as hard as it gets.
+  {
+    const looks = (ms) => c.evaluate((ms) => new Promise((done) => {
+      const seen = [], from = performance.now();
+      const id = setInterval(() => {
+        const p = window.fsg.picture;
+        seen.push({ shake: p.shake, knots: p.knots, alpha: p.reading.alpha, g: p.reading.g, roll: p.reading.roll });
+        if (performance.now() - from >= ms) { clearInterval(id); done(seen); }
+      }, 50);
+    }), ms);
+    const flight = await takeOff({ gearUp: true });
+    await hold(0, 'level');
+    const fast = await until(() => window.fsg.picture.knots >= 345, null, 90000);
+    const cruise = (await looks(2000)).filter((x) => x.knots >= 340 && x.knots <= 360 && Math.abs(x.roll) < 10 && Math.abs(x.g - 1) < 0.3);
+    check(flight.off && fast && cruise.length >= 10 && cruise.every((x) => x.shake.buffet === 0 && x.shake.metres === 0),
+      'buffet: no shake in level flight at 350 knots', `${cruise.length} looks at 340 to 360 kt, wings level, about 1 g: the most buffet ${Math.max(...cruise.map((x) => x.shake.buffet))}, the camera moved ${Math.max(...cruise.map((x) => x.shake.metres))} m; ${cruise.length ? `at ${cruise[0].knots.toFixed(0)} kt, ${cruise[0].alpha.toFixed(1)} degrees, ${cruise[0].g.toFixed(2)} g` : ''}`);
+    const g0 = await groove(), x0 = (await c.locator('#throttle .thumb').boundingBox()).x + 15;
+    await c.mouse.move(x0, g0.rail.top + g0.rail.height);
+    await c.mouse.down();
+    await c.mouse.up();
+    await hold(30, 'level');
+    const past = await until(() => window.fsg.picture.reading.alpha >= 22, null, 30000);
+    const stalled = (await looks(1500)).filter((x) => x.alpha >= 22);
+    check(past && stalled.length >= 5 && stalled.every((x) => x.shake.buffet > 0.99 && x.shake.metres > 0), 'buffet: the camera shakes at the stall, as hard as it gets',
+      `${stalled.length} looks past 22 degrees: buffet ${Math.min(...stalled.map((x) => x.shake.buffet)).toFixed(3)} at the least, the camera moved up to ${Math.max(...stalled.map((x) => x.shake.metres)).toFixed(3)} m; at ${stalled[0]?.knots.toFixed(0)} kt, ${stalled[0]?.alpha.toFixed(1)} degrees`);
+    await hold(0, 0);
+    const n = (await now()).flight;
+    await c.click('#pause');
+    await c.click('#restart');
+    await until((m) => window.fsg.picture.flight > m && window.fsg.picture.flying, n, 10000);
+    await c.waitForTimeout(1500);
+  }
   // With the crash override off, flown into the ground at more than 1,575 ft/min: the crashed screen.
   await c.click('#pause');
   await c.click('#override');

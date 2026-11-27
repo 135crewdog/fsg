@@ -1,11 +1,13 @@
 // The chase camera: behind and a little above the airplane, turning with it
 // a beat late, so the airplane stays upright on screen and the horizon tilts.
 // A look-around (src/input/look.js) swings it around the airplane.
-// After 135crewdog/wings, src/render/camera.js, commit 557a8d0 (itself after Rage's). Changed for FSG: the
+// After 135crewdog/wings, src/render/camera.js, commit 6d689b7 (itself after Rage's; the same at 557a8d0). Changed for FSG: the
 // distances are in airplane sizes, not metres, so one rule frames a Cessna and a Phantom alike. They are
 // Wings' own view of its 17.7 m F-4C (21 m behind, 4.2 above, looking 18 m ahead and 3.2 above), divided out.
 // An airplane's size is the larger of its length and its span: the F-4C is longer than it is wide, the
 // Cessna wider than it is long, and framed by its length alone its tail fell off the bottom of the screen.
+// Wings' buffet shake is kept as Wings has it, and since milestone 3 (pull request 10) it is fed (src/sim/buffet.js,
+// src/flight.js); `shaking` says what the last frame did, for the browser checks.
 
 import * as THREE from 'three';
 
@@ -33,8 +35,11 @@ export function createChaseCamera(far, size = F4C) {
   const q = new THREE.Quaternion(), offset = new THREE.Vector3(), aim = new THREE.Vector3(), shake = new THREE.Vector3();
   const turned = new THREE.Quaternion(), swing = new THREE.Quaternion(), euler = new THREE.Euler();
   let first = true, t = 0;
+  const shaking = { buffet: 0, metres: 0 };
   return {
     camera,
+    /** The last frame's shake: the buffet it was given (0 to 1) and how far it moved the camera, metres. */
+    shaking,
     /** The airplane's size, metres: the camera stands off in proportion. */
     frame(metres) { size = metres; first = true; },
     /** The next update snaps to the airplane instead of easing: for a new flight. */
@@ -45,9 +50,12 @@ export function createChaseCamera(far, size = F4C) {
       turned.copy(q).multiply(swing.setFromEuler(euler.set(look.pitch * DEG, look.yaw * DEG, 0, 'YXZ')));
       camera.position.copy(position).add(offset.set(0, ABOVE * size, BEHIND * size).applyQuaternion(turned));
       t += dt;
+      shaking.buffet = buffet;
+      shaking.metres = 0;
       if (buffet > 0) {
         shake.set(Math.sin(t * 61.3) + 0.5 * Math.sin(t * 97.1), Math.sin(t * 73.7 + 1.3) + 0.5 * Math.sin(t * 113.9), Math.sin(t * 53.1 + 2.1));
         camera.position.add(shake.multiplyScalar(SHAKE * buffet * buffet).applyQuaternion(q));
+        shaking.metres = shake.length();
       }
       camera.position.y = Math.max(camera.position.y, groundY + CLEAR);
       camera.up.set(0, 1, 0).applyQuaternion(turned);
