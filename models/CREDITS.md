@@ -16,7 +16,7 @@ What the script changed (20 November 2026):
 - wrote FlightGear's flap, elevator, aileron and rudder movements, with their own hinge lines and travel, as the four one-second motions `docs/models.md` asks for;
 - named the propeller's parts and the three tyres as `docs/models.md` asks.
 
-It wears FlightGear's own default paint and registration. It is a stand-in for the test flights of milestone 2 and leaves the game when the F-4C arrives.
+It wears FlightGear's own default paint and registration. It was the stand-in for the test flights of milestone 2, and left the app when the F-4C arrived (milestone 3, pull request 8, version 0.0.19): it stays in the repo for the headless tests of `c172p`, and its credit with it.
 
 ## `f4c.glb`: the F-4C Phantom II (milestone 3)
 
@@ -26,4 +26,4 @@ It is painted as a USAF F-4C in Southeast Asia camouflage, loosely Robin Olds's 
 
 This file is Wings' `models/f4c.glb` (135crewdog/wings, commit `6d689b7`; it last changed there in `9006d56`), byte for byte: `provenance.json` holds its fingerprint, and `tests/model.test.js` checks it. Nothing was changed for FSG.
 
-It is not in the app yet: it arrives with the F-4C itself (milestone 3, pull request 8).
+It has been the airplane on screen since version 0.0.19 (milestone 3, pull request 8).

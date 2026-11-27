@@ -7,6 +7,7 @@ import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { BUILDS, DATA } from '../src/fdm.js';
 import { C172P } from '../src/sim/aircraft/c172p.js';
+import { C172X } from '../src/sim/aircraft/c172x.js';
 import { C172X_FILES } from '../src/sim/c172x-files.js';
 import { buildPack } from '../src/sim/files.js';
 import { flightRun } from '../src/sim/flight-run.js';
@@ -25,7 +26,7 @@ async function workerWith(build) {
   handle = createHandler((message) => {
     if (message.type === 'state') states.push(message);
     else queueMicrotask(() => client.receive(message));
-  }, flightRun(timer));
+  }, flightRun(timer, { c172x: C172X, c172p: C172P }));   // the test aircraft are not in the app's list since milestone 3, pull request 8: they are handed in
   const files = [...new Set([...C172X_FILES, ...C172P.files])];
   await client.request({ type: 'init', moduleUrl: inSrc(BUILDS[build].module).href, packs: [['/data', buildPack(new Map(files.map((file) => [file, bytes(file)])))]] });
   return { timer, states, request: (body) => client.request(body) };

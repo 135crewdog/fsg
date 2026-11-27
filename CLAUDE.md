@@ -112,7 +112,7 @@ Wings stays live at its own address, and the owner keeps improving it. FSG never
   The precedent to study is Richard Harrison's FlightGear F-14, a JSBSim fighter built from NASA wind-tunnel reports (zaretto.com). Its stability augmentation system goes in JSBSim's flight-control format, as on the real jet. The owner's figures from Wings still stand: rotation at 150 knots, and the centre of gravity 3.5 feet ahead of the main wheels, where his model puts it.
 - **Test aircraft:** JSBSim's bundled Cessnas and F-16, well-known files used to prove the wiring before the F-4C. They are not in the finished game.
   - `c172x` and `f16` are flown headless against native JSBSim (milestone 1).
-  - `c172p` is the Cessna on screen since milestone 2, flown as JSBSim ships it: no slack in its elevator, and a nosewheel the stick can steer. Its picture is FlightGear's own c172p model (GPL 2), which fits it within an inch (the owner's choice, 20 November 2026).
+  - `c172p` was the Cessna on screen in milestone 2, until the F-4C took its place (milestone 3, PR 8; version 0.0.19), flown as JSBSim ships it: no slack in its elevator, and a nosewheel the stick can steer. Its picture is FlightGear's own c172p model (GPL 2), which fits it within an inch (the owner's choice, 20 November 2026). Since then it is a headless test aircraft; its model and credit stay in the repo, out of the app's download.
   - The owner's own C172 model stays in his Drive.
 - **The physics clock:**
   - JSBSim runs in a Web Worker at a fixed 120 steps a second, decoupled from the screen. It uses an accumulator with a catch-up cap ("Fix Your Timestep").

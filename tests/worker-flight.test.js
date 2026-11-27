@@ -29,7 +29,7 @@ async function workerWith(build) {
   handle = createHandler((message) => {
     if (message.type === 'state') states.push(message);
     else queueMicrotask(() => client.receive(message));
-  }, flightRun(timer));
+  }, flightRun(timer, { c172x: C172X }));   // the test aircraft is not in the app's list since milestone 3, pull request 8: it is handed in
   await client.request({ type: 'init', moduleUrl: inSrc(BUILDS[build].module).href, packs: [['/data', buildPack(new Map(C172X_FILES.map((file) => [file, bytes(file)])))]] });
   return { timer, states, request: (body) => client.request(body) };
 }

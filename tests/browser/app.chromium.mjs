@@ -66,7 +66,7 @@ check((await text('#screen-start .version')) === version, 'the version shows', v
 check(!(await visible('#rotate')), 'no rotate screen in landscape');
 check(!(await visible('#screen-start .update')), 'no update offered on a first visit');
 
-// 1b. The picture (milestone 2, pull request 4): the Cessna stands on the runway's numbers behind the start
+// 1b. The picture (milestone 2, pull request 4): the airplane (the F-4C since milestone 3, pull request 8; the Cessna before it) stands on the runway's numbers behind the start
 // screen, and once it has been drawn the app rests. `node tests/browser/app.chromium.mjs <folder>` also saves
 // what it looks like there, for the pull request.
 const shots = process.argv[2];
@@ -78,7 +78,7 @@ const pictureIs = async (when) => {
   const rested = await page.waitForFunction(() => window.fsg.picture.resting, null, { timeout: 15000 }).then(() => true, () => false);
   const p = await page.evaluate(() => window.fsg.picture);
   check(rested, `${when}: and then the app rests`, `${p.frames} frames, ${p.triangles} triangles`);
-  check(p.loaded && p.wheelsIn.every((inches) => Math.abs(inches) <= 1), `${when}: the Cessna's wheels are within 1 in of the runway`, p.wheelsIn?.map((inches) => `${inches.toFixed(2)} in`).join(', '));
+  check(p.loaded && p.wheelsIn.every((inches) => Math.abs(inches) <= 1), `${when}: the F-4C's wheels are within 1 in of the runway`, p.wheelsIn?.map((inches) => `${inches.toFixed(2)} in`).join(', '));
   check(p.loaded && p.nose[0] > 0.99 && Math.abs(p.nose[2]) < 0.01, `${when}: its nose points down the runway, to the east`, p.nose?.map((x) => x.toFixed(3)).join(', '));
   await page.waitForTimeout(1000);
   const later = await page.evaluate(() => window.fsg.picture);
@@ -114,7 +114,9 @@ const errorScreen = (said, error) => said.title !== 'Crashed' && said.title.leng
   && said.line.trim().split(/\s+/).length <= 12 && !(error && (said.line.includes(error) || said.title.includes(error))) && !/Worker|JSBSim|Error/.test(said.title + said.line);
 
 // 3. The game (milestone 2, pull request 5). JSBSim starts in its Worker when the app opens: the fast build,
-//    the Cessna parked on the numbers and held. Fly lets it go.
+//    the airplane parked on the numbers and held. Fly lets it go. Since milestone 3, pull request 8, it is the F-4C:
+//    "parked" is the plan's PR 8 line: on the numbers, wheels on the runway within 1 in, gear down, flaps at 1/2,
+//    boards in, brakes on, engines at idle (until then it was the Cessna's propeller at 700 to 900 RPM).
 const KT = 1.6878;
 const on = (p) => ({
   ready: () => p.waitForFunction(() => !document.getElementById('fly').disabled, null, { timeout: 60000 }).then(() => true, () => false),
@@ -129,9 +131,10 @@ const on = (p) => ({
 });
 const app = on(page);
 const parked = (f) => f.wheelsDown === 3 && f.groundKt < 0.1 && Math.hypot(f.northFt, f.eastFt) < 1 && Math.abs(f.headingDeg - 90) < 0.1 && f.wheelsIn.every((inches) => Math.abs(inches) <= 1) &&
-  f.propellerRpm >= 700 && f.propellerRpm <= 900 && f.ended === null;
-const where = (f) => `${Math.hypot(f.northFt, f.eastFt).toFixed(2)} ft from the numbers, heading ${f.headingDeg.toFixed(2)}, ${f.wheelsDown} wheels down (${f.wheelsIn.map((x) => x.toFixed(2)).join(', ')} in), ${f.groundKt.toFixed(2)} kt, ${f.propellerRpm.toFixed(0)} RPM`;
-const overlaySays = (box, what) => new RegExp(`^FSG [^\n]+\n(browser tab|home-screen app)\noffline ready: [a-z ]+\nJSBSim 1\\.3\\.3 {3}(wasm exceptions|fallback build: [^\n]+)\nc172p {3}${what}\n\\d+ frames/s \\(least \\d+\\) {3}\\d+ draws\n[\\d.]+ steps/s {3}[\\d.]+ s dropped {3}[\\d,]+ states, \\d+ missing\npicture \\d+ ms behind \\(99 in 100 within \\d+, most \\d+\\)\n-?[\\d,]+ ft N, -?[\\d,]+ ft E, -?[\\d,]+ ft up, heading \\d{3}, \\d+ kt, [\\d,]+ RPM\nsensor [^\n]+\nstick [^\n]+\nlast touchdown: [^\n]+$`).test(box);
+  f.surfaces.gear === 1 && f.surfaces.flaps === 0.5 && f.surfaces.speedbrake === 0 && Math.abs(f.model.gear - 1) < 1e-5 && Math.abs(f.model.flaps - 0.5) < 1e-5 &&
+  f.engines?.thrust.every((lb) => lb > 100 && lb < 1000) && f.engines.afterburner.every((x) => x === 0) && f.reading?.power === 0 && f.ended === null;
+const where = (f) => `${Math.hypot(f.northFt, f.eastFt).toFixed(2)} ft from the numbers, heading ${f.headingDeg.toFixed(2)}, ${f.wheelsDown} wheels down (${f.wheelsIn.map((x) => x.toFixed(2)).join(', ')} in), ${f.groundKt.toFixed(2)} kt, gear ${f.surfaces.gear}, flaps ${f.surfaces.flaps}, boards ${f.surfaces.speedbrake}, engines ${f.engines?.thrust.map((lb) => lb.toFixed(0)).join(' and ')} lb at power ${f.reading?.power}`;
+const overlaySays = (box, what) => new RegExp(`^FSG [^\n]+\n(browser tab|home-screen app)\noffline ready: [a-z ]+\nJSBSim 1\\.3\\.3 {3}(wasm exceptions|fallback build: [^\n]+)\nf4c {3}${what}\n\\d+ frames/s \\(least \\d+\\) {3}\\d+ draws\n[\\d.]+ steps/s {3}[\\d.]+ s dropped {3}[\\d,]+ states, \\d+ missing\npicture \\d+ ms behind \\(99 in 100 within \\d+, most \\d+\\)\n-?[\\d,]+ ft N, -?[\\d,]+ ft E, -?[\\d,]+ ft up, heading \\d{3}, \\d+ kt, [\\d,]+ lb\nsensor [^\n]+\nstick [^\n]+\nlast touchdown: [^\n]+$`).test(box);
 
 check(await app.ready(), 'Fly is ready: the model has loaded and JSBSim has started');
 let js = await app.jsbsim();
@@ -141,7 +144,7 @@ let f = await app.flight();
 const rests = await page.waitForFunction(() => window.fsg.picture.resting, null, { timeout: 15000 }).then(() => true, () => false);
 await page.waitForTimeout(1500);
 let later = await app.flight();
-check(parked(f) && !f.flying && f.states === 0 && later.states === 0 && later.time === f.time, 'the Cessna is parked on the numbers and held: no state is posted and no time passes', where(f));
+check(parked(f) && !f.flying && f.states === 0 && later.states === 0 && later.time === f.time, 'the F-4C is parked on the numbers and held: no state is posted and no time passes', where(f));
 check(rests && later.resting, 'held, the picture rests');
 
 // Settings before the first flight: the pause screen, with Fly at its top and no Restart; the Debug overlay switch.
@@ -159,13 +162,14 @@ check(keys.every((k) => k.startsWith('fsg.')), 'every storage key starts with fs
 
 // Fly, from that screen.
 check(await app.fly('#resume'), 'Fly shows the flight within 3 s');
-check((await app.mode()) === 'flying' && !(await visible('#screen-pause')) && !(await visible('#screen-start')) && (await visible('#pause')), 'in flight there is no screen, only the pause button');
 f = await app.flight();
+check((await app.mode()) === 'flying' && !(await visible('#screen-pause')) && !(await visible('#screen-start')) && (await visible('#pause')), 'in flight there is no screen, only the pause button');
 await page.waitForTimeout(500);
 later = await app.flight();
-check(parked(later), 'the Cessna is within 1 ft of the numbers on heading 090, wheels on the ground, propeller 700 to 900 RPM', where(later));
-// Milestone 3, PR F: it starts at its takeoff setting, 10 degrees of its 30 (it started with them fully down until 0.0.18).
-check(later.discShown && later.propellerTurn !== f.propellerTurn && Math.abs(later.surfaces.flaps * 30 - 10) < 1, 'and its propeller is turning on screen, its flaps at the takeoff setting, 10 degrees', `turned from ${f.propellerTurn.toFixed(3)} to ${later.propellerTurn.toFixed(3)}; flaps ${(later.surfaces.flaps * 30).toFixed(1)} degrees`);
+// Milestone 3, PR 8: the F-4C (until 0.0.19 the Cessna, its propeller turning at 700 to 900 RPM and its flaps at 10 degrees, PR F's takeoff setting).
+const brakesOn = (await page.evaluate(() => window.fsg.pilot.brake)) === true && (await text('#brake')) === 'Brakes On';
+check(parked(f) && parked(later) && brakesOn, 'Fly shows the F-4C on the numbers within 3 s, and half a second later it is still there: within 1 ft of the numbers on heading 090, wheels on the runway within 1 in, gear down, flaps at 1/2, boards in, brakes on, engines at idle',
+  `at once: ${where(f)}; half a second later: ${where(later)}; brakes ${brakesOn ? 'on' : 'NOT ON'}`);
 if (shots) await page.screenshot({ path: join(shots, 'flying.png') });
 // Ten seconds by the Worker's own clock.
 {
@@ -442,7 +446,7 @@ check(!js.error && js.build === 'weh' && (await text('#dev')).includes('wasm exc
   //     Neither build can start: the app must say so, not sit waiting, and Restart must try again.
   const noWorker = await browser.newContext({ viewport: { width: 852, height: 393 }, serviceWorkers: 'block', permissions: MOTION });
   await noWorker.route('**/src/sim/worker.js', (route) => route.abort());
-  await noWorker.route('**/jsbsim-data/**', async (route) => { await new Promise((done) => setTimeout(done, 400)); await route.continue(); });
+  await noWorker.route('**/aircraft/f4c/**', async (route) => { await new Promise((done) => setTimeout(done, 400)); await route.continue(); });   // the F-4C's files (the Cessna's were in jsbsim-data/ until 0.0.19)
   const w = await noWorker.newPage();
   await w.addInitScript(() => { try { localStorage.setItem('fsg.dev', 'on'); } catch { /* not yet on the page's origin */ } });
   // Motion access has not been given on this visit: the page counts how often it is asked for, and allows it.
@@ -519,12 +523,24 @@ check(!js.error && js.build === 'weh' && (await text('#dev')).includes('wasm exc
 
 // 10. The controls (pull request 7): flown on the screen's own controls with a made-up tilt. Chromium has no
 //     tilt sensor, so the page is sent the same orientation events a device sends, sixty a second.
+//     Since milestone 3, pull request 8, the airplane is the F-4C, and these are that pull request's lines
+//     (docs/milestones/3.md, PR 8): until 0.0.19 they were flown on the Cessna, with its own numbers.
 {
+  const F4C_STANDING_FT = 6.403;   // src/sim/aircraft/f4c.js, standingFt: its centre of gravity above the runway, parked
   const flown = await browser.newContext({ viewport: { width: 852, height: 393 }, serviceWorkers: 'block', permissions: MOTION });
   const c = await flown.newPage();
   const errs = [];
   c.on('pageerror', (error) => errs.push(String(error)));
+  c.on('console', (m) => { if (m.type() === 'error') errs.push(m.text()); });
   await c.addInitScript(() => { try { localStorage.setItem('fsg.dev', 'on'); } catch { /* not yet on the page's origin */ } });
+  // What the HUD writes: every text it draws on its canvas in a frame, kept for the last whole frame (it clears the canvas to start each).
+  await c.addInitScript(() => {
+    window.hudSays = [];
+    let drawing = [];
+    const { clearRect, fillText } = CanvasRenderingContext2D.prototype;
+    CanvasRenderingContext2D.prototype.clearRect = function (...args) { if (this.canvas.id === 'hud') { window.hudSays = drawing; drawing = []; } return clearRect.apply(this, args); };
+    CanvasRenderingContext2D.prototype.fillText = function (words, ...args) { if (this.canvas.id === 'hud') drawing.push(String(words)); return fillText.call(this, words, ...args); };
+  });
   await c.goto(base);
   // The made-up device: held in landscape, leaning back 15 degrees, then tipped `back` (top edge toward the
   // pilot) and turned `clockwise`, in degrees. The sums are tests/tilt.test.js's, from the sensor's definition.
@@ -539,8 +555,7 @@ check(!js.error && js.build === 'weh' && (await text('#dev')).includes('wasm exc
       }
       return { beta: 0, gamma: 0 };
     };
-    // With `level` set, the made-up pilot holds the wings level with the tilt, as a pilot does in the climb:
-    // at full power and low speed this Cessna rolls left by itself.
+    // With `level` set, the made-up pilot holds the wings level with the tilt, as a pilot does in the climb.
     let tick = 0, bias = 0;
     setInterval(() => {
       if (window.held.level && tick++ % 6 === 0) {
@@ -556,31 +571,53 @@ check(!js.error && js.build === 'weh' && (await text('#dev')).includes('wasm exc
     }, 1000 / 60);
   });
   const hold = (back, clockwise) => c.evaluate(([b, cw]) => { window.held = cw === 'level' ? { back: b, clockwise: window.held.clockwise, level: true } : { back: b, clockwise: cw }; }, [back, clockwise]);
-  const now = () => c.evaluate(() => ({ ...window.fsg.picture, stick: window.fsg.stick, pilot: window.fsg.pilot, touchdown: window.fsg.touchdown, mode: window.fsg.mode }));
+  const now = () => c.evaluate(() => ({ ...window.fsg.picture, stick: window.fsg.stick, pilot: window.fsg.pilot, touchdown: window.fsg.touchdown, mode: window.fsg.mode, hudSays: window.hudSays }));
   const until = (test, arg, timeout = 90000) => c.waitForFunction(test, arg, { timeout, polling: 50 }).then(() => true, () => false);
   const shown = (selector) => c.locator(selector).isVisible();
+  const says = (selector) => c.locator(selector).textContent();
+  // The owner's pictures: taken with the debug overlay's box out of the way for the moment, so the airplane shows.
+  const shot = async (name) => {
+    if (!shots) return;
+    await c.evaluate(() => { document.getElementById('dev').style.visibility = 'hidden'; });
+    await c.screenshot({ path: join(shots, name) });
+    await c.evaluate(() => { document.getElementById('dev').style.visibility = ''; });
+  };
   await on(c).ready();
 
-  // What is on the screen: only the buttons the Cessna has, in title case; the throttle's groove and knob.
+  // What is on the screen: Gear, the two Flaps buttons with the indicator between them, Boards and Brakes, in title case; the throttle's groove and knob.
   check(await on(c).fly(), 'Fly: motion is allowed (Chromium does not ask), and the flight is on screen');
-  // Milestone 3, PR F: the Cessna has four flap settings, so in the Flaps button's place it has the flap lever.
   const buttons = await c.evaluate(() => [...document.querySelectorAll('#toggles button')].filter((b) => b.getClientRects().length > 0).map((b) => b.textContent));
-  const reads = () => c.locator('#flaps-reads').textContent();
-  check(buttons.join(', ') === 'Flaps Up, Flaps Down, Brakes On' && (await reads()) === '10°' && !(await shown('#flaps')),
-    'the Cessna shows the flap lever (Flaps Up and Flaps Down, and between them "10°", its takeoff setting) and Brakes, in title case', `${buttons.join(', ')}; the indicator reads "${await reads()}"`);
+  const reads = () => says('#flaps-reads');
+  check(buttons.join(', ') === 'Gear Down, Flaps Up, Flaps Down, Boards In, Brakes On' && (await reads()) === '1/2' && !(await shown('#flaps')) && buttons.every((b) => /^([A-Z][a-z]+ )+[A-Z][a-z]+$/.test(b)),
+    'the F-4C shows Gear, the flap lever (Flaps Up and Flaps Down, and between them "1/2", its takeoff setting), Boards and Brakes, in title case, each because it has the thing', `${buttons.join(', ')}; the indicator reads "${await reads()}"`);
+  const insideSafe = await c.evaluate(() => {
+    const safe = document.getElementById('safe').getBoundingClientRect();
+    return [...document.querySelectorAll('#toggles button, #flaps-reads, #throttle, #pause')].filter((b) => b.getClientRects().length > 0).every((b) => { const r = b.getBoundingClientRect(); return r.left >= safe.left && r.right <= safe.right && r.top >= safe.top && r.bottom <= safe.bottom; });
+  });
+  check(insideSafe, 'every button, the indicator, the throttle and the pause button are inside the safe area');
   const groove = async () => c.evaluate(() => {
     const box = (q) => document.querySelector(q).getBoundingClientRect();
-    const track = box('#throttle .track'), thumb = box('#throttle .thumb'), stripes = document.querySelector('#throttle .ab');
-    return { width: track.width, top: track.top, bottom: track.bottom, knob: thumb.top + thumb.height / 2, knobHeight: thumb.height, stripes: !stripes.hidden && stripes.getBoundingClientRect().height > 0 };
+    const track = box('#throttle .track'), thumb = box('#throttle .thumb'), rail = box('#throttle .rail'), stripes = document.querySelector('#throttle .ab');
+    return { width: track.width, top: track.top, bottom: track.bottom, rail: { top: rail.top, height: rail.height }, knob: thumb.top + thumb.height / 2, knobHeight: thumb.height,
+      stripes: !stripes.hidden && stripes.getBoundingClientRect().height > 0, colour: getComputedStyle(document.querySelector('#throttle .thumb')).backgroundColor, burner: document.getElementById('throttle').classList.contains('burner') };
   });
+  // The model's part is exactly where JSBSim had it in the state the frame was drawn from (within the clip's last millionth). And
+  // that state is recent: JSBSim's part has moved on since then by no more than 0.05 of its whole travel, which is the boards'
+  // travel (the quickest of the slow parts, 1.5 s end to end) in this browser's two frames at about 20 a second (headless
+  // Chromium draws in software). (First written as 0.02, a frame at 60 a second: wrong for this browser; it failed once at 0.022.)
+  const follows = (p, part) => Math.abs(p.model[part] - p.drawn[part]) < 1e-5 && Math.abs(p.drawn[part] - p.surfaces[part]) <= 0.05;
+  const ORANGE = 'rgb(255, 159, 10)';   // Wings' afterburner knob (style.css, .throttle.burner .thumb)
   const idle = await groove();
-  check(idle.width === 14 && Math.abs(idle.knob - idle.bottom) <= 1 && idle.knobHeight > idle.width && !idle.stripes,
-    'the throttle: a 14 px groove, the knob over its end at idle, no caution stripes on an airplane with no afterburner', `groove ${idle.width} px wide; the knob's middle ${Math.abs(idle.knob - idle.bottom).toFixed(1)} px from its foot`);
+  check(idle.width === 14 && Math.abs(idle.knob - idle.bottom) <= 1 && idle.knobHeight > idle.width && idle.stripes && !idle.burner && idle.colour !== ORANGE,
+    'the throttle: a 14 px groove, the knob over its end at idle and white, and the caution stripes of an airplane with an afterburner', `groove ${idle.width} px wide; the knob's middle ${Math.abs(idle.knob - idle.bottom).toFixed(1)} px from its foot, ${idle.colour}; stripes ${idle.stripes}`);
+  const parkedNow = await now();
+  check(parked(parkedNow) && parkedNow.hudSays.includes('IDLE'), 'on the numbers: gear down, flaps at 1/2, boards in, brakes on, engines at idle, and the HUD reads IDLE', `${where(parkedNow)}; the HUD writes ${parkedNow.hudSays.filter((w) => /IDLE|MIL|AB|%/.test(w)).join(', ')}`);
+  await shot('f4c-start.png');
 
-  // A takeoff: Brakes off, the throttle slid full, and from 50 knots the device tipped back 15 degrees (10 until
-  // the stick's middle was made gentler in 0.0.16: docs/milestones/2.md, PR 8).
-  // Returns the liftoff speed. Tipped back the whole climb the Cessna rears up, as any airplane held at takeoff stick would: so it is eased.
-  const takeOff = async () => {
+  // A takeoff (the plan's PR 8 line): Brakes off, the throttle slid to the top, and from 100 knots the device tipped back 20 degrees.
+  // At liftoff (every wheel off the runway) the pilot eases the tilt to 3.5 degrees back and holds the wings level, and raises the gear.
+  // Returns what it found.
+  const takeOff = async ({ gearUp = false, afterburnerShot = false } = {}) => {
     await c.click('#brake');
     const knob = await c.locator('#throttle .thumb').boundingBox();
     await c.mouse.move(knob.x + knob.width / 2, knob.y + knob.height / 2);
@@ -588,47 +625,109 @@ check(!js.error && js.build === 'weh' && (await text('#dev')).includes('wasm exc
     await c.mouse.move(knob.x + knob.width / 2, 2, { steps: 10 });
     await c.mouse.up();
     const rolling = await until(() => window.fsg.picture.groundKt > 5, null, 20000);
-    await until(() => window.fsg.picture.knots >= 50, null, 60000);
-    await hold(15, 0);
-    const off = await until(() => window.fsg.picture.wheelsDown === 0 && window.fsg.picture.aboveGroundFt - 4.356 > 1, null, 30000);
-    const pulling = await now();
-    await hold(8, 'level');   // eased to the back stick it was eased to before the middle was made gentler (4 degrees then)
-    return { rolling, off, liftoff: pulling.knots, pulling };
+    // The afterburner lights once the engines are at MIL speed (the aircraft file waits for 97%): then the HUD reads AB.
+    const lit = await until(() => { const p = window.fsg.picture; return p.engines.afterburner.every((x) => x === 1) && window.hudSays.some((w) => w.startsWith('AB ')); }, null, 20000);
+    const inBurner = { ...(await groove()), ...(await now()) };
+    if (afterburnerShot) await shot('f4c-afterburner.png');
+    await until(() => window.fsg.picture.knots >= 100, null, 60000);
+    await hold(20, 0);
+    const from = await now();
+    const off = await until(() => window.fsg.picture.wheelsDown === 0, null, 30000);
+    const liftoff = await now();
+    await hold(3.5, 'level');
+    let gear = null;
+    if (gearUp) {
+      const clicked = Date.now();
+      await c.click('#gear');
+      await c.waitForTimeout(1000);
+      const moving = await now();
+      await shot('f4c-airborne.png');
+      const up = await until(() => window.fsg.picture.model.gear < 1e-5 && window.fsg.picture.surfaces.gear === 0, null, 6000);
+      gear = { moving, up, seconds: (Date.now() - clicked) / 1000, says: await says('#gear') };
+    }
+    return { rolling, lit, inBurner, from, off, liftoff, gear };
   };
-  const first = await takeOff();
-  const full = await groove(), rolled = await now();
-  check((await c.locator('#brake').textContent()) === 'Brakes Off' && rolled.pilot.throttle === 1 && Math.abs(full.knob - full.top) <= 1 && first.rolling, 'Brakes off and the throttle slid full: the knob covers the groove\'s top, and the Cessna rolls',
-    `throttle ${rolled.pilot.throttle}; the knob's middle ${Math.abs(full.knob - full.top).toFixed(1)} px from the groove's top`);
-  check(first.off && first.liftoff >= 45 && first.liftoff <= 70, 'flaps at the takeoff setting, tipped back 15 degrees from 50 knots, it lifts off between 45 and 70 knots', `${first.liftoff.toFixed(1)} kt, flaps ${(first.pulling.surfaces.flaps * 30).toFixed(1)} degrees`);   // the line is milestone 2's; until 0.0.18 it was flown with the flaps fully down
-  if (shots) await c.screenshot({ path: join(shots, 'airborne.png') });
-  // Stick back shows the elevator up; the flaps are at the takeoff setting; the HUD's flight path is above the horizon in the climb.
-  const pulling = first.pulling;
-  await until(() => window.fsg.picture.aboveGroundFt > 50, null, 60000);
+  const first = await takeOff({ gearUp: true, afterburnerShot: true });
+  const b = first.inBurner;
+  check((await says('#brake')) === 'Brakes Off' && b.pilot.throttle === 1 && Math.abs(b.knob - b.top) <= 1 && b.burner && b.colour === ORANGE && first.lit && first.rolling,
+    'Brakes off and the throttle slid to the top: the knob covers the groove\'s top and is orange above MIL, the HUD reads AB, and it rolls',
+    `throttle ${b.pilot.throttle}; the knob's middle ${Math.abs(b.knob - b.top).toFixed(1)} px from the groove's top, ${b.colour}; the HUD writes "${b.hudSays.find((w) => w.startsWith('AB')) ?? b.hudSays.filter((w) => /IDLE|MIL|%/.test(w)).join(', ')}"; afterburners ${b.engines.afterburner.join(', ')}; ${b.groundKt.toFixed(0)} kt over the ground`);
+  const liftoffKt = first.liftoff.knots;
+  check(first.off && first.from.surfaces.flaps === 0.5 && first.from.pilot.throttle === 1 && liftoffKt >= 150 && liftoffKt <= 190,
+    'flaps at 1/2, full afterburner, tipped back 20 degrees from 100 knots: it lifts off between 150 and 190 knots',
+    `tipped back at ${first.from.knots.toFixed(1)} kt (stick ${first.from.stick.pitch.toFixed(2)} back as held); every wheel off at ${liftoffKt.toFixed(1)} kt, ${(first.liftoff.aboveGroundFt - F4C_STANDING_FT).toFixed(1)} ft up, nose ${first.liftoff.reading.pitch.toFixed(1)} degrees up, flaps ${first.liftoff.surfaces.flaps}`);
+  const g = first.gear;
+  check(g.up && g.says === 'Gear Up' && g.moving.model.gear > 0 && g.moving.model.gear < 1 && follows(g.moving, 'gear'),
+    'Gear Up: the gear on the model travels as JSBSim\'s does, and is up within 6 s', `a second after the tap the model's gear is at ${g.moving.model.gear.toFixed(3)}, JSBSim's at ${g.moving.surfaces.gear.toFixed(3)}; up ${g.seconds.toFixed(1)} s after the tap`);
+  // Stick back shows the stabilator's trailing edge up; the HUD's flight path is above the horizon in the climb.
+  await until(() => window.fsg.picture.aboveGroundFt > 300, null, 60000);
   const climbing = await now();
-  check(pulling.stick.pitch > 0.3 && pulling.surfaces.elevator > 0.52 && Math.abs(pulling.surfaces.flaps * 30 - 10) < 1 && climbing.reading.velocity[2] < 0 && climbing.reading.pitch > 0,
-    'stick back: the elevator\'s trailing edge is up, the flaps are at the takeoff setting, and the HUD\'s flight path marker is above the horizon in the climb', `stick ${pulling.stick.pitch.toFixed(2)} back; elevator motion ${pulling.surfaces.elevator.toFixed(2)} (0.5 is neutral); climbing ${(-climbing.reading.velocity[2] * 100).toFixed(0)} in 100`);
-  await until(() => window.fsg.picture.aboveGroundFt > 200, null, 60000);
-  // Turned 15 degrees clockwise for one second: a right bank.
-  // The wings are being held level, with the device turned a little to do it; from there, 20 degrees more (15 until 0.0.16).
-  await hold(3, 'level');
+  check(first.liftoff.stick.pitch > 0.3 && first.liftoff.surfaces.elevator > 0.6 && follows(first.liftoff, 'elevator') && climbing.reading.velocity[2] < 0 && climbing.reading.pitch > 0,
+    'stick back: the stabilator\'s trailing edge is up on the model as in JSBSim, and the HUD\'s flight path marker is above the horizon in the climb', `stick ${first.liftoff.stick.pitch.toFixed(2)} back; stabilator motion ${first.liftoff.surfaces.elevator.toFixed(2)} (0.5 is neutral); climbing ${(-climbing.reading.velocity[2] * 100).toFixed(0)} in 100`);
+  // The picture's clock in the air: milestone 2's lines, flown on the ground above, again here.
+  {
+    const from = await now();
+    await c.waitForTimeout(10000);
+    const to = await now();
+    const seconds = to.seconds - from.seconds, steps = to.steps - from.steps, inTen = (steps / seconds) * 10;
+    check(to.wheelsDown === 0 && seconds > 9 && inTen >= 1188 && inTen <= 1212 && to.missing === 0 && to.outOfOrder === 0 && to.droppedSeconds === 0, 'in the air: 1,188 to 1,212 steps in 10 s; every state in order and none missing',
+      `${steps} steps in ${seconds.toFixed(3)} s (${inTen.toFixed(1)} in ten), ${to.missing} missing, ${to.outOfOrder} out of order, ${to.droppedSeconds.toFixed(2)} s dropped; ${to.knots.toFixed(0)} kt, ${(to.aboveGroundFt - F4C_STANDING_FT).toFixed(0)} ft up`);
+  }
+  // Turned 20 degrees clockwise for one second, from wings held level: a right roll.
+  await hold(3.5, 'level');
   await c.waitForTimeout(3000);
   const level = await now(), holding = await c.evaluate(() => window.held.clockwise);
-  await hold(3, holding + 20);
+  await hold(3.5, holding + 20);
   await c.waitForTimeout(500);
   const rolling = await now();
   await c.waitForTimeout(500);
   const banked = await now();
-  await hold(3, 'level');
+  await hold(3.5, 'level');
+  // Milestone 2's line, unchanged from the Cessna: banked 10 to 50 degrees. The F-4C, which rolls faster, banks 33 to 42.
   check(Math.abs(level.reading.roll) < 5 && banked.reading.roll >= 10 && banked.reading.roll <= 50, 'turned 20 degrees right for one second, it is banked 10 to 50 degrees right',
     `from ${level.reading.roll.toFixed(1)} to ${banked.reading.roll.toFixed(1)} deg, at ${banked.knots.toFixed(0)} kt (the wings were being held level with the device ${holding.toFixed(1)} deg right)`);
-  check(rolling.stick.roll > 0.3 && rolling.surfaces.aileron > 0.6, 'stick right: the ailerons are over for a right roll (left one down, right one up)', `stick ${rolling.stick.roll.toFixed(2)} right; aileron motion ${rolling.surfaces.aileron.toFixed(2)} (0.5 is neutral)`);
+  check(rolling.stick.roll > 0.3 && rolling.surfaces.aileron > 0.6 && follows(rolling, 'aileron'), 'stick right: the left aileron is down and the right spoiler up, on the model as in JSBSim', `stick ${rolling.stick.roll.toFixed(2)} right; aileron motion ${rolling.surfaces.aileron.toFixed(2)} (0.5 is neutral), the model's ${rolling.model.aileron.toFixed(2)}`);
   check(banked.behindWithinMs > 0 && banked.behindWithinMs <= 40 && banked.missing === 0, 'in the air the picture still trails the newest state as it did on the ground', `99 frames in 100 within ${banked.behindWithinMs} ms`);
-  if (shots) await c.screenshot({ path: join(shots, 'banked.png') });
-  // Flaps up: both flaps come up.
-  await c.click('#flaps-up');
-  await c.waitForTimeout(4000);
-  const clean = await now();
-  check((await c.locator('#flaps-reads').textContent()) === '0°' && clean.surfaces.flaps < 0.05 && clean.model.flaps < 0.05, 'Flaps Up: the flaps come up', `flap motion ${clean.surfaces.flaps.toFixed(2)}; the indicator reads "${await c.locator('#flaps-reads').textContent()}"`);
+  await c.waitForTimeout(3000);
+  // Boards Out: the speedbrakes open on the model as JSBSim opens them (1.5 s), and Boards In closes them.
+  {
+    await c.click('#speedbrake');
+    await c.waitForTimeout(500);
+    const opening = await now();
+    const open = await until(() => window.fsg.picture.model.speedbrake > 0.99999 && window.fsg.picture.surfaces.speedbrake === 1, null, 3000);
+    await c.waitForTimeout(300);
+    await shot('f4c-boards.png');
+    const out = await now(), outSays = await says('#speedbrake');
+    await c.click('#speedbrake');
+    const closed = await until(() => window.fsg.picture.model.speedbrake < 1e-5 && window.fsg.picture.surfaces.speedbrake === 0, null, 3000);
+    check(outSays === 'Boards Out' && (await says('#speedbrake')) === 'Boards In' && open && closed && opening.model.speedbrake > 0 && opening.model.speedbrake < 1 && follows(opening, 'speedbrake'),
+      'Boards Out: the speedbrakes open on the model as JSBSim opens them; Boards In closes them', `half a second after the tap the model's at ${opening.model.speedbrake.toFixed(3)}, JSBSim's at ${opening.drawn.speedbrake.toFixed(3)} in the state it was drawn from and ${opening.surfaces.speedbrake.toFixed(3)} in the newest; out ${out.model.speedbrake.toFixed(3)}; then in`);
+  }
+  // A finger in the detent band gives exactly MIL: three places in it, from its foot to its top (src/ui/throttle.js: 0.66 to 0.80 of the knob's travel).
+  {
+    const g0 = await groove(), x = (await c.locator('#throttle .thumb').boundingBox()).x + 15, got = [];
+    for (const place of [0.665, 0.72, 0.795]) {
+      await c.mouse.move(x, g0.rail.top + (1 - place) * g0.rail.height);
+      await c.mouse.down();
+      await c.mouse.up();
+      await c.waitForTimeout(400);
+      const at = { ...(await groove()), ...(await now()) };
+      got.push({ place, throttle: at.pilot.throttle, burner: at.burner, colour: at.colour, hud: at.hudSays.filter((w) => /IDLE|MIL|AB|%/.test(w)).join(' '), knobAt: 1 - (at.knob - at.rail.top) / at.rail.height });
+    }
+    check(got.every((p) => p.throttle === 0.8 && !p.burner && p.colour !== ORANGE && p.hud === 'MIL'), 'a finger anywhere in the detent band gives exactly MIL: the knob white, on the mark, and the HUD reads MIL',
+      got.map((p) => `at ${p.place} of the way up: throttle ${p.throttle}, knob at ${p.knobAt.toFixed(3)}, ${p.colour}, the HUD "${p.hud}"`).join('; '));
+  }
+  // Gear down and flaps Full in the air, at MIL: the model's gear and flaps follow JSBSim's.
+  {
+    await c.click('#gear');
+    await c.click('#flaps-down');
+    const there = await until(() => { const p = window.fsg.picture; return p.model.gear > 0.99999 && p.surfaces.gear === 1 && p.model.flaps > 0.99999 && p.surfaces.flaps === 1; }, null, 8000);
+    await c.waitForTimeout(300);
+    const dirty = await now();
+    await shot('f4c-flaps-full.png');
+    check(there && (await reads()) === 'Full' && (await says('#gear')) === 'Gear Down' && dirty.wheelsDown === 0, 'in the air, Gear Down and Flaps Down: the indicator reads "Full", and the model\'s gear and flaps are down as JSBSim\'s are',
+      `flaps ${dirty.surfaces.flaps} (model ${dirty.model.flaps.toFixed(3)}), gear ${dirty.surfaces.gear} (model ${dirty.model.gear.toFixed(3)}), at ${dirty.knots.toFixed(0)} kt, ${(dirty.aboveGroundFt - F4C_STANDING_FT).toFixed(0)} ft up, nose ${dirty.reading.pitch.toFixed(1)} degrees`);
+  }
   // Recenter: however the device is held then is neutral.
   await c.evaluate(() => { window.held = { back: 8, clockwise: window.held.clockwise - 14 }; });
   await c.waitForTimeout(400);
@@ -637,6 +736,8 @@ check(!js.error && js.build === 'weh' && (await text('#dev')).includes('wasm exc
   const heldAt = (await now()).time;
   await c.waitForTimeout(800);
   check((await now()).time === heldAt && await shown('#screen-pause'), 'Pause holds it');
+  await c.waitForTimeout(300);
+  await shot('f4c-pause.png');
   await c.click('#recenter');
   await c.waitForTimeout(300);
   const centred = await c.evaluate(() => ({ stick: window.fsg.stick, says: document.getElementById('recenter').textContent }));
@@ -645,29 +746,29 @@ check(!js.error && js.build === 'weh' && (await text('#dev')).includes('wasm exc
   await hold(0, 0);
   await c.click('#resume');
   const after = await now();
-  // Restart parks it, with the throttle closed and the brakes on.
+  // Restart parks it, with the throttle closed, the gear down, the flaps back at 1/2 and the brakes on.
   await hold(0, 0);
   await c.click('#pause');
   await c.click('#restart');
   await until((n) => window.fsg.picture.flight > n && window.fsg.picture.flying, after.flight, 10000);
   await c.waitForTimeout(1500);
   const again = await now(), knobAgain = await groove();
-  check(again.mode === 'flying' && parked(again) && again.pilot.throttle === 0 && again.pilot.brake === true && again.pilot.flaps === 1 / 3 && (await c.locator('#flaps-reads').textContent()) === '10°' && Math.abs(again.surfaces.flaps * 30 - 10) < 1 && Math.abs(again.model.flaps * 30 - 10) < 1 &&
-    Math.abs(knobAgain.knob - knobAgain.bottom) <= 1 && (await c.locator('#brake').textContent()) === 'Brakes On' && Math.abs(again.stick.pitch) < 0.05,
-    'Restart parks it with the throttle closed, the flaps back at the takeoff setting ("10°", from "0°") and the brakes on', `${where(again)}; throttle ${again.pilot.throttle}; flaps ${(again.surfaces.flaps * 30).toFixed(1)} degrees`);
+  check(again.mode === 'flying' && parked(again) && again.pilot.throttle === 0 && again.pilot.brake === true && again.pilot.gear === true && again.pilot.speedbrake === false && again.pilot.flaps === 0.5 && (await reads()) === '1/2' &&
+    Math.abs(knobAgain.knob - knobAgain.bottom) <= 1 && !knobAgain.burner && (await says('#brake')) === 'Brakes On' && (await says('#gear')) === 'Gear Down' && Math.abs(again.stick.pitch) < 0.05,
+    'Restart parks it with the throttle closed, the gear down, the flaps back at 1/2 (from "Full") and the brakes on', `${where(again)}; throttle ${again.pilot.throttle}; the indicator "${await reads()}"`);
   // With the crash override off, flown into the ground at more than 1,575 ft/min: the crashed screen.
   await c.click('#pause');
   await c.click('#override');
   check((await c.getAttribute('#override', 'aria-checked')) === 'false' && (await c.evaluate(() => localStorage.getItem('fsg.crashOverride'))) === 'off', 'the crash override switch goes off, kept as fsg.crashOverride');
   await c.click('#resume');
   const second = await takeOff();
-  await until(() => window.fsg.picture.aboveGroundFt > 250, null, 60000);
+  await until(() => window.fsg.picture.aboveGroundFt > 300, null, 60000);
   await hold(-55, 'level');
   const crashed = await until(() => window.fsg.mode === 'crashed', null, 60000);
   const said = crashed ? { title: await c.locator('#crash-title').textContent(), line: await c.locator('#crash-why').textContent() } : {};
   const fpm = Number((said.line ?? '').replace(/[^\d]/g, ''));
   check(second.off && crashed && said.title === 'Crashed' && /^Hard impact: [\d,]+ ft\/min$/.test(said.line) && fpm > 1575 && await shown('#screen-crashed'), 'crash override off: flown into the ground hard, the crashed screen shows', `"${said.title}" "${said.line}"`);
-  if (shots) await c.screenshot({ path: join(shots, 'crashed.png') });
+  await shot('f4c-crashed.png');
   // The same again with the crash override on: the same dive into the ground, and the flight carries on.
   await c.click('#crash-restart');
   await until(() => window.fsg.mode === 'flying' && window.fsg.picture.states > 0, null, 10000);
@@ -676,11 +777,11 @@ check(!js.error && js.build === 'weh' && (await text('#dev')).includes('wasm exc
   await c.click('#override');
   await c.click('#resume');
   const third = await takeOff();
-  await until(() => window.fsg.picture.aboveGroundFt > 250, null, 60000);
+  await until(() => window.fsg.picture.aboveGroundFt > 300, null, 60000);
   await hold(-55, 'level');
-  // Its centre of gravity stands 4.4 ft up: under 8 ft it is at the ground. The fastest sink on the way down is kept, read every 50 ms.
+  // Its centre of gravity stands 6.4 ft up: under 10 ft it is at the ground. The fastest sink on the way down is kept, read every 50 ms.
   await c.evaluate(() => { window.sink = 0; });
-  const down = await until(() => { const p = window.fsg.picture; window.sink = Math.min(window.sink, p.reading.climb); return p.aboveGroundFt < 8; }, null, 60000);
+  const down = await until(() => { const p = window.fsg.picture; window.sink = Math.min(window.sink, p.reading.climb); return p.aboveGroundFt < 10; }, null, 60000);
   const sinking = await c.evaluate(() => window.sink);
   await c.waitForTimeout(2000);
   const survived = await now();
@@ -688,23 +789,22 @@ check(!js.error && js.build === 'weh' && (await text('#dev')).includes('wasm exc
     'crash override on: the same dive into the ground, and the flight carries on', `arriving at ${Math.round(-sinking).toLocaleString('en-US')} ft/min; mode ${survived.mode} two seconds later`);
   const box10 = await c.locator('#dev').textContent();
   check(/\nsensor β .+ screen \d+ +tilt .+\nstick -?[\d.]+ back, -?[\d.]+ right +throttle [\d.]+\nlast touchdown: /.test(box10), 'the overlay shows the tilt, the stick and the last touchdown', box10.split('\n').slice(-3).join(' | '));
-  check(errs.length === 0, 'no page errors in the flight', errs.join(' | '));
+  console.log(`     reported: the three takeoffs lifted off at ${[first, second, third].map((t) => t.liftoff.knots.toFixed(1)).join(', ')} kt`);
+  check(errs.length === 0, 'no page errors or console errors in the flight', errs.join(' | '));
   await flown.close();
 
-  // The flap lever (docs/milestones/3.md, PR F), parked on the numbers with the brakes on, in a flight of its own.
-  // (It was first checked in the flight above, before its takeoff. This script's mouse taps, a dozen of them here,
-  // each put a frame of headless Chromium's picture about 50 ms behind, and they were counted in that flight's
-  // "in the air the picture still trails" line: 52 and 54 ms against its 40. Presses made inside the page, with
-  // no mouse, leave the picture as it is with none: 28 ms against 26. So it is the mouse this script makes, not
-  // the lever; the lever's own lag is printed at the end of this flight, and the phone's debug overlay shows it there.)
+  // The flap lever (docs/milestones/3.md, PR F and PR 8), parked on the numbers with the brakes on, in a flight of its own.
+  // (This script's mouse taps each put a frame of headless Chromium's picture about 50 ms behind: PR F found it on the
+  // Cessna. So the lever is pressed here, in a flight whose picture timing is not one of the lines.)
   {
     const levered = await browser.newContext({ viewport: { width: 852, height: 393 }, serviceWorkers: 'block', permissions: MOTION });
     const v = await levered.newPage();
     const leverErrs = [];
     v.on('pageerror', (error) => leverErrs.push(String(error)));
+    v.on('console', (m) => { if (m.type() === 'error') leverErrs.push(m.text()); });
     // A tap on the messages between the page and its Worker, to time the flaps by JSBSim's own clock.
     // The Worker answers in order, so the last state before its reply to a press is
-    // JSBSim's time when the press reached it; the first state after with the flaps within 1 degree of the setting
+    // JSBSim's time when the press reached it; the first state after with the flaps at the setting
     // asked for is its time when they got there. `flapWire.press` holds the last press that changed the setting:
     // { to, sent, from, there, seen } (the setting; the page's clock when it was sent, ms; JSBSim's time when it
     // arrived and when the flaps were there, s; the page's clock when the page was told, ms).
@@ -720,7 +820,7 @@ check(!js.error && js.build === 'weh' && (await text('#dev')).includes('wasm exc
             if (data?.type === 'state') {
               newest = data.state[time];
               const press = wire.press;
-              if (press && press.from !== null && press.there === null && Math.abs(data.state[flaps] - press.to) * 30 < 1) Object.assign(press, { there: newest, seen: performance.now() });
+              if (press && press.from !== null && press.there === null && Math.abs(data.state[flaps] - press.to) < 1e-6) Object.assign(press, { there: newest, seen: performance.now() });
             } else if (waiting && data?.id === waiting.id) { waiting.press.from = newest; waiting = null; }
           });
         }
@@ -742,7 +842,7 @@ check(!js.error && js.build === 'weh' && (await text('#dev')).includes('wasm exc
     // Where it is: inside the safe area; over none of the throttle, the pause button or the other buttons; and no part of the HUD under it.
     const placed = await v.evaluate(() => {
       const box = (id) => document.getElementById(id).getBoundingClientRect();
-      const safe = box('safe'), lever = box('flap-lever'), parts = ['flaps-up', 'flaps-down', 'flaps-reads'].map(box), brake = box('brake');
+      const safe = box('safe'), lever = box('flap-lever'), parts = ['flaps-up', 'flaps-down', 'flaps-reads'].map(box), below = box('speedbrake');
       const inside = (r) => r.width > 0 && r.left >= safe.left && r.right <= safe.right && r.top >= safe.top && r.bottom <= safe.bottom;
       const others = ['throttle', 'pause', 'gear', 'flaps', 'speedbrake', 'brake'].filter((id) => { const r = box(id); return r.width > 0 && r.left < lever.right && r.right > lever.left && r.top < lever.bottom && r.bottom > lever.top; });
       // The HUD's canvas: its drawn pixels under the lever, and how far right its drawing goes in the airspeed and altitude's row (the VSI over the altitude with it).
@@ -752,117 +852,105 @@ check(!js.error && js.build === 'weh' && (await text('#dev')).includes('wasm exc
       for (let y = Math.ceil(lever.top); y < lever.bottom; y++) for (let x = Math.ceil(lever.left); x < lever.right; x++) if (ink(x - at.left, y - at.top)) under++;
       const row = (safe.top + safe.bottom) / 2;
       for (let y = Math.round(row - 34); y <= row + 14; y++) for (let x = Math.round(innerWidth / 2); x < innerWidth; x++) if (ink(x - at.left, y - at.top)) { rowInk++; rowRight = Math.max(rowRight, x); }
+      // Every button and the HUD's numbers: is any of the HUD drawn under any button?
+      let underButtons = 0;
+      for (const b of document.querySelectorAll('#toggles button, #pause')) {
+        if (b.getClientRects().length === 0) continue;
+        const r = b.getBoundingClientRect();
+        for (let y = Math.ceil(r.top); y < r.bottom; y++) for (let x = Math.ceil(r.left); x < r.right; x++) if (ink(x - at.left, y - at.top)) underButtons++;
+      }
       const up = getComputedStyle(document.getElementById('flaps-up')), down = getComputedStyle(document.getElementById('flaps-down'));
       return {
-        inside: parts.every(inside) && inside(lever), within: parts.every((r) => r.left >= lever.left && r.right <= lever.right && r.top >= lever.top && r.bottom <= lever.bottom), others, under, rowRight, rowInk,
-        lever: { left: lever.left, right: lever.right, top: lever.top, bottom: lever.bottom, width: lever.width, height: lever.height }, brake: { left: brake.left, right: brake.right, top: brake.top },
+        inside: parts.every(inside) && inside(lever), within: parts.every((r) => r.left >= lever.left && r.right <= lever.right && r.top >= lever.top && r.bottom <= lever.bottom), others, under, rowRight, rowInk, underButtons,
+        lever: { left: lever.left, right: lever.right, top: lever.top, bottom: lever.bottom, width: lever.width, height: lever.height }, below: { left: below.left, right: below.right, top: below.top },
         seam: parts[1].top - parts[0].bottom, safe: { right: safe.right, bottom: safe.bottom },
         cut: [up.maskImage || up.webkitMaskImage, down.maskImage || down.webkitMaskImage].map((m) => String(m).startsWith('url(')),
         corners: [up.borderTopLeftRadius, up.borderBottomLeftRadius, down.borderTopLeftRadius, down.borderBottomLeftRadius].join(' '),
       };
     });
     check(placed.inside && placed.within, 'the flap lever: both buttons and the indicator are inside the safe area', `the lever is ${placed.lever.width} x ${placed.lever.height} px at ${placed.lever.left}, ${placed.lever.top}; the safe area ends at ${placed.safe.right}, ${placed.safe.bottom}`);
-    check(placed.others.length === 0 && placed.lever.left === placed.brake.left && placed.lever.right === placed.brake.right && placed.brake.top - placed.lever.bottom === 10,
-      'it is over none of the throttle, the pause button or the other buttons: it stands in the buttons\' column, as wide as they are, 10 px above Brakes', placed.others.join(', ') || `${placed.lever.left} to ${placed.lever.right} px across, as Brakes; ${placed.brake.top - placed.lever.bottom} px above it`);
-    check(placed.under === 0 && placed.rowInk > 0 && placed.rowRight < placed.lever.left, 'it covers none of the HUD: nothing of the HUD is drawn under it, and the altitude\'s row ends to its left', `${placed.under} HUD pixels under it; the altitude and the VSI over it end ${placed.lever.left - placed.rowRight} px left of it`);
+    // On the F-4C the lever stands between Gear and Boards (on the Cessna it stood over Brakes, its only other button).
+    check(placed.others.length === 0 && placed.lever.left === placed.below.left && placed.lever.right === placed.below.right && placed.below.top - placed.lever.bottom === 10,
+      'it is over none of the throttle, the pause button or the other buttons: it stands in the buttons\' column, as wide as they are, 10 px above Boards', placed.others.join(', ') || `${placed.lever.left} to ${placed.lever.right} px across, as Boards; ${placed.below.top - placed.lever.bottom} px above it`);
+    check(placed.under === 0 && placed.underButtons === 0 && placed.rowInk > 0 && placed.rowRight < placed.lever.left, 'no button covers any of the HUD: nothing of the HUD is drawn under the lever or any other button, and the altitude\'s row ends to the lever\'s left',
+      `${placed.under} HUD pixels under the lever, ${placed.underButtons} under the buttons; the altitude and the VSI over it end ${placed.lever.left - placed.rowRight} px left of it`);
     check(placed.seam === 2 && placed.cut.every(Boolean) && placed.corners === '10px 0px 0px 10px', 'the two buttons are pushed together, 2 px apart, rounded only on the outside, and each is cut away round the indicator', `seam ${placed.seam} px; corners ${placed.corners}`);
-    // The words fit the indicator: at least 4 px to spare each side of the Cessna's widest, "30°", and of the F-4C's (not in the app yet), "Full".
-    const SAYS = ['0°', '10°', '20°', '30°', 'Up', '1/2', 'Full'];
+    // The words fit the indicator: at least 4 px to spare each side of each of the F-4C's, "Up", "1/2" and "Full".
+    const SAYS = ['Up', '1/2', 'Full'];
     const spare = await v.evaluate((all) => {
       const pill = document.getElementById('flaps-reads'), was = pill.textContent, box = pill.getBoundingClientRect(), out = {};
-      for (const says of all) {
-        pill.textContent = says;
+      for (const word of all) {
+        pill.textContent = word;
         const range = document.createRange();
         range.selectNodeContents(pill);
         const words = range.getBoundingClientRect();
-        out[says] = { wide: words.width, spare: Math.min(words.left - box.left, box.right - words.right) };
+        out[word] = { wide: words.width, spare: Math.min(words.left - box.left, box.right - words.right) };
       }
       pill.textContent = was;
       return out;
     }, SAYS);
-    check(SAYS.every((word) => spare[word].wide > 0 && spare[word].spare >= 4), 'the indicator\'s words fit inside it with at least 4 px to spare each side: the Cessna\'s degrees, and an F-4C\'s "Up", "1/2" and "Full"',
+    check(SAYS.every((word) => spare[word].wide > 0 && spare[word].spare >= 4), 'the indicator\'s words fit inside it with at least 4 px to spare each side: "Up", "1/2" and "Full"',
       SAYS.map((word) => `"${word}" ${spare[word].wide.toFixed(1)} px wide, ${spare[word].spare.toFixed(1)} to spare`).join('; '));
-    // A press, as a finger makes it: a tap in the middle of the button. Then how long until JSBSim's flaps are within 1 degree of
-    // what the indicator reads, and the model's flaps on screen with them.
-    // The time is JSBSim's own, read off the Worker's messages (`flapWire`, above): from the press reaching JSBSim to the first
-    // state with the flaps there. Beside it goes the page's clock, from the click to the page being told. Neither is this
-    // script's clock: each of its calls waits its turn behind the page's drawing, and in headless Chromium a press that moved
-    // nothing took 0.7 s to come back.
+    // A press, as a finger makes it: a tap in the middle of the button. Then how long until JSBSim's flaps are at the setting
+    // the indicator reads, and the model's flaps on screen with them. The time is JSBSim's own, read off the Worker's messages
+    // (`flapWire`, above): from the press reaching JSBSim to the first state with the flaps there.
+    const AT = { Up: 0, '1/2': 0.5, Full: 1 };
     const middle = async (id) => { const r = await v.locator(id).boundingBox(); return [r.x + r.width / 2, r.y + r.height / 2]; };
     const dim = (id) => v.evaluate((q) => { const b = document.querySelector(q); return b.disabled && Number(getComputedStyle(b).opacity) <= 0.45; }, id);
     const press = async (id) => {
       const before = await now(), dimmed = await dim(id);
-      // What JSBSim has before the press is the setting the page holds: it was parked with it, and every change is sent.
       await v.evaluate(() => { window.flapWire.press = null; window.flapWire.sentFlaps ??= window.fsg.pilot.flaps; });
       await v.mouse.click(...await middle(id));
-      const says = await reads(), degrees = parseInt(says, 10);
-      // A dim button changes nothing: no new setting is sent, so there is nothing to time, and the flaps stay where they were.
+      const says = await reads(), want = AT[says];
+      // A dim button changes nothing: no new setting is sent, and the flaps stay where they were.
       if (dimmed) await v.waitForTimeout(500);
-      else await until(() => window.flapWire.press !== null && window.flapWire.press.there !== null, null, 8000);
-      const modelThere = await until((want) => Math.abs(window.fsg.picture.model.flaps * 30 - want) < 1, degrees, 2000);
+      else await until(() => window.flapWire.press !== null && window.flapWire.press.there !== null, null, 12000);
+      const modelThere = await until((to) => Math.abs(window.fsg.picture.model.flaps - to) < 1e-5, want, 2000);
       const after = await now(), wire = await v.evaluate(() => window.flapWire.press);
-      const jsbsim = after.surfaces.flaps * 30, model = after.model.flaps * 30, arrived = wire !== null && wire.there !== null;
+      const arrived = wire !== null && wire.there !== null;
       return {
-        says, degrees, dimmed, nothingSent: wire === null, there: (dimmed ? wire === null : arrived) && modelThere && Math.abs(jsbsim - degrees) < 1 && Math.abs(model - degrees) < 1,
-        seconds: arrived ? wire.there - wire.from : null, pageSeconds: arrived ? (wire.seen - wire.sent) / 1000 : null, jsbsim, model, moved: (after.model.flaps - before.model.flaps) * 30, sent: after.pilot.flaps,
+        says, want, dimmed, nothingSent: wire === null, there: (dimmed ? wire === null : arrived) && modelThere && after.surfaces.flaps === want && Math.abs(after.model.flaps - want) < 1e-5,
+        seconds: arrived ? wire.there - wire.from : null, jsbsim: after.surfaces.flaps, model: after.model.flaps, moved: after.model.flaps - before.model.flaps, sent: after.pilot.flaps,
       };
     };
-    // Within 2 s: by JSBSim's clock and by the page's. (The Cessna's own flaps take 2.0 s over the first 10 degrees and 1.0 s over each
-    // of the next two: c172p.xml, "Flaps Control". They are within 1 degree after 1.8 s and 0.9 s.)
-    const intime = (p) => p.there && (p.dimmed || (p.seconds <= 2 && p.pageSeconds <= 2));
-    const told = (p) => (p.dimmed ? `"${p.says}" (the button dim): ${p.nothingSent ? 'nothing sent' : 'A SETTING WAS SENT'}; JSBSim's flaps stay at ${p.jsbsim.toFixed(1)} and the model's at ${p.model.toFixed(1)} degrees`
-      : `"${p.says}": JSBSim's flaps ${p.jsbsim.toFixed(1)} and the model's ${p.model.toFixed(1)} degrees; there ${p.seconds?.toFixed(2)} s after the press by JSBSim's clock, ${p.pageSeconds?.toFixed(2)} s by the page's`);
+    const told = (p) => (p.dimmed ? `"${p.says}" (the button dim): ${p.nothingSent ? 'nothing sent' : 'A SETTING WAS SENT'}; JSBSim's flaps stay at ${p.jsbsim} and the model's at ${p.model.toFixed(3)}`
+      : `"${p.says}": JSBSim's flaps ${p.jsbsim} and the model's ${p.model.toFixed(3)}; there ${p.seconds?.toFixed(2)} s after the press by JSBSim's clock`);
     const start = await now();
-    check(Math.abs(start.surfaces.flaps * 30 - 10) < 1 && Math.abs(start.model.flaps * 30 - 10) < 1 && start.pilot.flaps === 1 / 3 && !(await dim('#flaps-up')) && !(await dim('#flaps-down')),
-      'parked, it reads "10°", JSBSim\'s flaps and the model\'s are at 10 degrees, and neither button is dim', `JSBSim's ${(start.surfaces.flaps * 30).toFixed(1)}, the model's ${(start.model.flaps * 30).toFixed(1)} degrees`);
+    check(start.surfaces.flaps === 0.5 && Math.abs(start.model.flaps - 0.5) < 1e-5 && start.pilot.flaps === 0.5 && (await reads()) === '1/2' && !(await dim('#flaps-up')) && !(await dim('#flaps-down')),
+      'parked, the indicator reads "1/2", JSBSim\'s flaps and the model\'s are at half, and neither button is dim', `JSBSim's ${start.surfaces.flaps}, the model's ${start.model.flaps.toFixed(3)}`);
     // A tap on the indicator does nothing: it is not a button.
     await v.mouse.click(...await middle('#flaps-reads'));
     await v.waitForTimeout(300);
-    check((await reads()) === '10°' && (await now()).pilot.flaps === 1 / 3, 'a tap on the indicator does nothing');
-    // Flaps Up from the takeoff setting: "0°", and there Flaps Up is dim and does nothing.
-    const up = await press('#flaps-up'), upDim = await dim('#flaps-up'), upAgain = await press('#flaps-up');
-    check(up.says === '0°' && intime(up) && up.moved < -8 && upDim && upAgain.says === '0°' && upAgain.there && upAgain.nothingSent && upAgain.sent === 0 && Math.abs(upAgain.jsbsim) < 1,
-      'Flaps Up from "10°" reads "0°", JSBSim\'s flaps and the model\'s are up within 2 s, and there Flaps Up is dim and a press of it changes nothing', told(up));
-    // Four presses of Flaps Down from "0°".
-    const downs = [];
-    let dimBeforeFourth = null;
-    for (let k = 0; k < 4; k++) {
-      if (k === 3) dimBeforeFourth = await dim('#flaps-down');
-      downs.push(await press('#flaps-down'));
-    }
-    check(downs.map((p) => p.says).join(', ') === '10°, 20°, 30°, 30°' && dimBeforeFourth && await dim('#flaps-down') && !(await dim('#flaps-up')),
-      'four presses of Flaps Down from "0°" read "10°", "20°", "30°", "30°", and at "30°" Flaps Down is dim', downs.map((p) => `"${p.says}"`).join(', '));
-    check(downs.every((p) => intime(p) && Math.abs(p.jsbsim - p.degrees) < 1) && [1 / 3, 2 / 3, 1, 1].every((at, k) => downs[k].sent === at) && downs[3].nothingSent,
-      'the indicator matches JSBSim\'s flaps within 2 s of each press (within 1 degree), what is sent is one of the Cessna\'s four settings, and the fourth press sends nothing', downs.map(told).join('; '));
-    check(downs.every((p) => Math.abs(p.model - p.degrees) < 1) && downs.slice(0, 3).every((p) => p.moved > 8) && Math.abs(downs[3].moved) < 1, 'the model\'s flaps move with them: 10 degrees further down at each of the first three presses, and none at the fourth',
-      downs.map((p) => `${p.moved.toFixed(1)} to ${p.model.toFixed(1)}`).join('; '));
-    // And back up to the takeoff setting: two presses of Flaps Up.
-    const back = [await press('#flaps-up'), await press('#flaps-up')];
-    check(back.map((p) => p.says).join(', ') === '20°, 10°' && back.every(intime) && back[1].sent === 1 / 3, 'two presses of Flaps Up from "30°" read "20°", "10°", and the flaps follow within 2 s', back.map(told).join('; '));
-      const lag = await now();
-    console.log(`     the picture over the lever's presses, mouse taps and all: 99 frames in 100 within ${lag.behindWithinMs} ms, most ${lag.behindMostMs.toFixed(0)}`);
+    check((await reads()) === '1/2' && (await now()).pilot.flaps === 0.5, 'a tap on the indicator does nothing');
+    // Down gives "Full"; there Flaps Down is dim and does nothing. The flight manual: 8 s for the whole travel down, so 4 s from 1/2.
+    const down = await press('#flaps-down'), downAgain = await press('#flaps-down');
+    check(down.says === 'Full' && down.there && down.moved > 0.49 && down.seconds <= 5 && downAgain.dimmed && downAgain.says === 'Full' && downAgain.there && downAgain.nothingSent,
+      'Flaps Down from "1/2" reads "Full", and JSBSim\'s flaps and the model\'s are fully down; there Flaps Down is dim and a press of it changes nothing', `${told(down)}; ${told(downAgain)}`);
+    // Up twice gives "Up". The flight manual: 6 s for the whole travel up, so 3 s each half.
+    const ups = [await press('#flaps-up'), await press('#flaps-up')], upAgain = await press('#flaps-up');
+    check(ups.map((p) => p.says).join(', ') === '1/2, Up' && ups.every((p) => p.there && p.moved < -0.49 && p.seconds <= 4) && [0.5, 0].every((at, k) => ups[k].sent === at) && upAgain.dimmed && upAgain.nothingSent && upAgain.there,
+      'Flaps Up twice from "Full" reads "1/2", then "Up", and the model\'s flaps follow JSBSim\'s; there Flaps Up is dim and a press changes nothing', `${ups.map(told).join('; ')}; ${told(upAgain)}`);
     check(leverErrs.length === 0, 'no page errors with the lever', leverErrs.join(' | '));
     await levered.close();
   }
 
-  // The flap lever's pictures (milestone 3, PR F), on a screen as sharp as a phone's (two device pixels to the
-  // point; the flight above is drawn at one): the flight screen at "10°", as every flight starts, and at "30°".
+  // The flap lever's pictures, on a screen as sharp as a phone's (two device pixels to the point; the flight above is
+  // drawn at one): the F-4C on the numbers at "1/2", as every flight starts, and at "Full".
   {
     const sharp = await browser.newContext({ viewport: { width: 852, height: 393 }, deviceScaleFactor: 2, serviceWorkers: 'block', permissions: MOTION });
     const s = await sharp.newPage();
     await s.goto(base);
     await on(s).ready();
     const flew = await on(s).fly();
-    const flapsAt = (degrees) => s.waitForFunction((want) => { const p = window.fsg.picture; return Math.abs(p.surfaces.flaps * 30 - want) < 1 && Math.abs(p.model.flaps * 30 - want) < 1; }, degrees, { timeout: 8000, polling: 50 }).then(() => true, () => false);
-    const at10 = await flapsAt(10), reads10 = await s.locator('#flaps-reads').textContent();
+    const flapsAt = (want) => s.waitForFunction((to) => { const p = window.fsg.picture; return p.surfaces.flaps === to && Math.abs(p.model.flaps - to) < 1e-5; }, want, { timeout: 8000, polling: 50 }).then(() => true, () => false);
+    const atHalf = await flapsAt(0.5), readsHalf = await s.locator('#flaps-reads').textContent();
     await s.waitForTimeout(300);
-    if (shots) await s.screenshot({ path: join(shots, 'flaps-10.png') });
+    if (shots) await s.screenshot({ path: join(shots, 'f4c-start-sharp.png') });
     await s.click('#flaps-down');
-    await s.click('#flaps-down');
-    const at30 = await flapsAt(30), reads30 = await s.locator('#flaps-reads').textContent();
+    const atFull = await flapsAt(1), readsFull = await s.locator('#flaps-reads').textContent();
     await s.waitForTimeout(300);
-    if (shots) await s.screenshot({ path: join(shots, 'flaps-30.png') });
-    check(flew && at10 && reads10 === '10°' && at30 && reads30 === '30°' && (await s.locator('#flaps-down').isDisabled()), 'on a screen with two device pixels to the point, the lever reads "10°" at the start and "30°" two presses of Flaps Down later, with the flaps there', `"${reads10}", then "${reads30}"`);
+    if (shots) await s.screenshot({ path: join(shots, 'f4c-flaps-full-parked-sharp.png') });
+    check(flew && atHalf && readsHalf === '1/2' && atFull && readsFull === 'Full' && (await s.locator('#flaps-down').isDisabled()), 'on a screen with two device pixels to the point, the lever reads "1/2" at the start and "Full" a press of Flaps Down later, with the flaps there', `"${readsHalf}", then "${readsFull}"`);
     await sharp.close();
   }
 

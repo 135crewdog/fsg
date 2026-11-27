@@ -343,7 +343,7 @@ for (const variant of VARIANTS) {
 
   test(`${variant}, f4c: the Worker flies it from the three files as the page fetches them (src/fdm.js)`, async () => {
     // The Worker's handler with the game in it, in this thread, on a made-up clock (as tests/worker-flight.test.js).
-    // The app's own list of aircraft does not have the F-4C yet (pull request 8), so the handler is given one that does.
+    // The app's own list of aircraft, which since pull request 8 is the F-4C alone (until then the handler was given a list that had it).
     const inSrc = (path) => new URL(path, new URL('../src/', import.meta.url));
     const timer = madeUpTimer(), states = [];
     let handle;
@@ -351,7 +351,7 @@ for (const variant of VARIANTS) {
     handle = createHandler((message) => {
       if (message.type === 'state') states.push(message);
       else queueMicrotask(() => client.receive(message));
-    }, flightRun(timer, { f4c: F4C }));
+    }, flightRun(timer));
     assert.equal(pageHomeOf(F4C), '../', 'the page fetches its files from the repo\'s root, not from JSBSim\'s data');
     const pack = buildPack(new Map(F4C.files.map((path) => [path, readFileSync(fileURLToPath(inSrc(pageHomeOf(F4C) + path)))])));
     await client.request({ type: 'init', moduleUrl: inSrc(BUILDS[variant].module).href, packs: [['/data', pack]] });
