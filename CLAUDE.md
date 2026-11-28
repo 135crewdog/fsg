@@ -3,8 +3,8 @@
 A flight sim game for the iPhone: a home-screen web app at `https://135crewdog.github.io/fsg/`. The F-4C Phantom II over the real Hawaiian Islands, in the spirit of Eric Parker's PocketWings. The flight model is **JSBSim**, the open-source flight dynamics model behind FlightGear, compiled to WebAssembly and run unmodified.
 
 It's a **flight sim game**:
-- **Sim:** not an arcade game. The airplane flies by real physics and real data, so stalls, spins, energy bleed and the nose falling through the horizon all come from JSBSim. Nothing is scripted.
-- **Game:** not a training simulator. It has to be easy to pick up and fun on a phone. Accessibility comes from assists that fly the airplane the way a helpful copilot would. They never change the physics.
+- **Sim:** not an arcade game. Simple but honest physics: lift, drag, thrust and weight, by JSBSim. It stalls, it bleeds energy in a hard turn, and the nose cannot be pointed where the airplane has no speed to go. Nothing is scripted.
+- **Game:** not a training simulator. Simple but not nit-picky aircraft: each is a file of simple numbers, the kind on a spec sheet, set so it is fun on a tilting phone. If it doesn't feel the way a pilot imagines that airplane, the numbers are wrong, whatever data they came from.
 
 Solo only. No missions, combat, scores or weather.
 
@@ -35,13 +35,19 @@ From the owner's design philosophy (https://135crewdog.github.io/hig/), which ap
 
 1. **Big decisions happen in chats** in the owner's "FDM" Claude project. Their results arrive here as changes to this file or as a prompt.
 2. **Every milestone starts in Plan Mode,** in a new Claude Code chat. Claude Code reads this file and `docs/`, researches, and proposes the plan. The owner and Claude Code iterate until the owner approves. The owner wrote the first prompt (milestone 0) and writes no others: when a milestone is done, Claude Code proposes the next.
-3. **Every plan opens with "How others solved this":** for each real problem in the milestone, what independent developers, industry and textbooks did, with links. Then the choice, and why.
+3. **Every plan says how others solved each real problem it meets,** as deep as the work's level calls for (rule 6): for each one, what independent developers, industry and textbooks did, with links. Then the choice, and why.
 4. **Every task has a written "done" before it starts:** what will be true, how it will be checked, and the numbers it must meet. Write it in the plan, never change it after seeing a result, and keep a failed result on record. If the line was wrong, say so and add a new one.
 5. **After approval the owner switches to Auto Mode.** Claude Code builds in pull requests, each small enough for the owner to check on his phone in about a minute.
-6. **Codex reviews every pull request automatically.** Claude Code fixes what it finds, or explains in the pull request why a finding is wrong.
-7. **The owner authorizes each merge; Claude Code merges.** Never merge unasked. He may authorize a whole milestone's merges at once ("merge when clean": tests passing, Codex's findings fixed or answered); the milestone's plan records it. Phone checks and pilot decisions still wait for him.
-8. **The owner checks the app on his phone** and gives feedback. Claude Code carries on with the next pull request.
-9. **When the milestone is done:** mark it in the table below, write its results into `docs/milestones/`, and stop. The next milestone starts in a new chat, in Plan Mode.
+6. **Right-sized effort.** Not everything needs the same resources, research included. Every pull request in a plan carries a level:
+   - **Full** (Fable on High; how others solved it, with sources; throwaway flights first; the whole test suite): the shared physics, an airplane's first numbers, the controls, anything that changes how `src/sim/` flies a flight.
+   - **Standard** (the tests the change touches; research only if a new problem turns up): Fable on Medium for how an airplane flies on a proven pattern (a feel round, a new airplane's numbers), Opus on High for the app's wiring and the screen.
+   - **Light** (Opus on Medium; no research; a quick sanity check): words, docs and versions.
+
+   GitHub's tests and Codex run on all of them. In a milestone chat Claude Code hands Standard and Light work to an agent at that level itself, checks the result and carries on. For a one-off ask it says in one line which level the job is. A job that turns out harder is raised a level, with the reason.
+7. **Codex reviews every pull request automatically.** Claude Code fixes what it finds, or explains in the pull request why a finding is wrong.
+8. **The owner authorizes each merge; Claude Code merges.** Never merge unasked. He may authorize a whole milestone's merges at once ("merge when clean": tests passing, Codex's findings fixed or answered); the milestone's plan records it. Phone checks and pilot decisions still wait for him.
+9. **The owner checks the app on his phone** and gives feedback. Claude Code carries on with the next pull request.
+10. **When the milestone is done:** mark it in the table below, write its results into `docs/milestones/`, and stop. The next milestone starts in a new chat, in Plan Mode.
 
 Rules for Claude Code:
 - **Ask the owner pilot questions, never engineering ones.** Not "what pitch damping?" but "after a stall, should the nose drop harder?" Engineering choices are Claude Code's to make, test and write down.
@@ -60,7 +66,7 @@ One home for each kind of thing. Nothing lives in two places.
 | What | Home |
 |---|---|
 | Code, docs, this file, aircraft files, finished 3D models (`.glb`), terrain tiles: anything the app needs | This repo |
-| FSG's own aircraft files (the F-4C) | `aircraft/`, one folder each. JSBSim's own data in `jsbsim/jsbsim-data/` is never edited |
+| FSG's own aircraft files | `aircraft/`: `simple/` holds the one physics and control run every simple airplane flies on; each airplane has a folder of its own numbers. `aircraft/f4c/` is the data-built F-4C, kept as it is. JSBSim's own data in `jsbsim/jsbsim-data/` is never edited |
 | Each milestone's approved plan, its "done" lines and its results | `docs/milestones/` |
 | Ideas | `docs/ideas.md` |
 | Reference photos, drawings, Blender files | The owner's Google Drive, synced to his laptop |
@@ -85,7 +91,7 @@ One home for each kind of thing. Nothing lives in two places.
   - `models/f4c.glb`, the owner's own F-4C
   - the headless checkride idea
 
-  Wings' own flight model (`src/sim/`: the airplane "cards", aero, engine and contact code) is replaced by JSBSim and is not copied.
+  Wings' own flight model is not copied as code. Its F-4C card and its rules (the lift curve, the tail sized by speed, flaps that lift without pitching) are the reference for the simple airplanes' numbers.
 - Wings in turn came from `135crewdog/wings-v1` and `135crewdog/rage`. Go to them only when Wings points there.
 
 Wings stays live at its own address, and the owner keeps improving it. FSG never changes it. **Before copying anything from Wings:**
@@ -97,8 +103,11 @@ Wings stays live at its own address, and the owner keeps improving it. FSG never
 
 ## Flying
 
-- **JSBSim flies every airplane.** JSBSim v1.3.3, unmodified, compiled to WebAssembly. Each airplane is a JSBSim aircraft file: mass and inertia, aerodynamics, engines, landing gear and flight-control system.
-- **The F-4C is the airplane.** JSBSim's bundled `F4N` is a 2007 Aeromatic draft (a generator's first guess) with an empty flight-control system, so it's a starting point at most. The F-4C file is built from real data and checked against it:
+- **JSBSim flies every airplane,** v1.3.3, unmodified. We use its basics: lift, drag, thrust and weight as plain forces, with size and mass.
+- **One physics, and each airplane a file of numbers.** `aircraft/simple/` is written once: a lift curve that is straight to the stall and then drops, drag from speed and lift, plain damping, and the control run. An airplane's own file has its size, mass, wheels, engines and its numbers: weight, span, wing area, thrust, stall speeds, rotation speed, top speeds, corner speed, g limit, roll rate, trim speed, and a few set by feel. Each number says where it came from. Claude Code sets the engineering ones; the owner never sees one.
+- **Thrust is a vector scaled by the throttle,** falling off with speed and height. No propeller torque, P-factor or slipstream, for any simple airplane.
+- **The F-4C is the airplane:** the simple one (`aircraft/f4c-simple/`), with the owner's model and its wheels where the model has them. Rotation at 150 knots and the centre of gravity 3.5 ft ahead of the mains still stand.
+- **The data-built F-4C** (`aircraft/f4c/`: NASA CR-2144, AFWAL-TR-80-3141 and the rest, with the real feel system and dampers) is kept, untouched, flyable from the picker for comparison, and its lift, drag and thrust are there to borrow from. It and JSBSim's `c172p` fly as they were built, with the copilot and controls they had in 0.0.22; the rules under "Controls and assists" are the simple airplanes'. Its checkride and results are `docs/milestones/3.md`. It was built from:
   - NASA CR-2144 (handling-qualities data, F-4C)
   - NASA TN D-6425 (F-4 model forces, −10° to 110° angle of attack)
   - NASA TN D-5361 (the F-4's directional divergence at high angle of attack)
@@ -109,10 +118,12 @@ Wings stays live at its own address, and the owner keeps improving it. FSG never
   - the F-4C flight manual
   - the UIUC F-4 model (Scott and Selig)
 
-  The precedent to study is Richard Harrison's FlightGear F-14, a JSBSim fighter built from NASA wind-tunnel reports (zaretto.com). Its stability augmentation system goes in JSBSim's flight-control format, as on the real jet. The owner's figures from Wings still stand: rotation at 150 knots, and the centre of gravity 3.5 feet ahead of the main wheels, where his model puts it.
+  Its precedent is Richard Harrison's FlightGear F-14, a JSBSim fighter built from NASA wind-tunnel reports (zaretto.com). JSBSim's bundled `F4N` is a 2007 Aeromatic draft (a generator's first guess) with an empty flight-control system: neither F-4C is built on it.
+- **A fly-by-wire airplane may differ in its own file:** tilt asks for g, and it will not stall or over-g. That is that airplane's FCS, not the copilot.
 - **Test aircraft:** JSBSim's bundled Cessnas and F-16, well-known files used to prove the wiring before the F-4C. They are not in the finished game.
   - `c172x` and `f16` are flown headless against native JSBSim (milestone 1).
-  - `c172p` was the Cessna on screen in milestone 2, until the F-4C took its place (milestone 3, PR 8; version 0.0.19), flown as JSBSim ships it: no slack in its elevator, and a nosewheel the stick can steer. Its picture is FlightGear's own c172p model (GPL 2), which fits it within an inch (the owner's choice, 20 November 2026). Since then it is a headless test aircraft; its model and credit stay in the repo, out of the app's download.
+  - `c172p` was the Cessna on screen in milestone 2, flown as JSBSim ships it: no slack in its elevator, and a nosewheel the stick can steer. Its picture is FlightGear's own c172p model (GPL 2), which fits it within an inch (the owner's choice, 20 November 2026). It left the app when the F-4C arrived (milestone 3, PR 8; version 0.0.19), and is in the picker again from 0.0.23, for comparison, with its model and credit.
+  - `c172-simple` is the Cessna on the same simple physics, the pattern for a P-51D and a B-26.
   - The owner's own C172 model stays in his Drive.
 - **The physics clock:**
   - JSBSim runs in a Web Worker at a fixed 120 steps a second, decoupled from the screen. It uses an accumulator with a catch-up cap ("Fix Your Timestep").
@@ -136,18 +147,19 @@ Game rules (kept from Wings):
 
 Three words, used the same way everywhere (the owner's, 26 November 2026):
 - **The pilot** is the player.
-- **The copilot** is the help the game gives because the pilot has only a tilting phone: neutral trim, automatic feet, steering on the ground, the stick's gentler middle. In the code these are the assists.
+- **The copilot** is the help the game gives because the pilot has only a tilting phone and no pedals: it keeps the rudder coordinated in the air. In the code these are the assists. (The two kept airplanes have the fuller copilot they were built with: the last bullet below.)
 - **The FCS** is the airplane's own: its feel system, stability augmentation and interconnects, in its aircraft file. It is not a copilot.
 
 - **Tilt for pitch and roll,** the phone held in landscape like a steering wheel, PocketWings style.
-  - With the phone at neutral, the airplane holds a trimmed speed. Faster than that the nose rises, as with fixed trim in a real airplane.
-  - How that's done on top of a real JSBSim airplane is Claude Code's to research and propose. The owner judges it by flying.
+- **The copilot** helps only with what the pilot has no control for: it keeps the rudder coordinated in the air. It makes no pitch or roll inputs and does no trimming.
+- **Tilt moves the surface directly, through one curve against speed,** as cables and pushrods would: slow, a long way for a little; fast, a little for a lot. Full back tilt is the g limit above corner speed and the stall below it. No modes. The curve is the airplane's own, in its file. The tilt goes to the stick as a straight line.
+- **One trim speed.** Phone level holds it (350 knots on the F-4C); faster, the nose rises. Flaps lower it by themselves, because they lift: gear and flaps down, the F-4C holds about 200.
+- **On the ground, tilt steers:** rudder and nosewheel, blended by speed. It does not move the ailerons. (This replaces the choice of 26 November.)
+- **No rudder control in the air** (#42, a pilot's rudder slider, is open).
+- **Takeoff:** full back tilt lifts the nosewheel at rotation speed; once it flies, ease the tilt to hold the climb. Held, it pitches up steeply and stalls, as it did in Wings.
+- **The data-built F-4C and JSBSim's `c172p` fly as they were built** (0.0.22): the softer stick middle, the copilot's neutral trim and feet, its hold on the ground, tilt on the ailerons, and the F-4C's real feel system and dampers in its aircraft file.
 - **Throttle:** a slider on the left edge.
 - **Four toggles:** gear, flaps, speedbrakes and wheel brakes. A button shows only if the airplane has the thing: the Cessna shows Flaps and Brakes. An airplane with more than one flap setting gets two buttons, Flaps Up and Flaps Down, pushed together with a pill between them that reads the setting.
-- **No rudder control.** The copilot's feet hold the ball centred. On the ground the tilt is always the ailerons, and the copilot's feet turn the airplane as the tilt asks: with the nosewheel at low speed and the rudder at higher speed, handing over smoothly (milestone 3, PR 2).
-- **The copilot acts only through the cockpit controls,** as a pilot would. It never adds forces or changes the aircraft file.
-  - The F-4C's real feel system and stability augmentation are FCS: they live in its aircraft file.
-  - Anything beyond the real jet (neutral-tilt trim, automatic feet) is the copilot's, outside JSBSim, and is named as such.
 
 ## Screen and looks
 
@@ -157,6 +169,7 @@ Three words, used the same way everywhere (the owner's, 26 November 2026):
 - Rage's green HUD and the debug overlay
 - afterburner plumes, with Rage's water and sky
 - US units only, with no units setting
+- an airplane picker on the pause screen, kept between visits: a development tool until the fleet (#33)
 
 **The world** is `docs/hawaii.md`: the real Hawaiian Islands with the channels shortened, USGS heights and Sentinel-2 photographs. Every paved runway of 3,000 feet or more is level and landable. Every flight starts on the numbers of runway 8R at Honolulu and Hickam, with gear down, flaps at the takeoff setting and the brakes on. The tiles download once into their own store on the phone, which app updates never touch.
 
@@ -171,7 +184,7 @@ Three words, used the same way everywhere (the owner's, 26 November 2026):
 - **GitHub's workflow tools** (checkout, setup-node, the cache and the Pages steps in `.github/workflows/`) stay on their current versions. Dependabot (`.github/dependabot.yml`, after Wings) opens at most one pull request a month for all of them together. It goes through tests and Codex like any other, and the owner authorizes the merge.
 - **The simulation code** (the Worker, the JSBSim wrapper, assists, game rules) has no DOM or Three.js code, so it runs headless in Node.
 - **Target:** 60 fps on an iPhone 16, with the physics at 120 Hz.
-- **The checkride:** maneuvers flown headless, with results in knots, feet, degrees and g next to the reference numbers (flight manual, NASA data, native JSBSim). Each milestone plan writes the tolerances before the run.
+- **The checkride** is small. Within about 10%: the speeds a pilot flies by (stall, rotation, top speed; the approach is flown and reported), beside the book. Common sense on energy: a hard turn loses speed, a loop needs a sensible entry speed, it stalls when asked and recovers when let go. Everything else is reported beside the book figure and judged by the owner flying it. No line exists only because it can be measured. Lines are written before the run.
 
 ### Known facts about JSBSim in WebAssembly (Verified or Supported in FDM and in milestones 0 and 1; details in FDM's `REPORT.md` and `docs/milestones/`)
 - Build all of JSBSim with exception support, or 22 aircraft fail to load. Ship two builds:
@@ -201,10 +214,12 @@ Three words, used the same way everywhere (the owner's, 26 November 2026):
 - FDM's host layer refuses an input that is not a number. JSBSim's own state can still break with the step returning "ok", so the flight checks every number it gives out.
 - JSBSim's `c172p` at full power and low speed rolls left by itself (its engine's torque, 427 lb-ft: the right main wheel goes light at 53 to 55 knots), climbs about 1,400 ft/min and pulls 4.1 g at 100 knots. Its full-aileron roll, 67°/s at 100 knots, matches UIUC's Cessna 172 figures.
 - Headless Chromium has `DeviceOrientationEvent.requestPermission` and answers "prompt" until the permission is granted to the page.
-- The stick's middle is made gentler before it is sent (`src/input/pilot.js`): half stick sends a quarter, full stick sends all of it. The owner's choice.
+- The stick's middle is made gentler before it is sent (`src/input/pilot.js`): half stick sends a quarter, full stick sends all of it. The owner's choice, on the data-built F-4C and JSBSim's Cessna; the simple airplanes take the tilt straight, as Wings did (the owner, 28 November 2026).
 - A pause menu taller than 348 points runs off an iPhone's landscape screen.
 - JSBSim v1.3.3's turbine gives full afterburner thrust the instant it is asked, has no "afterburner on" number to read, and its trim neither spools the engine nor moves the throttle beyond 0 to 1.
 - JSBSim's default stepping of rotations (rectangular Euler) takes damping off a quick swing at 120 steps a second: the F-4C's high, fast wobbles with its dampers off died away 25% to 45% slower than NASA's. The F-4C's settings ask for JSBSim's second-order rule (`stepping`), which matches NASA within 9%; the tape carries it to native JSBSim.
+- JSBSim loads an airplane's aerodynamics from a shared file in another folder (`<aerodynamics file="../simple/aero.xml"/>`) and reads numbers the airplane's own file declares.
+- Wings' F-4C, full back tilt held through the takeoff: off at 174 knots with the nose 9° up, at 40° and stalled 2 s later. Its own test pilot eases to 10°.
 
 ### iPhone platform rules (proven in Rage and Wings)
 - Motion permission is requested synchronously inside the Fly tap, over HTTPS.
@@ -231,7 +246,7 @@ Claude Code plans each milestone in Plan Mode when the one before is done. The l
 | 0, done | **Setup.** Repo, Actions, Pages, Codex review; the Wings app shell; the JSBSim build copied in from FDM with its tests | A test pull request goes through Codex review, merges and deploys. The shell installs on the owner's iPhone and takes an update. Inside the app, on the phone, the Worker loads `c172x` and reports its step time on the debug overlay |
 | 1, done | **JSBSim as the game's core, headless.** Worker clock, controls in, state out, height-patch ground callback, contact points, game rules, assists; the checkride harness | `c172x` and `f16` take off, fly a circuit and land headless, with checkride results matching native JSBSim within the written tolerances |
 | 2, done | **First flight.** Tilt, throttle, toggles, chase camera, HUD over a flat test field with a runway, on the phone, flying `c172p` | The owner takes off, flies a circuit and lands on his iPhone, and says the controls and the ground feel right |
-| 3 | **The F-4C.** Its JSBSim file built from real data, with its stability augmentation; `models/f4c.glb` with moving surfaces, gear and flaps; plumes | The F-4C passes its checkride against the flight manual and NASA data, and the owner flies it on the test field and approves the feel |
-| 4 | **Hawaii.** The real islands under the F-4C, ground callback fed from the tiles, the islands map, crash rules on real terrain | The owner flies from Hickam to every island on his iPhone, lands on another island, and the game is the minimum viable FSG |
+| 3 | **The F-4C.** A simple F-4C on the shared simple physics, with the owner's model, plumes and buttons; tilt through one speed curve; tilt steering on the ground; an airplane picker; the simple Cessna as the pattern. The data-built F-4C kept for comparison | The simple F-4C's speeds are within about 10% of the book and its energy makes sense, and on the test field the owner flies a takeoff, a closed pattern to a landing, a loop and a low pass on his iPhone and says it is fun |
+| 4 | **Hawaii.** The real islands under the F-4C, ground callback fed from the tiles, the islands map, crash rules on real terrain | The owner flies from Hickam to every island on his iPhone, lands on another island, rips down a valley and says it is fun, and the game is the minimum viable FSG |
 
-Milestones 0, 1 and 2 are done: their plans and results are in `docs/milestones/0.md`, `docs/milestones/1.md` and `docs/milestones/2.md`. Milestone 3 is under way: its approved plan is `docs/milestones/3.md`.
+Milestones 0, 1 and 2 are done: their plans and results are in `docs/milestones/0.md`, `docs/milestones/1.md` and `docs/milestones/2.md`. Milestone 3 is under way. It was re-planned on 28 November 2026 after the owner's first flights: `docs/milestones/3-feel-findings.md` has what was found, `docs/milestones/3-replan.md` is the approved plan, and `docs/milestones/3.md` is the record of the data-built F-4C.
