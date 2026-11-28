@@ -1,0 +1,570 @@
+<?xml version="1.0"?>
+<!--
+  The simple F-4C Phantom II, for JSBSim v1.3.3: the airplane of the game. FSG's own aircraft file: new in
+  FSG, milestone 3 re-planned (docs/milestones/3-replan.md, pull request 3).
+
+  What it is. A file of numbers on the shared simple physics (aircraft/simple/aero.xml, which says what
+  each number means and where each rule came from) and the shared control run
+  (aircraft/simple/controls.xml). The owner (28 November 2026): "Simple but honest physics. Simple but not
+  nit-picky aircraft." Here are its size, its mass, its wheels, its engines and its own systems (throttles
+  and afterburners, flaps, speedbrakes, gear); the block "The numbers" is everything about how it flies.
+
+  Where each number comes from. Every number below names one of these.
+    Wings     135crewdog/wings, src/sim/cards/f4c.js and src/sim/card.js, commit 6d689b7: the F-4C card
+              the owner flew and liked, and what its card.js works out from it.
+    T.O.      T.O. 1F-4C-1, the F-4C flight manual (1 October 1970).
+    data-built  the data-built F-4C, aircraft/f4c/f4c.xml (NASA CR-2144 and the rest), kept beside this
+              one: its weight, inertias, wheels, contact points and its engines' and systems' logic are
+              borrowed as they are, each with the comments it has there.
+    set so that ...  a number chosen so that a line of the plan is met; the test named flies it
+              (tests/simple-f4c.test.js). These are Claude Code's engineering choices.
+
+  Axes. JSBSim's structural frame, in inches: x aft, y to the right, z up. Its origin is the centre of
+  gravity as loaded, which is the origin of the owner's model (models/f4c.glb).
+-->
+<fdm_config name="F-4C Phantom II (simple)" version="2.0" release="ALPHA"
+ xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+ xsi:noNamespaceSchemaLocation="http://jsbsim.sourceforge.net/JSBSim.xsd">
+
+ <fileheader>
+  <author> FSG (135crewdog/fsg), written by Claude Code </author>
+  <filecreationdate> 2026-11-28 </filecreationdate>
+  <version> milestone 3 re-planned, pull request 3 </version>
+  <description> McDonnell F-4C Phantom II on FSG's simple physics: a file of numbers. </description>
+ </fileheader>
+
+ <!--
+  The wing: 530 sq ft, 38.67 ft across, a mean chord of 16.04 ft (the data-built file's: NASA CR-2144,
+  table IV-2; Wings' card has 530 and 38.4). The air's forces act at the centre of gravity: the simple
+  physics gives its turning moments directly, so nothing here has a lever arm.
+ -->
+ <metrics>
+  <wingarea unit="FT2"> 530 </wingarea>
+  <wingspan unit="FT"> 38.67 </wingspan>
+  <chord unit="FT"> 16.04 </chord>
+  <location name="AERORP" unit="IN">
+   <x> 0 </x>
+   <y> 0 </y>
+   <z> 0 </z>
+  </location>
+  <location name="VRP" unit="IN">
+   <x> 0 </x>
+   <y> 0 </y>
+   <z> 0 </z>
+  </location>
+ </metrics>
+
+ <!--
+  38,924 lb, and its inertias: the data-built file's (NASA CR-2144, table IV-2), so the two F-4Cs compare
+  like for like (the plan's default; Wings' card flies at 38,000). The weight is 30,000 lb here and 8,924 lb
+  in the one tank, as there; the game freezes the fuel. The cross inertia is written the usual way round
+  (see the data-built file for JSBSim's sign).
+ -->
+ <mass_balance negated_crossproduct_inertia="false">
+  <ixx unit="SLUG*FT2"> 25002 </ixx>
+  <iyy unit="SLUG*FT2"> 122193 </iyy>
+  <izz unit="SLUG*FT2"> 139767 </izz>
+  <ixz unit="SLUG*FT2"> 2177 </ixz>
+  <emptywt unit="LBS"> 30000 </emptywt>
+  <location name="CG" unit="IN">
+   <x> 0 </x>
+   <y> 0 </y>
+   <z> 0 </z>
+  </location>
+ </mass_balance>
+
+ <!--
+  The wheels and the airframe's contact points: the data-built file's, element for element
+  (tests/simple-f4c.test.js holds the two blocks identical). The wheels are where the owner's model has
+  them: the tyres 6.4 ft below the centre of gravity, the nose wheel 19.75 ft ahead of it, the mains 3.52 ft
+  behind and 8.96 ft out (CLAUDE.md: "the centre of gravity 3.5 feet ahead of the main wheels").
+ -->
+ <ground_reactions>
+  <contact type="BOGEY" name="NOSE_WHEEL">
+   <location unit="IN">
+    <x> -237.0 </x>
+    <y> 0 </y>
+    <z> -81.51 </z>
+   </location>
+   <static_friction> 0.8 </static_friction>
+   <dynamic_friction> 0.5 </dynamic_friction>
+   <rolling_friction> 0.02 </rolling_friction>
+   <spring_coeff unit="LBS/FT"> 15000 </spring_coeff>
+   <damping_coeff unit="LBS/FT/SEC"> 1650 </damping_coeff>
+   <max_steer unit="DEG"> 70 </max_steer>
+   <brake_group> NONE </brake_group>
+   <retractable> 1 </retractable>
+  </contact>
+  <contact type="BOGEY" name="LEFT_MAIN_WHEEL">
+   <location unit="IN">
+    <x> 42.24 </x>
+    <y> -107.52 </y>
+    <z> -82.81 </z>
+   </location>
+   <static_friction> 0.8 </static_friction>
+   <dynamic_friction> 0.5 </dynamic_friction>
+   <rolling_friction> 0.02 </rolling_friction>
+   <spring_coeff unit="LBS/FT"> 33000 </spring_coeff>
+   <damping_coeff unit="LBS/FT/SEC"> 4100 </damping_coeff>
+   <max_steer unit="DEG"> 0 </max_steer>
+   <brake_group> LEFT </brake_group>
+   <retractable> 1 </retractable>
+  </contact>
+  <contact type="BOGEY" name="RIGHT_MAIN_WHEEL">
+   <location unit="IN">
+    <x> 42.24 </x>
+    <y> 107.52 </y>
+    <z> -82.81 </z>
+   </location>
+   <static_friction> 0.8 </static_friction>
+   <dynamic_friction> 0.5 </dynamic_friction>
+   <rolling_friction> 0.02 </rolling_friction>
+   <spring_coeff unit="LBS/FT"> 33000 </spring_coeff>
+   <damping_coeff unit="LBS/FT/SEC"> 4100 </damping_coeff>
+   <max_steer unit="DEG"> 0 </max_steer>
+   <brake_group> RIGHT </brake_group>
+   <retractable> 1 </retractable>
+  </contact>
+
+  <!--
+   The airframe: the points that reach the ground first with the gear up, so that a scrape or a crash
+   registers. Wings (its card's airframe_ft, measured from the model), in feet from the centre of gravity,
+   forward, right and down; ten of its 22 points, the outermost in each direction:
+     the nose             27.84 ahead, 2.61 below (Wings has a pair 0.22 ft either side; one, on the centreline)
+     the belly             5.53 ahead, 6.96 out, 3.35 below: the lowest points of the airframe
+     the tail underside   15.06 behind, 2.14 out, 2.08 below: under the engine exits
+     the wingtips         13.54 behind, 19.2 out, 0.34 below: the tip's rear corner, first down in a nose-up arrival
+     the stabilator tips  28.04 behind, 8.2 out, 0.66 below
+   and the top of the fin, measured from the same model (135crewdog/wings, models/f4c.glb, commit 6d689b7):
+   its flat top is 10.01 ft above the centre of gravity, from 25.9 to 27.9 ft behind it; its middle is used.
+
+   Reasoned: how stiff the airframe is and how it slides. 60,000 lb/ft under the body (the airplane lying
+   on its belly sinks about 3 in), 20,000 at the tips; damping about half of critical; friction 0.4, metal
+   on a paved runway. A belly landing's slide beside a real one would settle the friction.
+  -->
+  <contact type="STRUCTURE" name="NOSE">
+   <location unit="IN">
+    <x> -334.08 </x>
+    <y> 0 </y>
+    <z> -31.32 </z>
+   </location>
+   <static_friction> 0.4 </static_friction>
+   <dynamic_friction> 0.4 </dynamic_friction>
+   <spring_coeff unit="LBS/FT"> 60000 </spring_coeff>
+   <damping_coeff unit="LBS/FT/SEC"> 4000 </damping_coeff>
+  </contact>
+  <contact type="STRUCTURE" name="LEFT_BELLY">
+   <location unit="IN">
+    <x> -66.36 </x>
+    <y> -83.52 </y>
+    <z> -40.2 </z>
+   </location>
+   <static_friction> 0.4 </static_friction>
+   <dynamic_friction> 0.4 </dynamic_friction>
+   <spring_coeff unit="LBS/FT"> 60000 </spring_coeff>
+   <damping_coeff unit="LBS/FT/SEC"> 4000 </damping_coeff>
+  </contact>
+  <contact type="STRUCTURE" name="RIGHT_BELLY">
+   <location unit="IN">
+    <x> -66.36 </x>
+    <y> 83.52 </y>
+    <z> -40.2 </z>
+   </location>
+   <static_friction> 0.4 </static_friction>
+   <dynamic_friction> 0.4 </dynamic_friction>
+   <spring_coeff unit="LBS/FT"> 60000 </spring_coeff>
+   <damping_coeff unit="LBS/FT/SEC"> 4000 </damping_coeff>
+  </contact>
+  <contact type="STRUCTURE" name="LEFT_TAIL_UNDERSIDE">
+   <location unit="IN">
+    <x> 180.72 </x>
+    <y> -25.68 </y>
+    <z> -24.96 </z>
+   </location>
+   <static_friction> 0.4 </static_friction>
+   <dynamic_friction> 0.4 </dynamic_friction>
+   <spring_coeff unit="LBS/FT"> 60000 </spring_coeff>
+   <damping_coeff unit="LBS/FT/SEC"> 4000 </damping_coeff>
+  </contact>
+  <contact type="STRUCTURE" name="RIGHT_TAIL_UNDERSIDE">
+   <location unit="IN">
+    <x> 180.72 </x>
+    <y> 25.68 </y>
+    <z> -24.96 </z>
+   </location>
+   <static_friction> 0.4 </static_friction>
+   <dynamic_friction> 0.4 </dynamic_friction>
+   <spring_coeff unit="LBS/FT"> 60000 </spring_coeff>
+   <damping_coeff unit="LBS/FT/SEC"> 4000 </damping_coeff>
+  </contact>
+  <contact type="STRUCTURE" name="LEFT_WINGTIP">
+   <location unit="IN">
+    <x> 162.48 </x>
+    <y> -230.4 </y>
+    <z> -4.08 </z>
+   </location>
+   <static_friction> 0.4 </static_friction>
+   <dynamic_friction> 0.4 </dynamic_friction>
+   <spring_coeff unit="LBS/FT"> 20000 </spring_coeff>
+   <damping_coeff unit="LBS/FT/SEC"> 1500 </damping_coeff>
+  </contact>
+  <contact type="STRUCTURE" name="RIGHT_WINGTIP">
+   <location unit="IN">
+    <x> 162.48 </x>
+    <y> 230.4 </y>
+    <z> -4.08 </z>
+   </location>
+   <static_friction> 0.4 </static_friction>
+   <dynamic_friction> 0.4 </dynamic_friction>
+   <spring_coeff unit="LBS/FT"> 20000 </spring_coeff>
+   <damping_coeff unit="LBS/FT/SEC"> 1500 </damping_coeff>
+  </contact>
+  <contact type="STRUCTURE" name="LEFT_STABILATOR_TIP">
+   <location unit="IN">
+    <x> 336.48 </x>
+    <y> -98.4 </y>
+    <z> -7.92 </z>
+   </location>
+   <static_friction> 0.4 </static_friction>
+   <dynamic_friction> 0.4 </dynamic_friction>
+   <spring_coeff unit="LBS/FT"> 20000 </spring_coeff>
+   <damping_coeff unit="LBS/FT/SEC"> 1500 </damping_coeff>
+  </contact>
+  <contact type="STRUCTURE" name="RIGHT_STABILATOR_TIP">
+   <location unit="IN">
+    <x> 336.48 </x>
+    <y> 98.4 </y>
+    <z> -7.92 </z>
+   </location>
+   <static_friction> 0.4 </static_friction>
+   <dynamic_friction> 0.4 </dynamic_friction>
+   <spring_coeff unit="LBS/FT"> 20000 </spring_coeff>
+   <damping_coeff unit="LBS/FT/SEC"> 1500 </damping_coeff>
+  </contact>
+  <contact type="STRUCTURE" name="FIN_TOP">
+   <location unit="IN">
+    <x> 322.8 </x>
+    <y> 0 </y>
+    <z> 120.12 </z>
+   </location>
+   <static_friction> 0.4 </static_friction>
+   <dynamic_friction> 0.4 </dynamic_friction>
+   <spring_coeff unit="LBS/FT"> 20000 </spring_coeff>
+   <damping_coeff unit="LBS/FT/SEC"> 1500 </damping_coeff>
+  </contact>
+ </ground_reactions>
+
+ <!--
+  Two J79 engines (Engines/J79.xml), left then right. Fore and aft and sideways each one's thrust acts at
+  the model's engine exit (Wings, nozzles_ft: 16.16 ft behind the centre of gravity, 2.17 ft out;
+  tests/model.test.js holds it within an inch). In height and direction it is Wings' rule
+  (src/sim/sim.js: "thrust along the nose through the CG"): along the body's axis, at the centre of gravity's
+  height, so power does not pitch the nose. (The data-built jet has NASA's thrust line, tilted 5.25
+  degrees and 0.37 ft above the centre of gravity.)
+  One tank at the centre of gravity holds the fuel that makes up the weight; the game freezes it.
+ -->
+ <propulsion>
+  <engine file="J79">
+   <feed> 0 </feed>
+   <thruster file="direct">
+    <location unit="IN">
+     <x> 193.92 </x>
+     <y> -26.04 </y>
+     <z> 0 </z>
+    </location>
+    <orient unit="DEG">
+     <roll> 0 </roll>
+     <pitch> 0 </pitch>
+     <yaw> 0 </yaw>
+    </orient>
+   </thruster>
+  </engine>
+  <engine file="J79">
+   <feed> 0 </feed>
+   <thruster file="direct">
+    <location unit="IN">
+     <x> 193.92 </x>
+     <y> 26.04 </y>
+     <z> 0 </z>
+    </location>
+    <orient unit="DEG">
+     <roll> 0 </roll>
+     <pitch> 0 </pitch>
+     <yaw> 0 </yaw>
+    </orient>
+   </thruster>
+  </engine>
+  <tank type="FUEL">
+   <location unit="IN">
+    <x> 0 </x>
+    <y> 0 </y>
+    <z> 0 </z>
+   </location>
+   <capacity unit="LBS"> 13000 </capacity>
+   <contents unit="LBS"> 8924 </contents>
+  </tank>
+ </propulsion>
+
+ <!--
+  THE NUMBERS: how it flies. aircraft/simple/aero.xml says what each one does.
+ -->
+ <system name="numbers">
+  <!-- == Lift == -->
+  <!-- Stall speed clean, knots: Wings' card (stall_clean_kt). The data-built jet's is 140. -->
+  <property value="145"> simple/stall-clean-kt </property>
+  <!-- Stall speed with gear and full flaps, knots: Wings' card (stall_landing_kt); T.O., figure 6-1: 122 to 126 at 38,000 lb. -->
+  <property value="125"> simple/stall-landing-kt </property>
+  <!--
+   Lift for each radian of angle of attack: Wings (card.js, liftSlope: a wing of aspect ratio 2.78 swept 45
+   degrees, at low speed). With the stall speed it puts the stall at 21.7 degrees of angle of attack; the
+   data-built jet's nose slice begins at 22.
+  -->
+  <property value="2.726"> simple/lift-slope </property>
+  <!-- The lift falls away over 6 degrees past the stall angle: Wings' card (stall_sharpness 0.5, the middle of 10 to 2). -->
+  <property value="6"> simple/stall-width-deg </property>
+  <!-- Fully stalled it still makes a flat plate's lift: Wings (card.js, plateLift). The F-4's stall is a nose-high mush, not a break. -->
+  <property value="0.85"> simple/mush-lift </property>
+
+  <!-- == Drag == -->
+  <!-- Its own drag, below the drag rise: Wings (card.js, SUBSONIC_CD0: "a clean jet fighter's own drag"). -->
+  <property value="0.022"> simple/drag-clean </property>
+  <!--
+   Its own drag above the drag rise. Set so that both top speeds come out in full afterburner: 766 knots at
+   sea level (the flight manual's limit is 750; the data-built jet 754) and Mach 2.24 at 40,000 ft (Wings'
+   card: 2.2): tests/simple-f4c.test.js, the top speed line. Wings works its own out from its two top speeds.
+  -->
+  <property value="0.047"> simple/drag-supersonic </property>
+  <!--
+   The drag that comes with lift, below the drag rise. Set so that energy matters (tests/simple-f4c.test.js):
+   a full-back turn through 180 degrees from 450 knots in full afterburner comes out about 105 knots slower
+   (the hard turn line); a 4 g tilt held from 450 knots loops it, over the top near 300 knots, and no held
+   tilt loops it from 250 in MIL (the loop line); and it sustains about 6.1 g at 450 knots low down
+   (reported). Between Wings' own, 0.153 from the wing's shape (it would sustain 6.9 g there), and what
+   NASA CR-2144's lift and drag imply with this thrust, about 0.33 (4.8 g; the data-built jet holds 4.2,
+   which the findings call too much drag). The first number to move if a turn costs too little or too much.
+  -->
+  <property value="0.2"> simple/drag-in-a-pull </property>
+  <!-- Above the drag rise: Wings' rule there is 1 over the lift slope, 0.32 at Mach 1.2 rising to 0.43 at Mach 2; one figure between. -->
+  <property value="0.35"> simple/drag-in-a-pull-supersonic </property>
+  <!-- The gear, full flaps and the open speedbrakes: Wings' card (gear_drag, flap_drag and speedbrake_drag, each 0.5: the middle of its range). -->
+  <property value="0.025"> simple/drag-gear </property>
+  <property value="0.05"> simple/drag-flaps </property>
+  <property value="0.06"> simple/drag-boards </property>
+  <!--
+   The open speedbrakes push the nose down a little: Wings (card.js, speedbrake: their drag acting halfway
+   between the centre of gravity and the panels, 1.245 ft below it, the owner's choice of 17 November 2026):
+   0.06 x 1.245 ft over the 16.04 ft chord.
+  -->
+  <property value="-0.0047"> simple/boards-pitch </property>
+
+  <!-- == Pitch == -->
+  <!-- Phone level holds 350 knots, clean: Wings' card (neutral_speed_kt), the owner's figure. -->
+  <property value="350"> simple/trim-speed-kt </property>
+  <!-- Full back tilt above corner speed (423 knots: 145 times the square root of 8.5): Wings' card (g_limit); T.O., figure 5-1: 8.5 g. -->
+  <property value="8.5"> simple/g-limit </property>
+  <!-- Full forward tilt when fast: Wings (card.js, gDown: 0.35 of the g limit). -->
+  <property value="3"> simple/g-limit-push </property>
+  <!-- Full back tilt when slow holds 1.2 times the stall angle, so the wing stalls when asked: Wings (aero.js, elevatorPower). -->
+  <property value="1.2"> simple/full-back-over-stall </property>
+  <!--
+   The tail's power, stabilator at full travel nose up. Set so that full back tilt lifts the nosewheel at the
+   owner's 150 knots on 1/2 flaps in full afterburner (148 knots: tests/simple-f4c.test.js, the rotation
+   line). The same number makes the nose's stiffness (aircraft/simple/aero.xml), about twice Wings': one
+   plain set of numbers does both jobs, so Wings' extra bite on the runway is not needed (the plan's first
+   risk). A rough sum agrees: at 150 knots the main wheels, 3.52 ft behind the centre of gravity, still
+   carry 31,700 lb, which takes a moment of 0.18 of the wing's; the tail gives 0.153 and the nose's own
+   pull up toward its trim angle the rest.
+  -->
+  <property value="0.153"> simple/tail-power </property>
+  <!-- The stabilator's travel, 21 degrees trailing edge up and 9 down: the real jet's and the model's (docs/models.md; the data-built file). -->
+  <property value="21"> simple/elevator-up-deg </property>
+  <property value="9"> simple/elevator-down-deg </property>
+  <!--
+   Pitch damping: on the pitch rate, and on the angle of attack changing. Set so that the nose settles after
+   a step of the stick with no overshoot low down and under 10% at 40,000 ft
+   (tests/simple-f4c-reported.test.js prints it). Wings has -2 and -8; on this stiffer nose those overshoot
+   9% at 2,000 ft and up to 46% at 40,000 ft, and the findings' pilot model bounced on 30%.
+  -->
+  <property value="-6"> simple/pitch-damping </property>
+  <property value="-16"> simple/pitch-damping-alpha </property>
+
+  <!-- == Roll == -->
+  <!-- Full tilt rolls it 180 degrees a second at 400 knots: Wings' card (roll_rate_dps at roll_rate_at_kt). -->
+  <property value="180"> simple/roll-rate-dps </property>
+  <property value="400"> simple/roll-rate-at-kt </property>
+  <!-- Each aileron's travel: the real jet's 30 degrees (the data-built file). -->
+  <property value="30"> simple/aileron-deg </property>
+  <!-- The wing's roll damping: what Wings' two-half wing gives (card.js: "about -0.29 here, typical of a fighter"). -->
+  <property value="-0.29"> simple/roll-damping </property>
+  <!--
+   A stalled wing keeps a quarter of its ailerons' power. Set so that a sloppy stall can drop a wing, and
+   letting go recovers it (tests/simple-f4c.test.js, the sloppy stall line): full back and full right tilt
+   held 5 s in the stall bank it about 55 degrees; let go, it is flying again in half a second, upright. At
+   a half, the same 5 s put it past 90 degrees and it came out in a dive that took 13 s to come upright.
+  -->
+  <property value="0.25"> simple/stalled-aileron </property>
+  <!-- A sideslip rolls it away from the slip: Wings (card.js, Clb). -->
+  <property value="-0.08"> simple/dihedral </property>
+
+  <!-- == Yaw == -->
+  <!-- The fin's and body's sideways push, the fin's swing into a sideslip, and its damping: Wings (card.js: CYb, Cnb, Cnr). -->
+  <property value="-0.7"> simple/side-force </property>
+  <property value="0.12"> simple/yaw-stiffness </property>
+  <property value="-0.3"> simple/yaw-damping </property>
+  <!-- Full rudder holds about 6 degrees of sideslip: Wings (card.js, rudder.cn: 0.12 x 6 degrees). The rudder's travel is the real jet's 30 degrees. -->
+  <property value="0.0126"> simple/rudder-power </property>
+  <property value="30"> simple/rudder-deg </property>
+  <!-- Full aileron swings the nose the wrong way a little: Wings (card.js, adverseYaw: 0.07 of the aileron's roll power). -->
+  <property value="0.002"> simple/adverse-yaw </property>
+ </system>
+
+ <!--
+  The airplane's own systems: the data-built file's, element for element (tests/simple-f4c.test.js holds
+  them identical): the throttles, with MIL at 0.8 of the game's throttle and an afterburner that lights
+  only once the engine turns at 97% or more (fcs/afterburner-norm is what the plumes read); the flaps, 8 s
+  down and 6 s up (the flight manual); the speedbrakes, 1.5 s (Wings); the gear, 4 s (Wings). The
+  data-built file has the reasons at each.
+ -->
+ <flight_control name="F-4C systems">
+
+  <property value="0.8"> fcs/mil-throttle-norm </property>
+
+  <channel name="Left throttle">
+   <fcs_function name="fcs/throttle-dry-norm">
+    <function>
+     <quotient>
+      <property> fcs/throttle-cmd-norm </property>
+      <property> fcs/mil-throttle-norm </property>
+     </quotient>
+    </function>
+    <clipto>
+     <min> 0 </min>
+     <max> 1 </max>
+    </clipto>
+   </fcs_function>
+   <fcs_function name="fcs/afterburner-asked-norm">
+    <function>
+     <quotient>
+      <difference>
+       <property> fcs/throttle-cmd-norm </property>
+       <property> fcs/mil-throttle-norm </property>
+      </difference>
+      <difference>
+       <value> 1 </value>
+       <property> fcs/mil-throttle-norm </property>
+      </difference>
+     </quotient>
+    </function>
+    <clipto>
+     <min> 0 </min>
+     <max> 1 </max>
+    </clipto>
+   </fcs_function>
+   <switch name="fcs/afterburner-norm">
+    <default value="0"/>
+    <test value="fcs/afterburner-asked-norm">
+     propulsion/engine[0]/n2 ge 97
+    </test>
+   </switch>
+   <summer name="fcs/throttle-to-engine">
+    <input> fcs/throttle-dry-norm </input>
+    <input> fcs/afterburner-norm </input>
+    <output> fcs/throttle-pos-norm </output>
+   </summer>
+  </channel>
+
+  <channel name="Right throttle">
+   <fcs_function name="fcs/throttle-dry-norm[1]">
+    <function>
+     <quotient>
+      <property> fcs/throttle-cmd-norm[1] </property>
+      <property> fcs/mil-throttle-norm </property>
+     </quotient>
+    </function>
+    <clipto>
+     <min> 0 </min>
+     <max> 1 </max>
+    </clipto>
+   </fcs_function>
+   <fcs_function name="fcs/afterburner-asked-norm[1]">
+    <function>
+     <quotient>
+      <difference>
+       <property> fcs/throttle-cmd-norm[1] </property>
+       <property> fcs/mil-throttle-norm </property>
+      </difference>
+      <difference>
+       <value> 1 </value>
+       <property> fcs/mil-throttle-norm </property>
+      </difference>
+     </quotient>
+    </function>
+    <clipto>
+     <min> 0 </min>
+     <max> 1 </max>
+    </clipto>
+   </fcs_function>
+   <switch name="fcs/afterburner-norm[1]">
+    <default value="0"/>
+    <test value="fcs/afterburner-asked-norm[1]">
+     propulsion/engine[1]/n2 ge 97
+    </test>
+   </switch>
+   <summer name="fcs/throttle-to-engine[1]">
+    <input> fcs/throttle-dry-norm[1] </input>
+    <input> fcs/afterburner-norm[1] </input>
+    <output> fcs/throttle-pos-norm[1] </output>
+   </summer>
+  </channel>
+
+  <channel name="Flaps">
+   <actuator name="fcs/flap-actuator">
+    <input> fcs/flap-cmd-norm </input>
+    <rate_limit sense="incr"> 0.125 </rate_limit>
+    <rate_limit sense="decr"> 0.16666666666666666 </rate_limit>
+    <clipto>
+     <min> 0 </min>
+     <max> 1 </max>
+    </clipto>
+    <output> fcs/flap-pos-norm </output>
+   </actuator>
+  </channel>
+
+  <channel name="Speedbrakes">
+   <actuator name="fcs/speedbrake-actuator">
+    <input> fcs/speedbrake-cmd-norm </input>
+    <rate_limit> 0.6666666666666666 </rate_limit>
+    <clipto>
+     <min> 0 </min>
+     <max> 1 </max>
+    </clipto>
+    <output> fcs/speedbrake-pos-norm </output>
+   </actuator>
+  </channel>
+
+  <channel name="Landing gear">
+   <kinematic name="fcs/gear-control">
+    <input> gear/gear-cmd-norm </input>
+    <traverse>
+     <setting>
+      <position> 0 </position>
+      <time> 0 </time>
+     </setting>
+     <setting>
+      <position> 1 </position>
+      <time> 4 </time>
+     </setting>
+    </traverse>
+    <output> gear/gear-pos-norm </output>
+   </kinematic>
+  </channel>
+
+ </flight_control>
+
+ <!-- The shared control run: stick to stabilator, ailerons and rudder, through one curve against speed. -->
+ <system file="../simple/controls"/>
+
+ <!-- The shared simple physics. -->
+ <aerodynamics file="../simple/aero.xml"/>
+
+</fdm_config>

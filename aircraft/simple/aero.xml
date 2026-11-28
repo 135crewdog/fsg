@@ -1,0 +1,342 @@
+<?xml version="1.0"?>
+<!--
+  The simple physics: the one set of rules every simple airplane flies by, for JSBSim v1.3.3. FSG's own
+  file: new in FSG, milestone 3 re-planned (docs/milestones/3-replan.md, pull request 3). An airplane's own
+  file (aircraft/f4c-simple/f4c-simple.xml is the first) loads it with
+      <aerodynamics file="../simple/aero.xml"/>
+  and declares the numbers below. Nothing here belongs to one airplane.
+
+  What it is. Lift, drag and three turning moments as plain forces, worked out from thirty-four
+  numbers of the kind a spec sheet has (stall speeds, trim speed, g limit, roll rate) and a few set by
+  feel. It stalls, it bleeds speed in a hard turn, and it comes back to its trim speed. Nothing is scripted.
+
+  Where the rules came from. Wings (135crewdog/wings, src/sim/aero.js and src/sim/card.js, commit 6d689b7),
+  whose F-4C the owner flew and liked. Its code is not copied: each rule is written again as a JSBSim
+  function, and where one was made simpler on the way, the rule below says so.
+    Lift       Wings' lift curve: straight up to the most lift, at the stall angle, then a drop over a few
+               degrees onto a flat plate's lift (a mush). The most lift comes from the stall speed: at the
+               stall, lift equals weight (card.js, CLmax). Flaps lift the whole curve by what the landing
+               stall speed says, and the stall angle stays where it was (aero.js, liftCurve). Simpler than
+               Wings: one wing, not two halves, so no wing drops by itself and nothing autorotates; and
+               stalled air attaches again the moment the angle comes back.
+    Drag       The airplane's own drag, more of it through Mach 1 (Wings' drag rise, Mach 0.85 to 1.05),
+               plus the drag that comes with lift, as lift squared, plus the gear's, the flaps' and the
+               speedbrakes'. Stalled: a flat plate's drag. Simpler than Wings: above the drag rise the two
+               drag numbers are flat, where Wings has a line through two top speeds and a lift slope that
+               changes with Mach; and there is no ground effect.
+    Pitch      The nose comes back to the angle of attack that holds the trim speed (Wings: Cm0 and Cma,
+               "Stick neutral, the airplane balances at the lift it needs at the neutral speed"), with
+               Wings' two kinds of damping. The tail's push is in proportion to the stabilator's angle.
+               How stiff the nose is follows from the tail: full back stick, when slow, holds a little past
+               the stall angle (Wings: 1.2 times). Flaps lift without pitching (Wings). Simpler than Wings:
+               no extra bite on the runway (card.js, rotateBite): one tail power lifts the nosewheel and
+               stops the pull in the air, and the nose is about twice as stiff as Wings' for it.
+    Roll, yaw  Wings' plain numbers for the wing's and the fin's effects (card.js: CYb, Clb, Cnb, Cnr), the
+               roll damping its two-half wing gave (about -0.29), and aileron power sized so that full
+               stick gives the roll rate at its speed. A stalled wing loses most of its ailerons' power
+               (new here: one number; Wings' two halves stalled one at a time and could spin).
+  The control run (aircraft/simple/controls.xml) puts the surfaces where the tilt asks, through one curve
+  against speed. This file reads the surfaces, as the air does.
+
+  THE NUMBERS AN AIRPLANE'S FILE DECLARES, each as <property value="..."> simple/... </property>:
+    Lift
+      simple/stall-clean-kt        stall speed clean, knots (calibrated, 1 g, sea level)
+      simple/stall-landing-kt      stall speed with full flaps, knots
+      simple/lift-slope            lift for each radian of angle of attack: with the stall speed it sets the stall angle
+      simple/stall-width-deg       how many degrees past the stall angle the lift takes to fall away: small is a sharp stall
+      simple/mush-lift             the most lift a fully stalled wing still makes (a flat plate: about 0.85)
+    Drag
+      simple/drag-clean            the airplane's own drag, below Mach 0.85: with the thrust it sets the top speed low down
+      simple/drag-supersonic       the same above Mach 1.05: it sets the top speed up high
+      simple/drag-in-a-pull        the drag that comes with lift, below Mach 0.85: how much speed a hard turn costs
+      simple/drag-in-a-pull-supersonic   the same above Mach 1.05
+      simple/drag-gear, simple/drag-flaps, simple/drag-boards   what the gear, full flaps and open speedbrakes add
+      simple/boards-pitch          how the open speedbrakes pitch the nose (negative: down)
+    Pitch
+      simple/trim-speed-kt         the speed it holds with the stick at neutral, clean, knots
+      simple/g-limit               the g that full back stick asks for above corner speed
+      simple/g-limit-push          the negative g that full forward stick asks for when fast
+      simple/full-back-over-stall  full back stick, slow, holds this many times the stall angle (Wings: 1.2)
+      simple/tail-power            how hard the stabilator pushes at full travel nose up: with the wheels' place it sets the rotation speed
+      simple/elevator-up-deg       the stabilator's travel, trailing edge up (stick back), degrees
+      simple/elevator-down-deg     its travel the other way, degrees: forward stick has this share of the back stick's power
+      simple/pitch-damping         how much the air resists the nose pitching (negative)
+      simple/pitch-damping-alpha   how much it resists the angle of attack changing: settles the nose, costs no g (negative)
+    Roll
+      simple/roll-rate-dps         the roll rate full stick gives, degrees a second, at ...
+      simple/roll-rate-at-kt       ... this speed, knots. Faster, the ailerons move less and the rate holds
+      simple/aileron-deg           each aileron's travel, degrees
+      simple/roll-damping          how much the wing resists rolling (negative)
+      simple/stalled-aileron       the share of the ailerons' power left on a stalled wing, 0 to 1
+      simple/dihedral              how a sideslip rolls it (negative: away from the slip, the stable way)
+    Yaw
+      simple/side-force            the sideways push of a sideslip (negative)
+      simple/yaw-stiffness         how hard the fin swings the nose into a sideslip
+      simple/yaw-damping           how much the air resists the nose swinging (negative)
+      simple/rudder-power          the swing full rudder gives
+      simple/rudder-deg            the rudder's travel each way, degrees
+      simple/adverse-yaw           how much full aileron swings the nose the wrong way
+  The airplane's own file also gives JSBSim its wing area, span and chord (metrics), its weight and
+  inertias, its wheels and its engines.
+
+  What this file gives back, for the control run, the tests and the game's settings:
+      simple/stall-angle-rad   the stall angle (the tests' "stalled" is an angle of attack beyond it)
+      simple/trim-angle-rad    the angle of attack that holds the trim speed
+      simple/nose-stiffness    how hard the nose is pulled back to that angle (negative)
+      simple/stalled           0 flying, 1 fully stalled
+      simple/corner-speed-kt   the stall speed times the square root of the g limit
+
+  Units and signs are JSBSim's: angles in radians unless a name says degrees, speeds in ft/s, forces in lb.
+  A surface's angle is positive trailing edge down (the rudder: left), so a stabilator angle that pulls
+  the nose up is negative.
+-->
+<aerodynamics>
+
+ <!-- ==== the air ==== -->
+
+ <!-- Dynamic pressure, lb/sq ft, for each knot squared at sea level: half the sea-level density, 0.0023769 slug/cu ft, times 1.68781 squared. -->
+ <function name="simple/q-per-kt2">
+  <value> 0.0033855 </value>
+ </function>
+ <!-- The true airspeed, never less than 30 ft/s: the damping terms divide by it. -->
+ <function name="simple/v-fps">
+  <max> <property> velocities/vt-fps </property> <value> 30 </value> </max>
+ </function>
+ <!-- Half the span, and half the chord, over the speed: what turns a roll, yaw or pitch rate into a fraction. -->
+ <function name="simple/b2v">
+  <quotient> <property> metrics/bw-ft </property> <product> <value> 2 </value> <property> simple/v-fps </property> </product> </quotient>
+ </function>
+ <function name="simple/c2v">
+  <quotient> <property> metrics/cbarw-ft </property> <product> <value> 2 </value> <property> simple/v-fps </property> </product> </quotient>
+ </function>
+ <!-- Dynamic pressure times wing area, lb, never less than 1. -->
+ <function name="simple/qs">
+  <max> <product> <property> aero/qbar-psf </property> <property> metrics/Sw-sqft </property> </product> <value> 1 </value> </max>
+ </function>
+
+ <!-- ==== lift ==== -->
+
+ <!-- The most lift, clean: at the clean stall speed, at sea level, lift equals weight. -->
+ <function name="simple/lift-max">
+  <quotient>
+   <property> inertia/weight-lbs </property>
+   <product> <property> simple/q-per-kt2 </property> <property> simple/stall-clean-kt </property> <property> simple/stall-clean-kt </property> <property> metrics/Sw-sqft </property> </product>
+  </quotient>
+ </function>
+ <!-- The most lift with full flaps, from the landing stall speed the same way; what the flaps add now is their share of the difference. -->
+ <function name="simple/lift-max-landing">
+  <quotient>
+   <property> inertia/weight-lbs </property>
+   <product> <property> simple/q-per-kt2 </property> <property> simple/stall-landing-kt </property> <property> simple/stall-landing-kt </property> <property> metrics/Sw-sqft </property> </product>
+  </quotient>
+ </function>
+ <function name="simple/lift-flaps">
+  <product>
+   <difference> <property> simple/lift-max-landing </property> <property> simple/lift-max </property> </difference>
+   <property> fcs/flap-pos-norm </property>
+  </product>
+ </function>
+ <!-- The stall angle: where the straight part of the lift curve reaches the most lift. Flaps do not move it. -->
+ <function name="simple/stall-angle-rad">
+  <quotient> <property> simple/lift-max </property> <property> simple/lift-slope </property> </quotient>
+ </function>
+ <!-- The lift that holds level flight at the trim speed, and the angle of attack that makes it. -->
+ <function name="simple/lift-trim">
+  <quotient>
+   <property> inertia/weight-lbs </property>
+   <product> <property> simple/q-per-kt2 </property> <property> simple/trim-speed-kt </property> <property> simple/trim-speed-kt </property> <property> metrics/Sw-sqft </property> </product>
+  </quotient>
+ </function>
+ <function name="simple/trim-angle-rad">
+  <quotient> <property> simple/lift-trim </property> <property> simple/lift-slope </property> </quotient>
+ </function>
+ <function name="simple/corner-speed-kt">
+  <product> <property> simple/stall-clean-kt </property> <pow> <property> simple/g-limit </property> <value> 0.5 </value> </pow> </product>
+ </function>
+
+ <!-- How stalled the wing is: 0 up to the stall angle, 1 from stall-width-deg beyond it, a smooth step between (Wings' smoothstep), nose up or down alike. -->
+ <function name="simple/stall-x">
+  <max>
+   <value> 0 </value>
+   <min>
+    <value> 1 </value>
+    <quotient>
+     <difference> <abs> <property> aero/alpha-rad </property> </abs> <property> simple/stall-angle-rad </property> </difference>
+     <product> <property> simple/stall-width-deg </property> <value> 0.0174533 </value> </product>
+    </quotient>
+   </min>
+  </max>
+ </function>
+ <function name="simple/stalled">
+  <product>
+   <property> simple/stall-x </property> <property> simple/stall-x </property>
+   <difference> <value> 3 </value> <product> <value> 2 </value> <property> simple/stall-x </property> </product> </difference>
+  </product>
+ </function>
+ <!-- Flying: lift in proportion to the angle of attack, plus the flaps', and no more than the most lift (nose down: the clean most lift, upside down). -->
+ <function name="simple/lift-flying">
+  <max>
+   <product> <value> -1 </value> <property> simple/lift-max </property> </product>
+   <min>
+    <sum> <property> simple/lift-max </property> <property> simple/lift-flaps </property> </sum>
+    <sum> <product> <property> simple/lift-slope </property> <property> aero/alpha-rad </property> </product> <property> simple/lift-flaps </property> </sum>
+   </min>
+  </max>
+ </function>
+ <!-- Stalled: a flat plate's lift, most at 45 degrees, none at 90. -->
+ <function name="simple/lift-stalled">
+  <product> <property> simple/mush-lift </property> <sin> <product> <value> 2 </value> <property> aero/alpha-rad </property> </product> </sin> </product>
+ </function>
+ <function name="simple/lift">
+  <sum>
+   <product> <difference> <value> 1 </value> <property> simple/stalled </property> </difference> <property> simple/lift-flying </property> </product>
+   <product> <property> simple/stalled </property> <property> simple/lift-stalled </property> </product>
+  </sum>
+ </function>
+
+ <!-- ==== drag ==== -->
+
+ <!-- The drag rise: 0 below Mach 0.85, 1 from Mach 1.05, a smooth step between (Wings' MACH_DD and MACH_WAVE). -->
+ <function name="simple/mach-x">
+  <max> <value> 0 </value> <min> <value> 1 </value> <quotient> <difference> <property> velocities/mach </property> <value> 0.85 </value> </difference> <value> 0.2 </value> </quotient> </min> </max>
+ </function>
+ <function name="simple/mach-rise">
+  <product>
+   <property> simple/mach-x </property> <property> simple/mach-x </property>
+   <difference> <value> 3 </value> <product> <value> 2 </value> <property> simple/mach-x </property> </product> </difference>
+  </product>
+ </function>
+ <!-- The airplane's own drag: clean, more through Mach 1, plus what hangs out in the air. -->
+ <function name="simple/drag-own">
+  <sum>
+   <property> simple/drag-clean </property>
+   <product> <property> simple/mach-rise </property> <difference> <property> simple/drag-supersonic </property> <property> simple/drag-clean </property> </difference> </product>
+   <product> <property> simple/drag-gear </property> <property> gear/gear-pos-norm </property> </product>
+   <product> <property> simple/drag-flaps </property> <property> fcs/flap-pos-norm </property> </product>
+   <product> <property> simple/drag-boards </property> <property> fcs/speedbrake-pos-norm </property> </product>
+  </sum>
+ </function>
+ <!-- The drag that comes with lift, for each unit of lift squared. -->
+ <function name="simple/drag-per-lift2">
+  <sum>
+   <property> simple/drag-in-a-pull </property>
+   <product> <property> simple/mach-rise </property> <difference> <property> simple/drag-in-a-pull-supersonic </property> <property> simple/drag-in-a-pull </property> </difference> </product>
+  </sum>
+ </function>
+ <!-- All of it. Flying: lift squared. Stalled: a flat plate's drag, twice the mush lift times the sine of the angle squared (Wings). -->
+ <function name="simple/drag">
+  <sum>
+   <property> simple/drag-own </property>
+   <product> <difference> <value> 1 </value> <property> simple/stalled </property> </difference> <property> simple/drag-per-lift2 </property> <property> simple/lift-flying </property> <property> simple/lift-flying </property> </product>
+   <product> <property> simple/stalled </property> <value> 2 </value> <property> simple/mush-lift </property> <sin> <property> aero/alpha-rad </property> </sin> <sin> <property> aero/alpha-rad </property> </sin> </product>
+  </sum>
+ </function>
+
+ <!-- ==== pitch ==== -->
+
+ <!-- The angle of attack full back stick holds when slow: a little past the stall. -->
+ <function name="simple/full-back-angle-rad">
+  <product> <property> simple/full-back-over-stall </property> <property> simple/stall-angle-rad </property> </product>
+ </function>
+ <!--
+  How stiff the nose is: the pull back toward the trim angle for each unit of the sine of the angle of
+  attack. It follows from the tail: with the stabilator at full travel the nose settles at the full-back
+  angle, so the stiffness is the tail's power over the way from the trim angle to there.
+ -->
+ <function name="simple/nose-stiffness">
+  <quotient>
+   <product> <value> -1 </value> <property> simple/tail-power </property> </product>
+   <difference> <sin> <property> simple/full-back-angle-rad </property> </sin> <sin> <property> simple/trim-angle-rad </property> </sin> </difference>
+  </quotient>
+ </function>
+ <!-- The tail: its power at full travel nose up, in proportion to the stabilator's angle (negative is trailing edge up, nose up). -->
+ <function name="simple/tail">
+  <product>
+   <value> -1 </value> <property> simple/tail-power </property>
+   <quotient> <property> fcs/elevator-pos-deg </property> <property> simple/elevator-up-deg </property> </quotient>
+  </product>
+ </function>
+ <function name="simple/pitch">
+  <sum>
+   <product> <property> simple/nose-stiffness </property> <difference> <sin> <property> aero/alpha-rad </property> </sin> <sin> <property> simple/trim-angle-rad </property> </sin> </difference> </product>
+   <product> <property> simple/pitch-damping </property> <property> velocities/q-aero-rad_sec </property> <property> simple/c2v </property> </product>
+   <product> <property> simple/pitch-damping-alpha </property> <property> aero/alphadot-rad_sec </property> <property> simple/c2v </property> </product>
+   <property> simple/tail </property>
+   <product> <property> simple/boards-pitch </property> <property> fcs/speedbrake-pos-norm </property> </product>
+  </sum>
+ </function>
+
+ <!-- ==== roll and yaw ==== -->
+
+ <!--
+  The aileron's power at full travel: what balances the wing's roll damping at the roll rate, at its speed
+  (a steady roll: the two cancel). Sea level, so the speed in ft/s is the knots times 1.6878.
+ -->
+ <function name="simple/aileron-power">
+  <product>
+   <value> -1 </value> <property> simple/roll-damping </property>
+   <property> simple/roll-rate-dps </property> <value> 0.0174533 </value>
+   <quotient> <property> metrics/bw-ft </property> <product> <value> 2 </value> <property> simple/roll-rate-at-kt </property> <value> 1.6878 </value> </product> </quotient>
+  </product>
+ </function>
+ <!-- How far over the ailerons are, -1 to 1: the left one's angle over its travel (it goes down for a roll to the right). -->
+ <function name="simple/aileron">
+  <quotient> <property> fcs/left-aileron-pos-deg </property> <property> simple/aileron-deg </property> </quotient>
+ </function>
+ <!-- The rudder the same way, positive nose right (JSBSim's angle is positive trailing edge left). -->
+ <function name="simple/rudder">
+  <quotient> <product> <value> -1 </value> <property> fcs/rudder-pos-deg </property> </product> <property> simple/rudder-deg </property> </quotient>
+ </function>
+ <function name="simple/roll">
+  <sum>
+   <product> <property> simple/dihedral </property> <property> aero/beta-rad </property> </product>
+   <product> <property> simple/roll-damping </property> <property> velocities/p-aero-rad_sec </property> <property> simple/b2v </property> </product>
+   <product>
+    <property> simple/aileron </property> <property> simple/aileron-power </property>
+    <difference> <value> 1 </value> <product> <property> simple/stalled </property> <difference> <value> 1 </value> <property> simple/stalled-aileron </property> </difference> </product> </difference>
+   </product>
+  </sum>
+ </function>
+ <function name="simple/yaw">
+  <sum>
+   <product> <property> simple/yaw-stiffness </property> <property> aero/beta-rad </property> </product>
+   <product> <property> simple/yaw-damping </property> <property> velocities/r-aero-rad_sec </property> <property> simple/b2v </property> </product>
+   <product> <property> simple/rudder-power </property> <property> simple/rudder </property> </product>
+   <product> <value> -1 </value> <property> simple/adverse-yaw </property> <property> simple/aileron </property> </product>
+  </sum>
+ </function>
+
+ <!-- ==== the forces and moments JSBSim adds up ==== -->
+
+ <axis name="LIFT">
+  <function name="aero/force/lift-lbs">
+   <product> <property> aero/qbar-psf </property> <property> metrics/Sw-sqft </property> <property> simple/lift </property> </product>
+  </function>
+ </axis>
+ <axis name="DRAG">
+  <function name="aero/force/drag-lbs">
+   <product> <property> aero/qbar-psf </property> <property> metrics/Sw-sqft </property> <property> simple/drag </property> </product>
+  </function>
+ </axis>
+ <axis name="SIDE">
+  <function name="aero/force/side-lbs">
+   <product> <property> aero/qbar-psf </property> <property> metrics/Sw-sqft </property> <property> simple/side-force </property> <property> aero/beta-rad </property> </product>
+  </function>
+ </axis>
+ <axis name="ROLL">
+  <function name="aero/moment/roll-lbsft">
+   <product> <property> aero/qbar-psf </property> <property> metrics/Sw-sqft </property> <property> metrics/bw-ft </property> <property> simple/roll </property> </product>
+  </function>
+ </axis>
+ <axis name="PITCH">
+  <function name="aero/moment/pitch-lbsft">
+   <product> <property> aero/qbar-psf </property> <property> metrics/Sw-sqft </property> <property> metrics/cbarw-ft </property> <property> simple/pitch </property> </product>
+  </function>
+ </axis>
+ <axis name="YAW">
+  <function name="aero/moment/yaw-lbsft">
+   <product> <property> aero/qbar-psf </property> <property> metrics/Sw-sqft </property> <property> metrics/bw-ft </property> <property> simple/yaw </property> </product>
+  </function>
+ </axis>
+
+</aerodynamics>
