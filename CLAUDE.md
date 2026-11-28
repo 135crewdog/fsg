@@ -219,6 +219,8 @@ Three words, used the same way everywhere (the owner's, 26 November 2026):
 - JSBSim v1.3.3's turbine gives full afterburner thrust the instant it is asked, has no "afterburner on" number to read, and its trim neither spools the engine nor moves the throttle beyond 0 to 1.
 - JSBSim's default stepping of rotations (rectangular Euler) takes damping off a quick swing at 120 steps a second: the F-4C's high, fast wobbles with its dampers off died away 25% to 45% slower than NASA's. The F-4C's settings ask for JSBSim's second-order rule (`stepping`), which matches NASA within 9%; the tape carries it to native JSBSim.
 - JSBSim loads an airplane's aerodynamics from a shared file in another folder (`<aerodynamics file="../simple/aero.xml"/>`) and reads numbers the airplane's own file declares.
+- JSBSim also loads a shared control run from the folder beside the airplane's (`<system file="../simple/controls"/>`).
+- With the shared aerodynamics file missing JSBSim does not fail the load, it dies: WebAssembly traps and that JSBSim is dead, and native JSBSim ends the process. (A missing control run or engine file fails the load cleanly.) So every shared file must be in `sw.js`.
 - Wings' F-4C, full back tilt held through the takeoff: off at 174 knots with the nose 9° up, at 40° and stalled 2 s later. Its own test pilot eases to 10°.
 
 ### iPhone platform rules (proven in Rage and Wings)

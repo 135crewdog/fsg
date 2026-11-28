@@ -173,7 +173,7 @@ function showDev() {
         (s.propellerRpm === null ? '' : `, ${whole(s.propellerRpm)} RPM`) +
         (s.engines === null ? '' : `, ${whole(s.engines.thrust.reduce((a, b) => a + b, 0))} lb`),   // a jet: both engines' thrust
       `sensor β ${fixed(tilt.raw.beta)} γ ${fixed(tilt.raw.gamma)} screen ${tilt.raw.screen}   tilt ${fixed(tilt.raw.pitch)}/${fixed(tilt.raw.roll)}`,
-      `stick ${fixed(tilt.stick.pitch, 2)} back, ${fixed(tilt.stick.roll, 2)} right   throttle ${fixed(pilot.throttle, 2)}`,   // the stick as held; what is sent has its middle made gentler
+      `stick ${fixed(tilt.stick.pitch, 2)} back, ${fixed(tilt.stick.roll, 2)} right   throttle ${fixed(pilot.throttle, 2)}`,   // the stick as held; what is sent is that for a simple airplane, and has its middle made gentler for the others (controlsFrom)
       touchdown ? `last touchdown: ${whole(touchdown.sinkFpm)} ft/min, ${whole(touchdown.knots)} kt, ${fixed(touchdown.g)} g` : 'last touchdown: none yet',
     );
   }

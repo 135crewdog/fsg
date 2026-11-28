@@ -2,6 +2,12 @@
 
 What changed in each version a player can see, newest first.
 
+## 0.0.24
+
+- A new F-4C, first in the Airplane picker and what a new install flies: a simpler Phantom, set up to be fun on a tilting phone. Phone level holds 350 knots, full back tilt is the g limit when fast and the stall when slow, and the tilt goes to the stick as a straight line. The one built from NASA data is still in the picker, as "F-4C (NASA data)", to fly beside it. If you picked an airplane before, it is still your airplane: pick "F-4C" on the pause screen to fly the new one.
+- On the runway, tilt steers: the rudder and the nosewheel, the nosewheel less the faster you roll. The wings stay level there: the ailerons do not move until the wheels leave, and then they come in over a third of a second.
+- Takeoff: full back tilt to rotate (the nosewheel lifts at about 150 knots), then ease it once it flies, to hold the climb. Held full back, it pitches up steeply and stalls.
+
 ## 0.0.23
 
 - An Airplane picker on the pause screen, under the switches, before a flight and when paused: the F-4C (NASA data) or JSBSim's Cessna 172, back for comparison with its propeller, its four flap settings and its Flaps and Brakes buttons. Picking one takes you back to the start screen with that airplane on the numbers, and it stays your airplane next time you open the app.

@@ -39,14 +39,45 @@ const base = `http://127.0.0.1:${server.address().port}/fsg/`;
 const browser = await chromium.launch();
 // Motion access is allowed, as a pilot who taps Allow: this Chromium answers the app's question as an iPhone does.
 const MOTION = ['accelerometer', 'gyroscope', 'magnetometer'];
-// The parts below until part 11 were written for the F-4C (milestone 3, pull request 8). Since the airplane picker
-// (milestone 3 re-planned, pull request 2) the app flies the pilot's saved choice, so each of their visits picks the
-// F-4C itself, as a pilot would, unless something on that visit has already picked: fsg.aircraft is set to "f4c"
-// only when nothing is saved. Part 11 is the picker's own.
+// The parts below until part 11 were written for the data-built F-4C (milestone 3, pull request 8). Since the airplane
+// picker (milestone 3 re-planned, pull request 2) the app flies the pilot's saved choice, so each of their visits picks
+// that F-4C itself, as a pilot would, unless something on that visit has already picked: fsg.aircraft is set to "f4c"
+// only when nothing is saved. (Since pull request 4 "f4c" is the picker's "F-4C (NASA data)", and with nothing saved
+// the app flies the simple F-4C.) Part 11 is the picker's own, and part 12 the simple F-4C's first flight.
 const f4cContext = async (options) => {
   const made = await browser.newContext(options);
   await made.addInitScript(() => { try { if (localStorage.getItem('fsg.aircraft') === null) localStorage.setItem('fsg.aircraft', 'f4c'); } catch { /* not yet on the page's origin */ } });
   return made;
+};
+// The made-up device (parts 10 and 12): Chromium has no tilt sensor, so the page is sent the same orientation events
+// a device sends, sixty a second. Held in landscape, leaning back 15 degrees, then tipped `back` (top edge toward the
+// pilot) and turned `clockwise`, in degrees, as window.held says. The sums are tests/tilt.test.js's, from the sensor's
+// definition. (Until pull request 4 this was written out in part 10; it is the same code.)
+const madeUpDevice = () => {
+  const D = Math.PI / 180;
+  window.held = { back: 0, clockwise: 0 };
+  const sensor = ([x, y, z]) => {
+    for (const beta of [Math.asin(y), Math.PI - Math.asin(y)]) {
+      const cb = Math.cos(beta);
+      if (Math.abs(cb) < 1e-9) return { beta: beta / D, gamma: 0 };
+      if (z / cb >= -1e-12) return { beta: beta / D, gamma: Math.atan2(-x / cb, z / cb) / D };
+    }
+    return { beta: 0, gamma: 0 };
+  };
+  // With `level` set, the made-up pilot holds the wings level with the tilt, as a pilot does in the climb.
+  let tick = 0, bias = 0;
+  setInterval(() => {
+    if (window.held.level && tick++ % 6 === 0) {
+      const roll = window.fsg.picture.reading?.roll ?? 0;
+      bias = Math.max(-15, Math.min(15, bias - roll * 0.04));
+      window.held.clockwise = Math.max(-25, Math.min(25, bias - roll * 0.5));
+    }
+    const { back, clockwise } = window.held, lean = (back - 15) * D, turn = clockwise * D;
+    const u = [-Math.sin(turn) * Math.cos(lean), Math.cos(turn) * Math.cos(lean), -Math.sin(lean)];
+    const angle = (((screen.orientation?.angle ?? 0) % 360) + 360) % 360, a = -angle * D, ca = Math.cos(a), sa = Math.sin(a);
+    const { beta, gamma } = sensor([ca * u[0] - sa * u[1], sa * u[0] + ca * u[1], u[2]]);
+    window.dispatchEvent(new DeviceOrientationEvent('deviceorientation', { alpha: 0, beta, gamma }));
+  }, 1000 / 60);
 };
 const context = await f4cContext({ viewport: { width: 852, height: 393 }, permissions: MOTION });   // an iPhone 16 in landscape
 const page = await context.newPage();
@@ -551,34 +582,9 @@ check(!js.error && js.build === 'weh' && (await text('#dev')).includes('wasm exc
     CanvasRenderingContext2D.prototype.fillText = function (words, ...args) { if (this.canvas.id === 'hud') drawing.push(String(words)); return fillText.call(this, words, ...args); };
   });
   await c.goto(base);
-  // The made-up device: held in landscape, leaning back 15 degrees, then tipped `back` (top edge toward the
+  // The made-up device (above): held in landscape, leaning back 15 degrees, then tipped `back` (top edge toward the
   // pilot) and turned `clockwise`, in degrees. The sums are tests/tilt.test.js's, from the sensor's definition.
-  await c.evaluate(() => {
-    const D = Math.PI / 180;
-    window.held = { back: 0, clockwise: 0 };
-    const sensor = ([x, y, z]) => {
-      for (const beta of [Math.asin(y), Math.PI - Math.asin(y)]) {
-        const cb = Math.cos(beta);
-        if (Math.abs(cb) < 1e-9) return { beta: beta / D, gamma: 0 };
-        if (z / cb >= -1e-12) return { beta: beta / D, gamma: Math.atan2(-x / cb, z / cb) / D };
-      }
-      return { beta: 0, gamma: 0 };
-    };
-    // With `level` set, the made-up pilot holds the wings level with the tilt, as a pilot does in the climb.
-    let tick = 0, bias = 0;
-    setInterval(() => {
-      if (window.held.level && tick++ % 6 === 0) {
-        const roll = window.fsg.picture.reading?.roll ?? 0;
-        bias = Math.max(-15, Math.min(15, bias - roll * 0.04));
-        window.held.clockwise = Math.max(-25, Math.min(25, bias - roll * 0.5));
-      }
-      const { back, clockwise } = window.held, lean = (back - 15) * D, turn = clockwise * D;
-      const u = [-Math.sin(turn) * Math.cos(lean), Math.cos(turn) * Math.cos(lean), -Math.sin(lean)];
-      const angle = (((screen.orientation?.angle ?? 0) % 360) + 360) % 360, a = -angle * D, ca = Math.cos(a), sa = Math.sin(a);
-      const { beta, gamma } = sensor([ca * u[0] - sa * u[1], sa * u[0] + ca * u[1], u[2]]);
-      window.dispatchEvent(new DeviceOrientationEvent('deviceorientation', { alpha: 0, beta, gamma }));
-    }, 1000 / 60);
-  });
+  await c.evaluate(madeUpDevice);
   const hold = (back, clockwise) => c.evaluate(([b, cw]) => { window.held = cw === 'level' ? { back: b, clockwise: window.held.clockwise, level: true } : { back: b, clockwise: cw }; }, [back, clockwise]);
   const now = () => c.evaluate(() => ({ ...window.fsg.picture, stick: window.fsg.stick, pilot: window.fsg.pilot, touchdown: window.fsg.touchdown, mode: window.fsg.mode, hudSays: window.hudSays }));
   const until = (test, arg, timeout = 90000) => c.waitForFunction(test, arg, { timeout, polling: 50 }).then(() => true, () => false);
@@ -1135,17 +1141,22 @@ check(!js.error && js.build === 'weh' && (await text('#dev')).includes('wasm exc
 //     back, and Fly puts the Cessna on the numbers with only Flaps and Brakes; reopen the app: still the Cessna, on the
 //     fast build; pick the F-4C: its five buttons and its plumes; a made-up saved name gives the first in the list;
 //     no console errors; it works after an offline reload. (The menu's fit with the row in it is part 10's last line.)
+//     Pull request 4 changed the list (docs/milestones/3-replan.md, PR 4): the simple F-4C is first, named "F-4C", and is
+//     what a visit with nothing saved flies. So here: three names where there were two; with nothing saved and with a
+//     made-up saved name, "f4c-simple" where it was "f4c"; and "pick the F-4C" is still the data-built one, its five
+//     buttons and its plumes, as before.
 {
-  const NAMES = ['F-4C (NASA data)', "Cessna 172 (JSBSim's)"];   // src/sim/aircraft/list.js
+  const NAMES = ['F-4C', 'F-4C (NASA data)', "Cessna 172 (JSBSim's)"];   // src/sim/aircraft/list.js
   const picking = await browser.newContext({ viewport: { width: 852, height: 393 }, deviceScaleFactor: 2, permissions: MOTION });
   const k = await picking.newPage();
   const pickErrs = [];
   k.on('pageerror', (error) => pickErrs.push(String(error)));
   k.on('console', (m) => { if (m.type() === 'error') pickErrs.push(m.text()); });
   // The first visit's F-4C files come slowly, so the time before Fly is ready can be watched: every 10 ms until Fly
-  // is enabled, whether the picker is live, and whether Fly and the picker go live in the same look.
+  // is enabled, whether the picker is live, and whether Fly and the picker go live in the same look. (Its airplane is
+  // the simple F-4C since pull request 4, so the slow files are everything under aircraft/.)
   let slow = true;
-  await picking.route('**/aircraft/f4c/**', async (route) => { if (slow) await new Promise((done) => setTimeout(done, 1500)); await route.continue(); });
+  await picking.route('**/aircraft/**', async (route) => { if (slow) await new Promise((done) => setTimeout(done, 1500)); await route.continue(); });
   await k.addInitScript(() => {
     window.pickerWatch = { looks: 0, liveEarly: 0, deadLate: 0 };
     const id = setInterval(() => {
@@ -1178,12 +1189,12 @@ check(!js.error && js.build === 'weh' && (await text('#dev')).includes('wasm exc
   const live = await row();
   check(early.fly && early.picker && watched.looks > 20 && watched.liveEarly === 0 && watched.deadLate === 0 && !live.disabled,
     'the Airplane row is disabled until Fly is enabled, and live with it', `${watched.looks} looks every 10 ms while Fly was not ready: live early in ${watched.liveEarly}, still dead once Fly was ready in ${watched.deadLate}; then ${live.disabled ? 'DISABLED' : 'live'}`);
-  check((await k.evaluate(() => window.fsg.aircraft)) === 'f4c' && live.value === 'f4c', 'with nothing saved, the first in the list: the F-4C', `${await k.evaluate(() => window.fsg.aircraft)}, the picker reads ${live.value}`);
+  check((await k.evaluate(() => window.fsg.aircraft)) === 'f4c-simple' && live.value === 'f4c-simple', 'with nothing saved, the first in the list: the simple F-4C', `${await k.evaluate(() => window.fsg.aircraft)}, the picker reads ${live.value}`);
   // Settings: the row is there, under the switches, no taller than a switch's row, in a font iOS does not zoom.
   await k.click('#settings');
   const before = await row();
-  check(before.shown && before.label === 'Airplane' && before.names.join(' | ') === NAMES.join(' | ') && before.models.join(' ') === 'f4c c172p',
-    'Settings, before a flight: the row "Airplane" shows, with the list\'s two airplanes', `${before.names.join(', ')}`);
+  check(before.shown && before.label === 'Airplane' && before.names.join(' | ') === NAMES.join(' | ') && before.models.join(' ') === 'f4c-simple f4c c172p',
+    'Settings, before a flight: the row "Airplane" shows, with the list\'s three airplanes', `${before.names.join(', ')}`);
   check(before.rowHeight <= 31 && before.rowHeight === before.switchRowHeight && before.font >= 16 && before.inCard, 'the row is as tall as a switch\'s, its font is 16 px or more, and it is inside the menu',
     `row ${before.rowHeight} px (a switch's row ${before.switchRowHeight}); font ${before.font} px; the picker ${before.selectWidth.toFixed(0)} px wide`);
   if (shots) await k.screenshot({ path: join(shots, 'picker-settings.png') });
@@ -1216,7 +1227,7 @@ check(!js.error && js.build === 'weh' && (await text('#dev')).includes('wasm exc
   await k.click('#pause');
   const paused = await row();
   check((await pick.mode()) === 'paused' && paused.shown && paused.value === 'c172p' && !paused.disabled && (await k.locator('#restart').isVisible()), 'paused: the row shows, reads the Cessna, and is live',
-    `"${paused.names[1]}" is ${paused.nameWidth.toFixed(1)} px wide in a picker with ${paused.room.toFixed(1)} px of room (reported: this browser's font is not the iPhone's)`);
+    `"${paused.names[2]}" is ${paused.nameWidth.toFixed(1)} px wide in a picker with ${paused.room.toFixed(1)} px of room (reported: this browser's font is not the iPhone's)`);
   if (shots) await k.screenshot({ path: join(shots, 'picker-paused.png') });
   // Reopen the app: still the Cessna, on the fast build.
   await k.reload();
@@ -1273,8 +1284,165 @@ check(!js.error && js.build === 'weh' && (await text('#dev')).includes('wasm exc
   await m.goto(base);
   await on(m).ready();
   const firstIs = await m.evaluate(() => ({ aircraft: window.fsg.aircraft, value: document.getElementById('aircraft').value }));
-  check(firstIs.aircraft === 'f4c' && firstIs.value === 'f4c' && (await on(m).fly()) && madeErrs.length === 0, 'a made-up saved name gives the first in the list, the F-4C, and it flies', `${firstIs.aircraft}; the picker reads ${firstIs.value}${madeErrs.length ? `; ${madeErrs.join(' | ')}` : ''}`);
+  check(firstIs.aircraft === 'f4c-simple' && firstIs.value === 'f4c-simple' && (await on(m).fly()) && madeErrs.length === 0, 'a made-up saved name gives the first in the list, the simple F-4C, and it flies', `${firstIs.aircraft}; the picker reads ${firstIs.value}${madeErrs.length ? `; ${madeErrs.join(' | ')}` : ''}`);
   await madeUp.close();
+}
+
+// 12. The simple F-4C's first flight (milestone 3 re-planned, pull request 4; docs/milestones/3-replan.md, PR 4). A visit of
+//     its own with nothing saved, as a new install has it, flown on the screen's own controls with the made-up tilt. The
+//     plan's lines: Fly shows the simple F-4C on the numbers, wheels within 1 in, flaps "1/2"; tilted right on the runway
+//     the rudder moves on the model and the ailerons do not; in the air the ailerons do; full afterburner and full back
+//     tilt, eased after liftoff: off between 150 and 190 knots; plumes lit; 0 console errors.
+//     How it is flown: parked on the brakes, the device is turned 20 degrees clockwise and back (the rudder, with no
+//     speed at all); then Brakes off and the throttle to the top; at 100 knots it is turned 20 degrees clockwise again
+//     for a moment (the rudder on the roll), and from then on the made-up pilot steers for the runway's heading with
+//     the tilt, as a pilot does, and tips the device full back (27 degrees; 25 is all of the stick) until every wheel
+//     is off; then eased to 4.3 degrees back (a tenth of the stick), the wings held level with the tilt; half a second
+//     later it is turned 10 degrees clockwise for a moment (the ailerons). Its pictures are taken at two device
+//     pixels to the point, as part 10's plumes are; the one on the roll is from a second roll, after a Restart, flown
+//     for the picture alone.
+//     (First written with the pictures taken in the one takeoff: this browser, drawing in software, takes three or
+//     four seconds over a picture at two pixels to the point, so the tilt meant for a moment at 100 knots was held to
+//     135 or 158 and the full back tilt went in at 186: off at 193 and 196 knots. The airplane was not at fault: a
+//     picture is no longer taken between 100 knots and the liftoff.)
+{
+  const fresh = await browser.newContext({ viewport: { width: 852, height: 393 }, serviceWorkers: 'block', permissions: MOTION });
+  const s = await fresh.newPage();
+  const errs = [];
+  s.on('pageerror', (error) => errs.push(String(error)));
+  s.on('console', (m) => { if (m.type() === 'error') errs.push(m.text()); });
+  await s.goto(base);
+  await s.evaluate(madeUpDevice);
+  // The made-up pilot's steering: while window.steering is set, the device is turned toward the runway's heading,
+  // 5 degrees of tilt for each degree the nose is off, 20 at the most. On the ground the tilt is the pedals.
+  await s.evaluate(() => {
+    setInterval(() => {
+      if (!window.steering) return;
+      const off = 90 - window.fsg.picture.headingDeg;
+      window.held.clockwise = Math.max(-20, Math.min(20, 5 * off));
+    }, 50);
+  });
+  const simple = on(s);
+  const hold = (back, clockwise) => s.evaluate(([b, cw]) => { window.held = cw === 'level' ? { back: b, clockwise: window.held.clockwise, level: true } : { back: b, clockwise: cw }; }, [back, clockwise]);
+  const steering = (yes) => s.evaluate((y) => { window.steering = y; }, yes);
+  const now = () => s.evaluate(() => ({ ...window.fsg.picture, stick: window.fsg.stick, pilot: window.fsg.pilot, mode: window.fsg.mode }));
+  const until = (test, arg, timeout = 90000) => s.waitForFunction(test, arg, { timeout, polling: 50 }).then(() => true, () => false);
+  // A picture at an iPhone's own sharpness: the page is shown at two pixels a point for the moment, and put back at one.
+  const cdp12 = await fresh.newCDPSession(s);
+  const shot = async (name, wait = 800) => {
+    if (!shots) return;
+    await cdp12.send('Emulation.setDeviceMetricsOverride', { width: 852, height: 393, deviceScaleFactor: 2, mobile: false });
+    await s.waitForTimeout(wait);
+    writeFileSync(join(shots, name), Buffer.from((await cdp12.send('Page.captureScreenshot', { format: 'png' })).data, 'base64'));
+    await cdp12.send('Emulation.setDeviceMetricsOverride', { width: 852, height: 393, deviceScaleFactor: 1, mobile: false });
+  };
+  // A part of the model is where JSBSim had it in the state the frame was drawn from (within the clip's last millionth).
+  const drawnAs = (p, part) => Math.abs(p.model[part] - p.drawn[part]) < 1e-5;
+  const parts = (p) => `rudder ${p.surfaces.rudder.toFixed(3)} in JSBSim and ${p.model.rudder.toFixed(3)} on the model, ailerons ${p.surfaces.aileron.toFixed(3)} and ${p.model.aileron.toFixed(3)} (0.5 is neutral)`;
+
+  check(await simple.ready(), 'the simple F-4C: Fly is ready on a visit with nothing saved');
+  const picked = await s.evaluate(() => ({ aircraft: window.fsg.aircraft, saved: localStorage.getItem('fsg.aircraft'), reads: document.getElementById('aircraft').selectedOptions[0].text, value: document.getElementById('aircraft').value }));
+  const js12 = await simple.jsbsim();
+  check(picked.aircraft === 'f4c-simple' && picked.saved === null && picked.value === 'f4c-simple' && picked.reads === 'F-4C' && !js12.error && js12.build === 'weh',
+    'a new install flies the simple F-4C, on the fast build, and the picker reads "F-4C"', `${picked.aircraft}; nothing saved: ${picked.saved === null}; the picker reads "${picked.reads}"; ${js12.error ?? js12.says}`);
+  check(await simple.fly(), 'Fly shows its flight within 3 s');
+  await s.waitForTimeout(800);
+  const numbers = await now();
+  const buttons12 = await s.evaluate(() => [...document.querySelectorAll('#toggles button')].filter((b) => b.getClientRects().length > 0).map((b) => b.textContent));
+  const reads12 = await s.locator('#flaps-reads').textContent();
+  check(parked(numbers) && reads12 === '1/2' && buttons12.join(', ') === 'Gear Down, Flaps Up, Flaps Down, Boards In, Brakes On' && numbers.plumes.length === 2 && numbers.plumes.every((p) => !p.lit) && numbers.sizeM > 15,
+    'Fly shows the simple F-4C on the numbers, wheels within 1 in, flaps "1/2", with the owner\'s model, its five buttons and its two plumes, out at idle', `${where(numbers)}; the lever reads "${reads12}"; buttons ${buttons12.join(', ')}; ${numbers.sizeM?.toFixed(1)} m long; ${numbers.plumes.length} plumes`);
+  check(numbers.surfaces.rudder === 0.5 && numbers.surfaces.aileron === 0.5 && drawnAs(numbers, 'rudder') && drawnAs(numbers, 'aileron'), 'phone level, parked: the rudder and the ailerons are neutral', parts(numbers));
+  await shot('simple-f4c-numbers.png');
+
+  // Parked on the brakes, the device turned 20 degrees clockwise: the rudder goes over, the ailerons stay where they are.
+  await hold(0, 20);
+  const overParked = await until(() => { const p = window.fsg.picture; return p.surfaces.rudder > 0.8 && p.drawn && p.drawn.rudder > 0.8 && Math.abs(p.model.rudder - p.drawn.rudder) < 1e-5; }, null, 5000);
+  const standing = await now();
+  await hold(0, 0);
+  const backParked = await until(() => window.fsg.picture.surfaces.rudder === 0.5, null, 5000);
+  check(overParked && backParked && standing.wheelsDown === 3 && standing.groundKt < 0.1 && standing.stick.roll > 0.6 && standing.surfaces.aileron === 0.5 && Math.abs(standing.model.aileron - 0.5) < 1e-5,
+    'tilted right standing on the runway: the rudder moves on the model and the ailerons do not', `stick ${standing.stick.roll.toFixed(2)} right; ${parts(standing)}`);
+
+  // The takeoff: Brakes off, the throttle to the top.
+  await s.click('#brake');
+  {
+    const knob = await s.locator('#throttle .thumb').boundingBox();
+    await s.mouse.move(knob.x + knob.width / 2, knob.y + knob.height / 2);
+    await s.mouse.down();
+    await s.mouse.move(knob.x + knob.width / 2, 2, { steps: 10 });
+    await s.mouse.up();
+  }
+  const lit = await until(() => window.fsg.picture.engines.afterburner.every((x) => x === 1) && window.fsg.picture.plumes.every((p) => p.lit), null, 20000);
+  await until(() => window.fsg.picture.knots >= 100, null, 60000);
+  // On the roll at 100 knots, turned 20 degrees clockwise for a moment.
+  await hold(0, 20);
+  const overRolling = await until(() => { const p = window.fsg.picture; return p.surfaces.rudder > 0.8 && p.drawn.rudder > 0.8 && Math.abs(p.model.rudder - p.drawn.rudder) < 1e-5; }, null, 5000);
+  const rolling = await now();
+  await s.waitForTimeout(300);
+  const rolled = await now();
+  // From here the pilot steers for the runway's heading with the tilt, and tips the device full back until every wheel is off; then eases.
+  await hold(27, 0);
+  await steering(true);
+  check(overRolling && rolling.wheelsDown === 3 && rolled.wheelsDown === 3 && rolling.knots >= 100 && rolling.knots < 115 && rolling.pilot.throttle === 1 && rolling.surfaces.aileron === 0.5 && rolled.surfaces.aileron === 0.5 && Math.abs(rolling.model.aileron - 0.5) < 1e-5 && Math.abs(rolled.model.aileron - 0.5) < 1e-5 && rolled.headingDeg > rolling.headingDeg,
+    'tilted right on the roll: the rudder moves on the model and the ailerons do not, and the nose comes right', `at ${rolling.knots.toFixed(0)} kt, stick ${rolling.stick.roll.toFixed(2)} right: ${parts(rolling)}; heading ${rolling.headingDeg.toFixed(2)}, then ${rolled.headingDeg.toFixed(2)} at ${rolled.knots.toFixed(0)} kt`);
+  await until(() => window.fsg.stick.pitch === 1, null, 3000);
+  const backAt = await now();
+  const off = await until(() => window.fsg.picture.wheelsDown === 0, null, 30000);
+  const liftoff = await now();
+  await steering(false);
+  await hold(4.3, 'level');
+  check(off && Math.abs(liftoff.headingDeg - 90) < 3 && Math.abs(liftoff.northFt) < 75,
+    'steered with the tilt to the liftoff: the nose within 3 degrees of the runway\'s heading, the airplane over the runway', `heading ${liftoff.headingDeg.toFixed(2)}, ${Math.abs(liftoff.northFt).toFixed(0)} ft from the centreline (the runway is 75 ft either side); ${parts(liftoff)}`);
+  check(off && lit && backAt.stick.pitch === 1 && backAt.wheelsDown === 3 && backAt.knots < 150 && liftoff.pilot.throttle === 1 && liftoff.surfaces.flaps === 0.5 && liftoff.knots >= 150 && liftoff.knots <= 190,
+    'full afterburner and full back tilt, eased after liftoff: off between 150 and 190 knots', `full back from ${backAt.knots.toFixed(0)} kt (stick ${backAt.stick.pitch.toFixed(2)} back); every wheel off at ${liftoff.knots.toFixed(1)} kt, the nose ${liftoff.reading.pitch.toFixed(1)} degrees up, heading ${liftoff.headingDeg.toFixed(1)}, flaps ${liftoff.surfaces.flaps}`);
+  // In the air, half a second on, turned 10 degrees clockwise for a moment: the ailerons move on the model.
+  await s.waitForTimeout(600);
+  const levelled = await now();
+  await hold(4.3, 10);
+  const rollingRight = await until(() => { const p = window.fsg.picture; return p.wheelsDown === 0 && p.surfaces.aileron > 0.6 && p.drawn.aileron > 0.6 && Math.abs(p.model.aileron - p.drawn.aileron) < 1e-5; }, null, 5000);
+  const air = await now();
+  await hold(4.3, 'level');
+  check(rollingRight && air.wheelsDown === 0 && air.stick.roll > 0.25 && air.surfaces.aileron > 0.6 && drawnAs(air, 'aileron'),
+    'in the air the ailerons do move on the model with the tilt', `stick ${air.stick.roll.toFixed(2)} right at ${air.knots.toFixed(0)} kt: ${parts(air)}; before the tilt: ${parts(levelled)}`);
+  check(air.engines.afterburner.every((x) => x === 1) && air.plumes.length === 2 && air.plumes.every((p) => p.lit && p.lengthM === 4.5), 'plumes lit: in the air in full afterburner both show, at full length', air.plumes.map((p) => (p.lit ? `lit, ${p.lengthM} m` : 'out')).join(' and '));
+  // A few seconds of the climb, eased: still flying, the nose up, the wings near level, speeding up.
+  await s.waitForTimeout(2000);
+  await shot('simple-f4c-airborne-afterburner.png', 400);
+  const climbing = await now();
+  check(climbing.mode === 'flying' && climbing.ended === null && climbing.wheelsDown === 0 && climbing.aboveGroundFt > liftoff.aboveGroundFt + 10 && climbing.reading.pitch > 0 && climbing.reading.pitch < 30 && Math.abs(climbing.reading.roll) < 20 && climbing.knots > liftoff.knots,
+    'eased, it climbs away: nose up, wings near level, speeding up', `${((climbing.time - liftoff.time)).toFixed(1)} s after liftoff: ${(climbing.aboveGroundFt - 6.403).toFixed(0)} ft up, ${climbing.knots.toFixed(0)} kt, the nose ${climbing.reading.pitch.toFixed(1)} degrees up, banked ${climbing.reading.roll.toFixed(1)}`);
+  // Paused: the picker reads "F-4C".
+  await s.click('#pause');
+  const pausedPicker = await s.evaluate(() => { const picker = document.getElementById('aircraft'); return { mode: window.fsg.mode, reads: picker.selectedOptions[0].text, value: picker.value, shown: picker.checkVisibility(), names: [...picker.options].map((o) => o.text) }; });
+  check(pausedPicker.mode === 'paused' && pausedPicker.shown && pausedPicker.reads === 'F-4C' && pausedPicker.value === 'f4c-simple' && pausedPicker.names.join(' | ') === 'F-4C | F-4C (NASA data) | Cessna 172 (JSBSim\'s)',
+    'paused: the picker reads "F-4C", first of the list\'s three', pausedPicker.names.join(', '));
+  await shot('simple-f4c-pause-picker.png');
+  // For the picture alone: a second roll after a Restart, the device turned 20 degrees clockwise at 100 knots.
+  if (shots) {
+    const flightBefore = (await now()).flight;
+    await hold(0, 0);
+    await s.click('#restart');
+    await until((m) => window.fsg.picture.flight > m && window.fsg.picture.flying, flightBefore, 10000);
+    await s.waitForTimeout(1500);
+    await s.click('#brake');
+    const knob = await s.locator('#throttle .thumb').boundingBox();
+    await s.mouse.move(knob.x + knob.width / 2, knob.y + knob.height / 2);
+    await s.mouse.down();
+    await s.mouse.move(knob.x + knob.width / 2, 2, { steps: 10 });
+    await s.mouse.up();
+    await until(() => window.fsg.picture.knots >= 100, null, 60000);
+    await hold(0, 20);
+    await until(() => window.fsg.picture.drawn.rudder > 0.8, null, 5000);
+    const before = await now();
+    await shot('simple-f4c-roll-tilt-right.png', 300);
+    const after = await now();
+    await hold(0, 0);
+    check(before.wheelsDown === 3 && after.wheelsDown === 3 && before.surfaces.rudder > 0.8 && after.surfaces.rudder > 0.8 && before.surfaces.aileron === 0.5 && after.surfaces.aileron === 0.5,
+      'the picture on the roll: every wheel down, the rudder over and the ailerons neutral before it and after', `${before.knots.toFixed(0)} kt before and ${after.knots.toFixed(0)} after; ${parts(after)}; heading ${before.headingDeg.toFixed(1)} and ${after.headingDeg.toFixed(1)}`);
+  }
+  check(errs.length === 0, 'no page errors or console errors on the simple F-4C\'s first flight', errs.join(' | '));
+  await fresh.close();
 }
 
 {
