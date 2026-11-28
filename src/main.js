@@ -12,7 +12,7 @@ import { createTilt } from './input/tilt.js';
 import { createThrottle } from './ui/throttle.js';
 import { parkedFor } from './sim/game.js';
 import { readouts } from './readouts.js';
-import { F4C } from './sim/aircraft/f4c.js';
+import { LIST, aircraftFor } from './sim/aircraft/list.js';
 
 const $ = (id) => document.getElementById(id);
 for (const el of document.querySelectorAll('.version')) el.textContent = APP_VERSION;
@@ -25,8 +25,14 @@ const show = (name) => {
 };
 
 // ---- the flight on screen, and the game in its Worker ----
-// The F-4C, since milestone 3's pull request 8 (the Cessna, c172p, before it; it stays a test aircraft).
-const AIRCRAFT = F4C;
+// The airplane is the pilot's choice on the pause screen's Airplane picker, kept between visits as its model
+// name (milestone 3 re-planned, pull request 2): one of the picker's list (src/sim/aircraft/list.js), and the
+// first in it if nothing is saved or the saved one is no longer there. It is chosen once, as the page opens:
+// another pick reloads the page. (The F-4C alone from milestone 3's pull request 8; the Cessna, c172p, before it.)
+const AIRCRAFT_KEY = 'fsg.aircraft';
+let savedAircraft = null;
+try { savedAircraft = localStorage.getItem(AIRCRAFT_KEY); } catch { /* storage may be blocked: the first in the list */ }
+const AIRCRAFT = aircraftFor(savedAircraft);
 let mode = 'start';   // start, flying, paused or crashed
 // The HUD (Wings', Rage's before it), or with it off just its airspeed and altitude. Altitude reads at the
 // wheels, and below 2,000 ft above the ground it is the radar altitude, with an R.
@@ -107,6 +113,7 @@ const openGame = () => {
   game = null;
   jsbsim = null;
   stopped = null;
+  pickerLive();
   showDev();
   return startGame(AIRCRAFT, {
     onState(message) {
@@ -119,6 +126,7 @@ const openGame = () => {
   }).then((opened) => {
     game = opened;
     jsbsim = { build: opened.build, why: opened.why, version: opened.version, says: opened.says };
+    pickerLive();
     flight.began(opened.first);
     touchdown = null;
     if (!overrideOn) game.override(false).catch(() => {});   // a new Worker starts with the override on
@@ -221,9 +229,29 @@ try { savedHud = localStorage.getItem(HUD_KEY); } catch { /* storage may be bloc
 setHud(savedHud !== 'off');
 hudSwitch.addEventListener('click', () => setHud(hudSwitch.getAttribute('aria-checked') !== 'true'));
 
+// The Airplane picker (milestone 3 re-planned, pull request 2; #44): the device's own picker, a <select>, filled
+// from the one list. A pick is kept as fsg.aircraft and reloads the app, to the start screen with that airplane
+// parked on the numbers. It is live only once Fly is, and dead again while a fresh Worker starts: a reload while
+// JSBSim's fast build is still starting would leave its marker set (src/fdm.js, fsg.fdmStarting) and send the
+// next launch to the slow build.
+const picker = $('aircraft');
+for (const { aircraft, name } of LIST) picker.add(new Option(name, aircraft.model));
+picker.value = AIRCRAFT.model;
+let pictureReady = false;   // the airplane's model has loaded: with the game started, Fly is ready
+function pickerLive() { picker.disabled = !(game && pictureReady); }
+picker.addEventListener('change', () => {
+  if (picker.value === AIRCRAFT.model) return;
+  try { localStorage.setItem(AIRCRAFT_KEY, picker.value); } catch { /* storage may be blocked: the reload gives the first in the list */ }
+  location.reload();
+});
+
 // Fly waits for the two things a flight needs: the airplane's model, and the game in its Worker.
 const opened = openGame();
-Promise.all([flight.ready, opened]).then(() => { if (game) $('fly').disabled = false; });
+Promise.all([flight.ready, opened]).then(() => {
+  pictureReady = true;
+  if (game) $('fly').disabled = false;
+  pickerLive();
+});
 
 // A read-only hook for browser tests and troubleshooting (after Wings' window.wings).
 window.fsg = Object.freeze({
@@ -235,6 +263,7 @@ window.fsg = Object.freeze({
   get stick() { return { ...tilt.stick }; },
   get pilot() { return { ...pilot }; },
   get touchdown() { return touchdown; },
+  aircraft: AIRCRAFT.model,   // the airplane this visit flies: the picker's choice (fsg.aircraft), or the first in its list
 });
 
 // ---- flying, pausing, restarting (after Wings) ----

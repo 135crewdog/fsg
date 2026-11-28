@@ -29,18 +29,19 @@
 //             aircraft whose settings name them (src/sim/aircraft/f4c.js), or null.
 //
 // ("pause" and "resume" are FDM's own messages, for its own loop; the game's is "hold".)
-import { F4C } from "./aircraft/f4c.js";
+import { BY_MODEL } from "./aircraft/list.js";
 import { CLOCK_PERIOD_MS, startClock } from "./clock.js";
 import { StepResult } from "./codes.js";
 import { DT, Flight } from "./game.js";
 import { FixedStepLoop } from "./loop.js";
 
 /**
- * The aircraft the app flies: the F-4C, since milestone 3's pull request 8. The test aircraft (c172x, c172p,
- * f16) are not in the app: their files are not in its download, and the tests that fly them through the
- * Worker hand flightRun() a list that has them.
+ * The aircraft the app flies, by their model names: the airplane picker's list (src/sim/aircraft/list.js), the
+ * same one the page flies from, since milestone 3 re-planned, pull request 2 (the F-4C alone from milestone 3's
+ * pull request 8). The test aircraft that are not in it (c172x, f16) are not in the app: their files are not in
+ * its download, and the tests that fly them through the Worker hand flightRun() a list that has them.
  */
-export const AIRCRAFT = { f4c: F4C };
+export const AIRCRAFT = BY_MODEL;
 
 /** The Worker's own time and timer. Tests hand in made-up ones. */
 const workerEnv = () => ({
