@@ -15,6 +15,7 @@ import { BUILDS, homeOf } from '../src/fdm.js';
 import { AIRCRAFT } from '../src/sim/flight-run.js';
 import { BY_MODEL, LIST } from '../src/sim/aircraft/list.js';
 import { F4C } from '../src/sim/aircraft/f4c.js';
+import { F4C_SIMPLE } from '../src/sim/aircraft/f4c-simple.js';
 import { C172P } from '../src/sim/aircraft/c172p.js';
 
 const root = fileURLToPath(new URL('..', import.meta.url));
@@ -111,7 +112,13 @@ test('the app flies the airplane picked from the one list, and the Worker\'s lis
   assert.match(code(read('src/sim/flight-run.js')), /^import \{ BY_MODEL \} from "\.\/aircraft\/list\.js";$/m);
   assert.equal(AIRCRAFT, BY_MODEL, 'the Worker\'s list is the list');
   assert.deepEqual(Object.keys(AIRCRAFT), LIST.map(({ aircraft }) => aircraft.model));
-  assert.deepEqual(Object.keys(AIRCRAFT), ['f4c', 'c172p']);
+  // Pull request 4 (docs/milestones/3-replan.md): the simple F-4C is first in the list. (It was ['f4c', 'c172p'].)
+  assert.deepEqual(Object.keys(AIRCRAFT), ['f4c-simple', 'f4c', 'c172p']);
+  assert.equal(AIRCRAFT['f4c-simple'], F4C_SIMPLE);
+  assert.equal(F4C_SIMPLE.glb, './models/f4c.glb', 'the simple F-4C wears the owner\'s model too');
+  // Its own file and engine, and both shared files: with the shared physics missing JSBSim does not fail the load cleanly, it dies (tests/simple-f4c.test.js).
+  assert.deepEqual(F4C_SIMPLE.files.map((file) => fromSrc(homeOf(F4C_SIMPLE) + file)),
+    ['./aircraft/f4c-simple/f4c-simple.xml', './aircraft/f4c-simple/Engines/J79.xml', './aircraft/f4c-simple/Engines/direct.xml', './aircraft/simple/aero.xml', './aircraft/simple/controls.xml']);
   assert.equal(AIRCRAFT.f4c, F4C);
   assert.equal(AIRCRAFT.c172p, C172P);
   assert.equal(F4C.glb, './models/f4c.glb');
@@ -129,7 +136,8 @@ test('sw.js lists exactly what the app loads: every airplane in the list, its fi
   const loaded = filesLoaded('./src/main.js').concat(assets, named, ['./', './index.html']);
   assert.deepEqual(listed.filter((f) => !loaded.includes(f)), [], 'cached but never loaded');
   const airplanes = LIST.flatMap(({ aircraft }) => aircraft.files.map((file) => fromSrc(homeOf(aircraft) + file)).concat([aircraft.glb]));
-  assert.deepEqual(listed.filter((f) => /^\.\/(aircraft|models|jsbsim\/jsbsim-data)\//.test(f)).sort(), [...airplanes].sort(), 'the airplanes\' files and models in sw.js are exactly the list\'s');
+  // (Each once: since pull request 4 two airplanes in the list, the two F-4Cs, wear one model.)
+  assert.deepEqual(listed.filter((f) => /^\.\/(aircraft|models|jsbsim\/jsbsim-data)\//.test(f)).sort(), [...new Set(airplanes)].sort(), 'the airplanes\' files and models in sw.js are exactly the list\'s');
   assert.ok(LIST.every(({ aircraft }) => listed.includes(`./src/sim/aircraft/${aircraft.model}.js`)), 'and each airplane\'s settings are cached');
   const bytes = listed.filter((f) => f !== './').reduce((sum, f) => sum + statSync(join(root, f)).size, 0);
   console.log(`  the app's download: ${listed.length - 1} files, ${bytes.toLocaleString('en-US')} bytes`);

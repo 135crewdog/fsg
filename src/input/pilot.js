@@ -77,11 +77,15 @@ export function flapLever(settings, flaps) {
  * the stick, 0 to 1 for the throttle, and true or false for each button: a control that is not a number
  * ends a JSBSim flight. For an `aircraft` with a flap lever the flaps are not true or false but one of its
  * settings, a number from 0 to 1.
+ *
+ * An airplane whose settings ask for the straight stick (`straightStick`: the simple airplanes; milestone 3
+ * re-planned, pull request 4) takes the tilt's stick as it is, as Wings did: its control run's curve against
+ * speed does the gentling. Any other keeps the softer middle it was flown with.
  */
 export function controlsFrom(pilot, stick, aircraft = null) {
-  const settings = aircraft && flapSettings(aircraft);
+  const settings = aircraft && flapSettings(aircraft), sent = aircraft?.straightStick ? (x) => x : gentle;
   return {
-    pitch: gentle(clamp(stick?.pitch, -1, 1)), roll: gentle(clamp(stick?.roll, -1, 1)), throttle: clamp(pilot.throttle, 0, 1),
+    pitch: sent(clamp(stick?.pitch, -1, 1)), roll: sent(clamp(stick?.roll, -1, 1)), throttle: clamp(pilot.throttle, 0, 1),
     gear: Boolean(pilot.gear), flaps: settings ? flapLever(settings, pilot.flaps).at : Boolean(pilot.flaps), speedbrake: Boolean(pilot.speedbrake), brake: Boolean(pilot.brake),
   };
 }

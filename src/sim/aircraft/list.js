@@ -4,13 +4,18 @@
 // (src/sim/flight-run.js), and the service worker's test works out from it what the app downloads
 // (tests/app.test.js). No DOM code: the Worker imports it too.
 //
-// The pilot's choice is kept between visits as the airplane's `model` (its JSBSim name: `f4c`, `c172p`). A
-// saved name that is not in the list (an airplane since taken out, or nothing saved) gives the first.
+// The pilot's choice is kept between visits as the airplane's `model` (its JSBSim name: `f4c-simple`, `f4c`,
+// `c172p`). A saved name that is not in the list (an airplane since taken out, or nothing saved) gives the first.
+//
+// Since pull request 4 the first is the simple F-4C, named "F-4C": it is the airplane of the game, and what a
+// new install flies. A choice saved before it (`f4c`, the data-built jet, or `c172p`) stays.
+import { F4C_SIMPLE } from './f4c-simple.js';
 import { F4C } from './f4c.js';
 import { C172P } from './c172p.js';
 
 /** The picker's list, first to last: each airplane's settings (src/sim/aircraft/) and the name the pilot reads. */
 export const LIST = Object.freeze([
+  Object.freeze({ aircraft: F4C_SIMPLE, name: 'F-4C' }),
   Object.freeze({ aircraft: F4C, name: 'F-4C (NASA data)' }),
   Object.freeze({ aircraft: C172P, name: "Cessna 172 (JSBSim's)" }),
 ]);

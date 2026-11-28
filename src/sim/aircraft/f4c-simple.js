@@ -3,8 +3,8 @@
 // (docs/milestones/3-replan.md, pull request 3), after f4c.js, the data-built F-4C's, which it borrows from
 // wherever the two airplanes are the same: the picture, the buttons, the plumes, the limits, the contact points.
 //
-// Headless for now: it is not in the app, the picker, the service worker's list or the Worker's until pull
-// request 4, which also gives it tilt steering on the ground and the straight stick.
+// Since pull request 4 it is the airplane of the app: first in the picker's list (src/sim/aircraft/list.js) and
+// what a new install flies, with tilt steering on the ground (in the shared control run) and the straight stick.
 import { F4C } from './f4c.js';
 
 const DEG = Math.PI / 180;
@@ -43,6 +43,11 @@ export const F4C_SIMPLE = {
    * the stabilator through one curve against speed (aircraft/simple/controls.xml).
    */
   controls: F4C.controls,
+  /**
+   * The tilt goes to the stick as a straight line, as Wings did (the owner, 28 November 2026): no softer middle
+   * (src/input/pilot.js, controlsFrom). The speed curve in the control run is what makes it gentle when fast.
+   */
+  straightStick: true,
   /** Its flap settings, Up, 1/2 and Full, starting at 1/2: the data-built F-4C's (the flight manual's switch). */
   flaps: F4C.flaps,
   /** Where MIL is on the game's throttle. The aircraft file's throttle system has the same number (fcs/mil-throttle-norm); tests/simple-f4c.test.js holds the two together. */
@@ -57,14 +62,15 @@ export const F4C_SIMPLE = {
    *          the nose settles at the angle of attack that holds 350 knots. `knots` and `heightFt` say where
    *          that is checked (tests/simple-f4c.test.js flies it hands off for a minute).
    *   feet   Wings' feet (src/sim/assists.js, wingsFeet): the rudder against sideslip, and the nose's swing
-   *          damped. JSBSim's rudder command is positive nose left.
-   *   steer  The data-built F-4C's steering on the ground, for now: pull request 4 replaces it with tilt
-   *          steering in the shared control run.
+   *          damped. JSBSim's rudder command is positive nose left. They count only in the air: on the ground
+   *          the control run leaves the copilot's rudder out, and the pedals are the pilot's tilt alone.
+   * No `steer`: nothing in the game steers a simple airplane. On the ground the tilt steers, rudder and
+   * nosewheel, in the shared control run (aircraft/simple/controls.xml; pull request 4). So the copilot's only
+   * moving command is the rudder.
    */
   assists: {
     trim: { knots: 350, heightFt: 2000, sets: [['fcs/pitch-trim-cmd-norm', 0]] },
     feet: F4C.assists.feet,
-    steer: F4C.assists.steer,
   },
   /**
    * The buffet the chase camera shakes with near the stall (src/sim/buffet.js), by the angle of attack, set the
@@ -92,7 +98,8 @@ export const F4C_SIMPLE = {
    *   aileron     the left aileron less the right. The control run writes an ordinary pair, one 30 degrees down
    *               and the other 30 up at full travel, so the difference runs to 60 degrees each way; the model's
    *               one motion shows it as the real jet's aileron down on one wing and spoiler up on the other
-   *   rudder      30 degrees each way; JSBSim counts its trailing edge left as positive
+   *   rudder      30 degrees each way; JSBSim counts its trailing edge left as positive. On the ground it is the
+   *               pilot's tilt, and the ailerons stay neutral
    *   flaps, gear, speedbrake   their positions
    */
   surfaces: {

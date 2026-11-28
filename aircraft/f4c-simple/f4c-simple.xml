@@ -561,7 +561,10 @@
 
  </flight_control>
 
- <!-- The shared control run: stick to stabilator, ailerons and rudder, through one curve against speed. -->
+ <!--
+  The shared control run: stick to stabilator, ailerons and rudder, through one curve against speed; and on
+  the ground the tilt to the rudder and the nosewheel, with the ailerons neutral (pull request 4).
+ -->
  <system file="../simple/controls"/>
 
  <!-- The shared simple physics. -->

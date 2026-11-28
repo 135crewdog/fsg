@@ -18,7 +18,8 @@
             holds the negative g limit.
     Roll    Full stick is all of the ailerons' travel up to the roll rate's speed; faster, less, so that
             the roll rate holds instead of growing.
-    Yaw     The rudder goes where it is asked. The simple airplanes have no pedals: the copilot's feet ask.
+    Yaw     The rudder goes where it is asked. The simple airplanes have no pedals: in the air the copilot's
+            feet ask (src/sim/assists.js), and on the ground the tilt does (below).
   The trim and the stick are summed before the curve. So they add one for one, which is what the tests'
   airborne start assumes when it turns JSBSim's own trim into a stick position (src/sim/game.js,
   Flight.start); and the trim, like the stick, moves the stabilator less the faster the airplane goes.
@@ -29,8 +30,25 @@
   fcs/elevator-pos-rad, fcs/left-aileron-pos-rad, fcs/right-aileron-pos-rad, fcs/rudder-pos-rad (and each
   in degrees). The ailerons are written as an ordinary pair, one down and the other up by the same angle.
 
-  The nosewheel is JSBSim's own: it turns as fcs/steer-cmd-norm asks, to the limit the airplane's file gives
-  it. Tilt steering on the ground is pull request 4.
+  On the ground, tilt steers (pull request 4). The owner's rule (28 November 2026): "On the ground, tilt
+  steers: rudder and nosewheel, blended by speed. It does not move the ailerons."
+    With any wheel on the ground the tilt is the pedals: the rudder, all of its travel at full tilt, and
+    the nosewheel, less and less of its travel the faster the airplane rolls. The ailerons are neutral. The
+    pedals there are the pilot's alone: the rudder the copilot asks for counts only in the air.
+    In the air the tilt is the ailerons, the rudder is the copilot's, and the nosewheel is straight.
+    The two swap over a third of a second as the wheels leave or touch, so nothing jumps: one number,
+    simple/on-the-ground, 1 on the wheels and 0 flying, moved from one to the other at a steady rate by
+    JSBSim's own <kinematic> (the part that times the landing gear's travel) on JSBSim's own gear/wow.
+  How others steer with no pedals: MSFS and X-Plane 11 tie the rudder and the nosewheel to the roll stick,
+  and the ailerons still move; Wings steers the nosewheel with the tilt, fading with speed. Leaving the
+  ailerons out on the ground is the owner's choice, for what milestone 3 measured: one tilt doing three
+  jobs, so that steering at 60 knots also rolled the airplane (docs/milestones/3-replan.md, section 1).
+  The nosewheel's fade is the curve FSG already had (src/sim/assists.js, wheelShare, with the numbers of
+  src/sim/aircraft/f4c.js: a half at 28 knots, power 3; after the flight manual's "use nose gear steering
+  until the rudder becomes effective at approximately 70 knots"). It is written once more here because
+  the swap is here: tests/simple-f4c-ground.test.js holds the two curves together.
+  The nosewheel itself is JSBSim's own: it turns as fcs/steer-cmd-norm asks, to the limit the airplane's
+  file gives it (max_steer), and the game reads its angle as fcs/steer-pos-deg.
 -->
 <system name="simple controls">
 
@@ -131,6 +149,48 @@
   </min>
  </function>
 
+ <!--
+  The nosewheel's share of the tilt at this ground speed: 1 standing still, a half at 28 knots, falling on
+  a smooth curve (FSG's wheelShare: 1 over 1 plus the speed over 28 knots, cubed).
+ -->
+ <function name="simple/wheel-share">
+  <quotient>
+   <value> 1 </value>
+   <sum>
+    <value> 1 </value>
+    <pow>
+     <quotient> <property> velocities/vg-fps </property> <product> <value> 28 </value> <value> 1.6878 </value> </product> </quotient>
+     <value> 3 </value>
+    </pow>
+   </sum>
+  </quotient>
+ </function>
+
+ <channel name="Ground">
+  <!--
+   On the ground or in the air: 1 with any wheel on the ground, 0 with none, crossing from one to the other
+   in a third of a second at a steady rate. The swap's time is this one number.
+  -->
+  <kinematic name="simple/on-the-ground">
+   <input> gear/wow </input>
+   <traverse>
+    <setting>
+     <position> 0 </position>
+     <time> 0 </time>
+    </setting>
+    <setting>
+     <position> 1 </position>
+     <time> 0.3333 </time>
+    </setting>
+   </traverse>
+  </kinematic>
+  <fcs_function name="simple/in-the-air">
+   <function>
+    <difference> <value> 1 </value> <property> simple/on-the-ground </property> </difference>
+   </function>
+  </fcs_function>
+ </channel>
+
  <channel name="Pitch">
   <!-- The stick and the trim, summed before the curve: -1 full back to 1 full forward (JSBSim's sense). -->
   <summer name="simple/pitch-asked">
@@ -163,10 +223,10 @@
     <max> 1 </max>
    </clipto>
   </summer>
-  <!-- The left aileron, degrees, trailing edge down for a roll to the right; the right one the other way. -->
+  <!-- The left aileron, degrees, trailing edge down for a roll to the right; the right one the other way. In the air only: on the ground the ailerons are neutral. -->
   <fcs_function name="simple/left-aileron-deg">
    <function>
-    <product> <property> simple/roll-asked </property> <property> simple/aileron-deg </property> <property> simple/roll-gearing </property> </product>
+    <product> <property> simple/roll-asked </property> <property> simple/aileron-deg </property> <property> simple/roll-gearing </property> <property> simple/in-the-air </property> </product>
    </function>
    <output> fcs/left-aileron-pos-deg </output>
   </fcs_function>
@@ -178,19 +238,38 @@
  </channel>
 
  <channel name="Yaw">
-  <!-- The rudder, degrees, trailing edge left positive: where it is asked, to its travel. -->
-  <summer name="simple/rudder-asked">
-   <input> fcs/rudder-cmd-norm </input>
+  <!--
+   What the rudder is asked, -1 to 1, positive nose left (JSBSim's sense): in the air what the copilot's feet
+   ask, on the ground the tilt (right tilt, nose right), and across the swap a share of each.
+  -->
+  <fcs_function name="simple/rudder-asked">
+   <function>
+    <difference>
+     <product> <property> simple/in-the-air </property> <property> fcs/rudder-cmd-norm </property> </product>
+     <product> <property> simple/on-the-ground </property> <property> simple/roll-asked </property> </product>
+    </difference>
+   </function>
    <clipto>
     <min> -1 </min>
     <max> 1 </max>
    </clipto>
-  </summer>
+  </fcs_function>
+  <!-- The rudder, degrees, trailing edge left positive: where it is asked, to its travel. -->
   <fcs_function name="simple/rudder-pos-deg">
    <function>
     <product> <property> simple/rudder-asked </property> <property> simple/rudder-deg </property> </product>
    </function>
    <output> fcs/rudder-pos-deg </output>
+  </fcs_function>
+ </channel>
+
+ <channel name="Steering">
+  <!-- The nosewheel, -1 to 1 of its travel, positive to the right: on the ground the tilt, by the nosewheel's share at this speed; in the air straight. -->
+  <fcs_function name="simple/steer-asked">
+   <function>
+    <product> <property> simple/roll-asked </property> <property> simple/on-the-ground </property> <property> simple/wheel-share </property> </product>
+   </function>
+   <output> fcs/steer-cmd-norm </output>
   </fcs_function>
  </channel>
 

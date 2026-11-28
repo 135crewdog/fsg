@@ -5,6 +5,7 @@
 import { C172X } from '../../src/sim/aircraft/c172x.js';
 import { F16 } from '../../src/sim/aircraft/f16.js';
 import { F4C } from '../../src/sim/aircraft/f4c.js';
+import { F4C_SIMPLE } from '../../src/sim/aircraft/f4c-simple.js';
 import { DT, Flight } from '../../src/sim/game.js';
 import { FIELD } from '../../src/sim/world.js';
 import { circuitPilot, readout } from './pilot.js';
@@ -42,15 +43,31 @@ export const CIRCUIT = new Map([
     flareFt: 40, wheelsFt: 7, flare: { fpmPerFt: 15, leastFpm: 200, mostFpm: 800, gain: 0.006, mostChange: 2, leastPitch: 4, mostPitch: 12, idleFt: 10 },
     pitch: { p: 0.06, i: 0.03, d: 0.025 }, power: { p: 0.02, i: 0.004 }, roll: { p: 0.03, i: 0.01, d: 0.012 }, steer: { heading: 0.1, across: 0.005, most: 0.3, slowKt: 0 }, cruisePower: 0.5, mostPower: 0.8,
   }],
+  // The simple F-4C's pattern (milestone 3 re-planned, pull request 4: docs/milestones/3-replan.md, PR 4, "the
+  // circuit"). The plan's: a 1,500 ft pattern at 250 knots, final at 150. The owner's takeoff: 1/2 flaps, full
+  // afterburner, full back tilt from 80 knots (Wings' test pilot's speed) until the wheels leave, then eased to
+  // hold the nose 10 degrees up. The rest is the pilot's, and the data-built F-4C's numbers above but for three,
+  // found in throwaway runs before this was written: the turn to downwind at 35 degrees of bank (at 45 this
+  // pilot let it climb 95 ft in the turn, 5 ft inside the line); the flare from 50 ft, slower and a little
+  // firmer on the stick (from 40 ft it arrived at 490 ft/min, inside the line but firm; so it arrives at about
+  // 250); and the nose never above 12 degrees in the flare (at 14 the stabilator's tips touched the runway).
+  // On the ground the pilot's steering is the same stick as before; on this airplane it is the pedals.
+  [F4C_SIMPLE, {
+    patternFt: 1500, downwindKt: 250, baseKt: 150, finalKt: 150,
+    rotateKt: 145, fullBackFromKt: 80, climbPitch: 10, climbPower: 0.8, takeoffFlaps: 0.5, turnAfterFt: 20000, turnBank: 35, baseBank: 30, baseFt: 30000, aimFt: 1000, lineUp: 0.08,
+    flareFt: 50, wheelsFt: 7, flare: { fpmPerFt: 12, leastFpm: 150, mostFpm: 800, gain: 0.008, mostChange: 2, leastPitch: 4, mostPitch: 12, idleFt: 10 },
+    pitch: { p: 0.06, i: 0.03, d: 0.025 }, power: { p: 0.02, i: 0.004 }, roll: { p: 0.03, i: 0.01, d: 0.012 }, steer: { heading: 0.1, across: 0.005, most: 0.3, slowKt: 0 }, cruisePower: 0.5, mostPower: 0.8,
+  }],
 ]);
 
 const SEVEN = ['pitch', 'roll', 'throttle', 'gear', 'flaps', 'speedbrake', 'brake'];
 
 /**
  * Flies one circuit. Returns what was seen: the downwind leg's heights and speeds, every touch, where it
- * touched down and stopped, the fuel, and (with `record`) the tape.
+ * touched down and stopped, the fuel, and (with `record`) the tape. `watch(flight)`, if given, is called after
+ * every step, for a test that reads something more all the way round (milestone 3 re-planned, pull request 4).
  */
-export function flyCircuit(module, aircraft, { record = false, field = FIELD, mostSeconds = 900 } = {}) {
+export function flyCircuit(module, aircraft, { record = false, field = FIELD, mostSeconds = 900, watch = null } = {}) {
   const how = CIRCUIT.get(aircraft);
   const flight = Flight.start(module, aircraft, { crashOverride: false, record });
   const pilot = circuitPilot(how, { field });
@@ -75,6 +92,7 @@ export function flyCircuit(module, aircraft, { record = false, field = FIELD, mo
     flight.fly(controls);
     flight.step(1);
     out.events.push(...flight.rules.takeEvents());
+    if (watch) watch(flight);
   }
   const end = readout(flight, field);
   Object.assign(out, {

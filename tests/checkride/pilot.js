@@ -10,6 +10,14 @@
 //
 // The pilot thinks in the runway's own terms: "along" is feet down the runway from the numbers, "right" is
 // feet to the right of the centreline. A left-hand circuit is flown as the mirror image of a right-hand one.
+//
+// Milestone 3 re-planned, pull request 4: the pilot learns a simple airplane. Two things, both by the aircraft's
+// numbers, so the other aircraft are flown exactly as before:
+//   the takeoff the owner's way (`fullBackFromKt`): full back tilt from that speed until the wheels leave, then
+//     eased to hold the climb attitude (docs/milestones/3-replan.md, "The owner's answers", 2; Wings' own test
+//     pilot pulls full back from 80 knots and then holds 10 degrees);
+//   on the ground the tilt steers, and on a simple airplane that is the rudder and the nosewheel with the
+//     ailerons neutral (aircraft/simple/controls.xml). The pilot's steering is the same as it was.
 import { FIELD, FT, toWorld } from '../../src/sim/world.js';
 
 const clamp = (x, lo, hi) => Math.min(hi, Math.max(lo, x));
@@ -69,6 +77,8 @@ export function circuitPilot(how, { field = FIELD, hand = -1 } = {}) {   // hand
   // On the ground the stick steers: toward the centreline, then along it. Gently once there is speed: on the
   // ground the stick still moves the ailerons, and a big push at speed rocks the airplane onto a wingtip.
   const steer = (r) => { const most = r.groundKt < how.steer.slowKt ? 1 : how.steer.most; return clamp(-how.steer.heading * r.heading - how.steer.across * r.right, -most, most); };
+  // The owner's takeoff, for an aircraft with `fullBackFromKt`: full back tilt from that speed while any wheel is on the runway.
+  const fullBack = (r) => how.fullBackFromKt !== undefined && r.onGround && r.knots > how.fullBackFromKt;
 
   const fly = (seen) => {
     // For a left-hand circuit the pilot flies its mirror image: left is right, and the stick goes the other way.
@@ -79,11 +89,11 @@ export function circuitPilot(how, { field = FIELD, hand = -1 } = {}) {   // hand
     switch (phase) {
       case 'roll':      // brakes off, full power, keep straight, rotate
         if (r.knots > how.rotateKt) phase = 'rotate';
-        return { throttle: 1, gear: true, flaps: how.takeoffFlaps, speedbrake: false, brake: false, pitch: 0, roll: steer(r) };
+        return { throttle: 1, gear: true, flaps: how.takeoffFlaps, speedbrake: false, brake: false, pitch: fullBack(r) ? 1 : 0, roll: steer(r) };
       case 'rotate':
         if (!r.onGround) mark('liftoff', r);
         if (r.aboveGround > 200) phase = 'climb';
-        return { throttle: 1, gear: true, flaps: how.takeoffFlaps, brake: false, pitch: pitchTo(r, how.climbPitch, dt), roll: r.onGround ? steer(r) : headTo(r, 0, dt, 10) };
+        return { throttle: 1, gear: true, flaps: how.takeoffFlaps, brake: false, pitch: fullBack(r) ? 1 : pitchTo(r, how.climbPitch, dt), roll: r.onGround ? steer(r) : headTo(r, 0, dt, 10) };
       case 'climb':     // clean up, climb straight ahead to pattern altitude
         if (r.feet > pattern - 200 && r.along > how.turnAfterFt) phase = 'crosswind';
         return { throttle: r.feet < pattern - 300 ? how.climbPower : speedTo(r, how.downwindKt, dt), gear: false, flaps: false, pitch: r.feet < pattern - 300 ? pitchTo(r, how.climbPitch, dt) : climbTo(r, pattern, dt), roll: headTo(r, 0, dt) };

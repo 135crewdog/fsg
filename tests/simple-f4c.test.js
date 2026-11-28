@@ -10,10 +10,10 @@
 //                     flight at idle, slowing 1 knot a second")   WRONG WORDING, found before any result, and
 //                     NOT MET AS WRITTEN: at idle this airplane slows about 3 knots a second if it holds its
 //                     height, so idle, level flight and a knot a second cannot all be had at once. The line is
-//                     kept on record as it was written, and a new one is the owner's to approve. Until then
-//                     both stalls that CAN be flown are held to the line's speed, so neither reading is let
-//                     off: at idle slowing a knot a second with the nose, descending as it must; and at idle
-//                     holding its height, slowing as fast as it then does (asserted level within 200 ft).
+//                     kept on record as it was written. REPLACED BY THE OWNER'S WORD (28 November 2026):
+//                     "both ways". The stall speed is within 10% of the book both at idle slowing a knot a
+//                     second with the nose, descending as it must, and at idle holding its height, slowing as
+//                     fast as it then does (asserted level within 200 ft). Both are asserted below.
 //                     (Codex's review of pull request 58 asked that the level-flight stall be asserted, not
 //                     only printed.)
 //   "stalled at 145 knots"   the speed at the moment the angle of attack first passes the file's stall angle.
@@ -120,8 +120,10 @@ test('simple f4c: what is borrowed from the data-built F-4C is the same there: t
   assert.equal(A.contacts, F4C.contacts);
   const flight = Flight.start(await module(), A);
   assert.equal(flight.get('gear/num-units'), A.contacts.length);
-  // The copilot on a simple airplane: it writes the rudder and (until pull request 4) the nosewheel, and holds the pitch trim at zero.
-  assert.deepEqual(assistWrites(A.assists), ['fcs/pitch-trim-cmd-norm', 'fcs/rudder-cmd-norm', 'fcs/steer-cmd-norm']);
+  // The copilot on a simple airplane: it writes the rudder, and holds the pitch trim at zero. (Until pull request 4
+  // it wrote the nosewheel too: 'fcs/steer-cmd-norm' was the third name here. Since then the tilt steers on the
+  // ground in the shared control run: tests/simple-f4c-ground.test.js.)
+  assert.deepEqual(assistWrites(A.assists), ['fcs/pitch-trim-cmd-norm', 'fcs/rudder-cmd-norm']);
   assert.deepEqual(A.assists.trim.sets, [['fcs/pitch-trim-cmd-norm', 0]]);
   assert.equal(A.airborneTrim, undefined, 'the stick and the trim add: no special airborne trim');
   run(flight, 1);
@@ -142,7 +144,8 @@ test('simple f4c: every number the shared physics asks for is declared once in t
   assert.deepEqual([...declared].sort(), [...new Set(listed)].sort(), 'the file declares exactly the numbers aero.xml lists');
   assert.equal(new Set(declared).size, declared.length, 'each once');
   // Each is used by the shared files, and each made-up name the shared files read is one of them or one they make themselves.
-  const made = new Set([...(aero + controls).matchAll(/<(?:function|summer|fcs_function|pure_gain) name="simple\/([a-z0-9-]+)"/g)].map((m) => m[1]));
+  // (Since pull request 4 the control run also makes one with JSBSim's <kinematic>: simple/on-the-ground.)
+  const made = new Set([...(aero + controls).matchAll(/<(?:function|summer|fcs_function|pure_gain|kinematic) name="simple\/([a-z0-9-]+)"/g)].map((m) => m[1]));
   const read = new Set([...(aero + controls).replace(/<!--[^]*?-->/g, '').matchAll(/<(?:property|input)>\s*simple\/([a-z0-9-]+)\s*<\/(?:property|input)>/g)].map((m) => m[1]));
   for (const name of declared) assert.ok(read.has(name), `simple/${name} is used`);
   for (const name of read) assert.ok(made.has(name) || declared.includes(name), `simple/${name} is declared or made`);
