@@ -7,11 +7,15 @@
 //
 // How each line is read, where the plan's words leave a choice (the plain reading; the reasons are at each test):
 //   "slowing 1 knot a second in level flight" (the two stall speeds, and the power-off stalls' "from level
-//                     flight at idle, slowing 1 knot a second")   WRONG WORDING, found before any result: at
-//                     idle this airplane slows about 3 knots a second if it holds its height, so it cannot
-//                     slow a knot a second in level flight. Flown as the line means: from level flight, the
-//                     throttle to idle, the speed taken off a knot a second with the nose, descending as it
-//                     must. The level-flight idle slow-down is reported beside it.
+//                     flight at idle, slowing 1 knot a second")   WRONG WORDING, found before any result, and
+//                     NOT MET AS WRITTEN: at idle this airplane slows about 3 knots a second if it holds its
+//                     height, so idle, level flight and a knot a second cannot all be had at once. The line is
+//                     kept on record as it was written, and a new one is the owner's to approve. Until then
+//                     both stalls that CAN be flown are held to the line's speed, so neither reading is let
+//                     off: at idle slowing a knot a second with the nose, descending as it must; and at idle
+//                     holding its height, slowing as fast as it then does (asserted level within 200 ft).
+//                     (Codex's review of pull request 58 asked that the level-flight stall be asserted, not
+//                     only printed.)
 //   "stalled at 145 knots"   the speed at the moment the angle of attack first passes the file's stall angle.
 //   "the nosewheel lifts at"   the speed at the first step its tyre is off the runway.
 //   "climbing, not stalled"   5 s after liftoff the climb rate is above zero and the angle of attack below the stall angle.
@@ -212,13 +216,15 @@ test('simple f4c: "It loads in ... native JSBSim from its listed files": the sha
 
 // ---- 3. The speeds a pilot flies by ----
 
-test('simple f4c: "Stall, clean, idle, slowing 1 knot a second in level flight: stalled at 145 knots within 10% (Wings\' card; the data-built jet 140)" (flown descending: see the top of this file)', async () => {
+test('simple f4c: "Stall, clean, idle, slowing 1 knot a second in level flight: stalled at 145 knots within 10% (Wings\' card; the data-built jet 140)" (not met as written, since idle, level and a knot a second cannot all be had: flown both ways it can be, see the top of this file)', async () => {
   const m = await module(), s = P.stallSpeed(m, A, { fromKt: 190, heightFt: 6000 }), level = P.levelStall(m, A, { fromKt: 190, heightFt: 6000 });
   report.line(`simple f4c: the clean stall, idle, slowing a knot a second by the nose from level flight at ${f0(s.fromKt)} kt and 6,000 ft: the angle of attack passes ${f2(s.angle)} degrees at ${f1(s.kt)} kt (${f2(s.g)} g, the nose ${f1(s.pitch)} degrees up, descending ${f0(-s.fpm)} ft/min, slowing ${f2(s.knotsASecond)} kt a second over the last 10 s)`);
   say(`reference ${cite(STALL_CLEAN)}; within 10%: ${band(STALL_CLEAN.value)}. Beside it: Wings ${WINGS_STALL_SPEEDS.value[0]} (${WINGS_STALL_SPEEDS.where}); the data-built jet ${cite(DATA_BUILT_STALL)}`);
   say(`the line's "in level flight" cannot be flown: holding its height at idle it slows ${f1(level.knotsASecond)} kt a second (the last 10 s; height ${f0(level.low)} to ${f0(level.high)} ft) and stalls at ${f1(level.at.kt)} kt with the nose ${f1(level.at.pitch)} degrees up`);
   assert.ok(s.knotsASecond > 0.7 && s.knotsASecond < 1.3, `slowing a knot a second (${s.knotsASecond})`);
   assert.ok(within(s.kt, STALL_CLEAN.value), `${s.kt} kt`);
+  assert.ok(level.high - level.low <= 200, `holding its height: ${level.low} to ${level.high} ft`);
+  assert.ok(within(level.at.kt, STALL_CLEAN.value), `and held level it stalls at ${level.at.kt} kt`);
 });
 
 test('simple f4c: "Stall, gear and full flaps, idle, the same way: 125 knots within 10% (the flight manual\'s 122 to 126)"', async () => {
@@ -228,6 +234,8 @@ test('simple f4c: "Stall, gear and full flaps, idle, the same way: 125 knots wit
   say(`holding its height at idle instead it slows ${f1(level.knotsASecond)} kt a second and stalls at ${f1(level.at.kt)} kt with the nose ${f1(level.at.pitch)} degrees up`);
   assert.ok(s.knotsASecond > 0.7 && s.knotsASecond < 1.3, `slowing a knot a second (${s.knotsASecond})`);
   assert.ok(within(s.kt, STALL_LANDING.value), `${s.kt} kt`);
+  assert.ok(level.high - level.low <= 200, `holding its height: ${level.low} to ${level.high} ft`);
+  assert.ok(within(level.at.kt, STALL_LANDING.value), `and held level it stalls at ${level.at.kt} kt`);
 });
 
 test('simple f4c: "Rotation, flown as Wings\' pilot flies it (1/2 flaps, full afterburner, full back tilt from 80 knots, then the nose held 10 degrees up once airborne): the nosewheel lifts at 150 knots within 10%; nothing but wheels touches; 5 s after liftoff it is climbing, not stalled. Liftoff speed and ground roll reported (Wings, on full flaps: 174 knots, 1,700 ft)"', async () => {
