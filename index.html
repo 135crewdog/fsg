@@ -2,7 +2,8 @@
 <!-- After 135crewdog/wings, index.html, commit 6d689b7 (first copied at 557a8d0):
      cut down to the picture, the pause button, the start, pause and crashed
      screens, the HUD, the throttle and buttons, the motion-access screen, the
-     debug overlay and the rotate screen. -->
+     debug overlay and the rotate screen. FSG's own since: the airplane picker
+     on the pause screen (milestone 3 re-planned, pull request 2). -->
 <html lang="en">
 <head>
   <meta charset="utf-8">
@@ -73,9 +74,15 @@
         <span id="dev-label">Debug overlay</span>
         <button id="dev-switch" class="switch" role="switch" aria-checked="false" aria-labelledby="dev-label"></button>
       </div>
+      <!-- the airplane picker (milestone 3 re-planned, pull request 2): the device's own picker, filled from
+           src/sim/aircraft/list.js by src/main.js; live once Fly is -->
+      <div class="row">
+        <span id="aircraft-label">Airplane</span>
+        <select id="aircraft" class="picker" aria-labelledby="aircraft-label" disabled></select>
+      </div>
       <button class="btn update" hidden>New version, tap to update</button>
     </div>
-    <p class="about credits">Flight model: JSBSim 1.3.3, LGPL 2.1</p>
+    <p class="about credits">Flight model: JSBSim 1.3.3, LGPL 2.1 · Cessna 172P model: FlightGear's c172p team, GPL 2</p>
   </section>
 
   <section id="screen-crashed" class="screen" hidden>

@@ -13,7 +13,9 @@ import { fileURLToPath } from 'node:url';
 import { APP_VERSION } from '../src/version.js';
 import { BUILDS, homeOf } from '../src/fdm.js';
 import { AIRCRAFT } from '../src/sim/flight-run.js';
+import { BY_MODEL, LIST } from '../src/sim/aircraft/list.js';
 import { F4C } from '../src/sim/aircraft/f4c.js';
+import { C172P } from '../src/sim/aircraft/c172p.js';
 
 const root = fileURLToPath(new URL('..', import.meta.url));
 const read = (file) => readFileSync(join(root, file), 'utf8');
@@ -57,12 +59,13 @@ function sources(dir = 'src') {
   });
 }
 const listed = [...sw.matchAll(/['"](\.\/[^'"]*)['"]/g)].map((m) => m[1]);
-// What the app fetches that is not code it imports: JSBSim's two builds, and the airplane's files and its model.
-// src/fdm.js names them relative to src/. Since milestone 3's pull request 8 the airplane is the F-4C, FSG's own:
-// its files are in aircraft/, not in JSBSim's data (src/fdm.js, homeOf). The list is built from the airplane the
-// app flies (src/main.js) and the Worker's list of what it can fly (src/sim/flight-run.js), which is the same one.
+// What the app fetches that is not code it imports: JSBSim's two builds, and each airplane's files and its model.
+// src/fdm.js names them relative to src/. FSG's own airplane, the F-4C, has its files in aircraft/, the Cessna in
+// JSBSim's data (src/fdm.js, homeOf). Since milestone 3 re-planned, pull request 2, the airplanes are the picker's
+// list (src/sim/aircraft/list.js): the page flies one of it (src/main.js), and the Worker's list of what it can
+// fly (src/sim/flight-run.js) is the same one.
 const fromSrc = (path) => './' + posix.normalize(posix.join('src', path));
-const flown = Object.values(AIRCRAFT);
+const flown = LIST.map(({ aircraft }) => aircraft);
 const assets = Object.values(BUILDS).flatMap((build) => [build.module, build.wasm]).map(fromSrc)
   .concat(flown.flatMap((aircraft) => aircraft.files.map((file) => fromSrc(homeOf(aircraft) + file))))
   .concat(flown.map((aircraft) => aircraft.glb));   // and the airplane's model, which the page finds from its own address
@@ -94,22 +97,40 @@ test('sw.js caches every file the app loads, and lists only files that exist', (
   console.log(`  ${files.length} files cached: ${modules.length} loaded by the app's code, ${assets.length} JSBSim files and models`);
 });
 
-test('the app flies the F-4C, and the Worker knows only the airplane the app flies', () => {
-  // Milestone 3, pull request 8: the F-4C takes the Cessna's place. The page's airplane and the Worker's list are one.
-  assert.match(code(read('src/main.js')), /const AIRCRAFT = F4C;/);
-  assert.deepEqual(Object.keys(AIRCRAFT), ['f4c']);
+test('the app flies the airplane picked from the one list, and the Worker\'s list is that list', () => {
+  // Milestone 3 re-planned, pull request 2: the pause screen's Airplane picker. The page's airplane is the saved
+  // choice (fsg.aircraft) from the one list, and its picker is filled from that list; the Worker's list is that
+  // list. (From milestone 3's pull request 8 until then the app flew the F-4C alone: "const AIRCRAFT = F4C".)
+  const main = code(read('src/main.js'));
+  assert.match(main, /^import \{ LIST, aircraftFor \} from '\.\/sim\/aircraft\/list\.js';$/m, 'the page takes its airplanes from the list');
+  assert.deepEqual([...main.matchAll(/from '\.\/sim\/aircraft\/([^']+)'/g)].map((m) => m[1]), ['list.js'], 'and from nowhere else');
+  assert.match(main, /const AIRCRAFT_KEY = 'fsg\.aircraft';/);
+  assert.match(main, /try \{ savedAircraft = localStorage\.getItem\(AIRCRAFT_KEY\); \} catch/);
+  assert.match(main, /const AIRCRAFT = aircraftFor\(savedAircraft\);/, 'the saved choice, or the first in the list');
+  assert.match(main, /for \(const \{ aircraft, name \} of LIST\) picker\.add\(new Option\(name, aircraft\.model\)\);/, 'the picker shows the list');
+  assert.match(code(read('src/sim/flight-run.js')), /^import \{ BY_MODEL \} from "\.\/aircraft\/list\.js";$/m);
+  assert.equal(AIRCRAFT, BY_MODEL, 'the Worker\'s list is the list');
+  assert.deepEqual(Object.keys(AIRCRAFT), LIST.map(({ aircraft }) => aircraft.model));
+  assert.deepEqual(Object.keys(AIRCRAFT), ['f4c', 'c172p']);
   assert.equal(AIRCRAFT.f4c, F4C);
+  assert.equal(AIRCRAFT.c172p, C172P);
   assert.equal(F4C.glb, './models/f4c.glb');
   assert.deepEqual(F4C.files.map((file) => fromSrc(homeOf(F4C) + file)), ['./aircraft/f4c/f4c.xml', './aircraft/f4c/Engines/J79-GE-15.xml', './aircraft/f4c/Engines/direct.xml']);
+  assert.equal(C172P.glb, './models/c172p.glb');
+  assert.deepEqual(C172P.files.map((file) => fromSrc(homeOf(C172P) + file)), ['./jsbsim/jsbsim-data/aircraft/c172p/c172p.xml', './jsbsim/jsbsim-data/engine/eng_io320.xml', './jsbsim/jsbsim-data/engine/prop_75in2f.xml']);
 });
 
-test('sw.js lists no code, data or model the app does not load: the Cessna\'s files and model are not in its download', () => {
+test('sw.js lists exactly what the app loads: every airplane in the list, its files and model, and nothing it does not load', () => {
   // Since milestone 3's pull request 8 this holds for every file listed, not only the code and JSBSim: the
-  // airplane's own folder and the models too. What the page and the manifest name are loaded by the browser.
+  // airplanes' own folder and the models too. What the page and the manifest name are loaded by the browser.
+  // Since milestone 3 re-planned, pull request 2, that is every airplane in the picker's list (the F-4C alone
+  // before it, when nothing of the Cessna was downloaded).
   const named = [...html.matchAll(/\b(?:href|src)="([^"]+)"/g)].map((m) => m[1]).concat(manifest.icons.map((icon) => icon.src));
   const loaded = filesLoaded('./src/main.js').concat(assets, named, ['./', './index.html']);
   assert.deepEqual(listed.filter((f) => !loaded.includes(f)), [], 'cached but never loaded');
-  assert.deepEqual(listed.filter((f) => /c172|cessna/i.test(f)), [], 'nothing of the Cessna is downloaded');
+  const airplanes = LIST.flatMap(({ aircraft }) => aircraft.files.map((file) => fromSrc(homeOf(aircraft) + file)).concat([aircraft.glb]));
+  assert.deepEqual(listed.filter((f) => /^\.\/(aircraft|models|jsbsim\/jsbsim-data)\//.test(f)).sort(), [...airplanes].sort(), 'the airplanes\' files and models in sw.js are exactly the list\'s');
+  assert.ok(LIST.every(({ aircraft }) => listed.includes(`./src/sim/aircraft/${aircraft.model}.js`)), 'and each airplane\'s settings are cached');
   const bytes = listed.filter((f) => f !== './').reduce((sum, f) => sum + statSync(join(root, f)).size, 0);
   console.log(`  the app's download: ${listed.length - 1} files, ${bytes.toLocaleString('en-US')} bytes`);
 });
@@ -125,14 +146,16 @@ test('each JSBSim build is an Emscripten file with its .wasm beside it, and both
   assert.deepEqual(Object.keys(BUILDS), ['weh', 'jseh'], 'the fast build and the fallback');
 });
 
-test('the credit on the pause screen names the JSBSim that is pinned', () => {
+test('the credit on the pause screen names the JSBSim that is pinned, and the Cessna\'s model', () => {
   const tag = read('jsbsim/pins.env').match(/^JSBSIM_TAG=v(.+)$/m)[1];
   // The credits are the small print at the pause screen's foot (they left its menu so the menu fits a phone's screen).
-  // The Cessna's model and its credit left the app with the Cessna (milestone 3, pull request 8): the credit stays in models/CREDITS.md.
+  // The Cessna's model and its credit left the app with the Cessna (milestone 3, pull request 8) and came back with it
+  // in the picker (milestone 3 re-planned, pull request 2): on JSBSim's line, since two lines of small print would run
+  // into the menu (tests/browser/app.chromium.mjs measures it).
   const pause = html.slice(html.indexOf('id="screen-pause"'), html.indexOf('id="screen-crashed"'));
-  assert.ok(pause.includes(`<p class="about credits">Flight model: JSBSim ${tag}, LGPL 2.1</p>`), `JSBSim ${tag}`);
-  assert.doesNotMatch(html, /Cessna|c172/i, 'nothing of the Cessna on the page');
-  assert.match(read('models/CREDITS.md'), /FlightGear's Cessna 172P[^]*GNU General Public License, version 2/, 'its credit stays with its model in the repo');
+  assert.ok(pause.includes(`<p class="about credits">Flight model: JSBSim ${tag}, LGPL 2.1 · Cessna 172P model: FlightGear's c172p team, GPL 2</p>`), `JSBSim ${tag}, and the Cessna's model, on one line`);
+  assert.equal([...html.matchAll(/class="about credits"/g)].length, 1, 'one line of credits');
+  assert.match(read('models/CREDITS.md'), /FlightGear's Cessna 172P[^]*GNU General Public License, version 2/, 'its credit is also with its model in the repo');
   assert.match(read('jsbsim/jsbsim-data/COPYING'), /GNU LESSER GENERAL PUBLIC LICENSE\s+Version 2\.1/, 'and its licence is in the repo');
 });
 

@@ -12,7 +12,7 @@ A flight sim game for the iPhone: a home-screen web app at <https://135crewdog.g
 - `jsbsim/`: everything about JSBSim, copied from `135crewdog/FDM`. Its `README.md` says where each piece came from.
 - `tools/from-fdm.mjs` and `provenance.json`: the script that copied pieces in from FDM and Wings, and the record of what it copied.
 - `src/sim/`: the simulation code: the JSBSim wrapper, the fixed-step loop and the Worker. No DOM code, so it runs in Node too.
-- `src/sim/aircraft/`: the game's settings for each JSBSim aircraft. `f4c.js` is the F-4C the game flies (milestone 3); `c172p.js` is the Cessna it flew in milestone 2, now a test aircraft; `c172x.js` and `f16.js` are flown by the tests against native JSBSim.
+- `src/sim/aircraft/`: the game's settings for each JSBSim aircraft. `list.js` is the list the pause screen's Airplane picker offers, kept between visits (milestone 3 re-planned): `f4c.js`, the F-4C built from NASA data (milestone 3), and `c172p.js`, JSBSim's Cessna that the game flew in milestone 2, back for comparison. `c172x.js` and `f16.js` are flown by the tests against native JSBSim.
 - `src/flight.js` and `src/render/`: the picture. `world.js` is the test field and the sky, `aircraft.js` the airplane's model with its moving parts, `camera.js` the chase camera. Two files there are plain sums with no DOM and no Three.js, tested in Node: `between.js`, the picture's clock, which will draw between the Worker's physics steps, and `frames.js`, which puts JSBSim's position and attitude into the picture's axes.
 - `vendor/three/`: Three.js 0.187.0, the one runtime library, byte for byte as Wings vendored it from npm (`vendor/three/VERSION`).
 - `tests/`, `jsbsim/tests/`: the tests.
@@ -42,10 +42,10 @@ Then open <http://localhost:8000/>.
 
 ## How JSBSim runs in the app
 
-- `src/fdm.js`, on the page, starts a module Worker, `src/sim/worker.js`, when the app opens, and posts it the three JSBSim files the F-4C needs (`src/sim/aircraft/f4c.js`), fetched as they are from FSG's own `aircraft/f4c/`.
+- `src/fdm.js`, on the page, starts a module Worker, `src/sim/worker.js`, when the app opens, and posts it the JSBSim files the chosen airplane needs (its settings in `src/sim/aircraft/`), fetched as they are from FSG's own `aircraft/` (the F-4C) or JSBSim's own data (the Cessna).
 - The Worker imports the Emscripten file `jsbsim/dist-wasm/fdm-weh.mjs`, which fetches `fdm-weh.wasm` from beside itself. If that build doesn't start, a fresh Worker tries the fallback build, `fdm-jseh`, and the debug overlay says why.
 - Every one of those files is in `sw.js`, so it all works offline.
-- The Worker holds one flight at a time (`src/sim/flight-run.js`): the F-4C parked on the runway of the test field, held until Fly is tapped, then stepped 120 times a second by the Worker's own clock (`src/sim/clock.js`), with the state posted to the page after every batch of steps. Paused, the Worker's timer is stopped. Restart is a new flight.
+- The Worker holds one flight at a time (`src/sim/flight-run.js`): the chosen airplane parked on the runway of the test field, held until Fly is tapped, then stepped 120 times a second by the Worker's own clock (`src/sim/clock.js`), with the state posted to the page after every batch of steps. Paused, the Worker's timer is stopped. Restart is a new flight.
 - The page draws it (`src/flight.js`): the picture's clock (`src/render/between.js`) trails the newest state by two steps, and the airplane is drawn between the two states either side of it.
 - With the debug overlay on (Settings), the overlay shows how the flight is running: frames a second, steps a second, time dropped, how far the picture is behind, and where the airplane is.
 - The Worker's own clock was chosen over ticks from the page on the owner's phone (`docs/milestones/1.md`): it kept 120.0 steps a second, in Low Power Mode too.

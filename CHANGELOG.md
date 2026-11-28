@@ -2,6 +2,10 @@
 
 What changed in each version a player can see, newest first.
 
+## 0.0.23
+
+- An Airplane picker on the pause screen, under the switches, before a flight and when paused: the F-4C (NASA data) or JSBSim's Cessna 172, back for comparison with its propeller, its four flap settings and its Flaps and Brakes buttons. Picking one takes you back to the start screen with that airplane on the numbers, and it stays your airplane next time you open the app.
+
 ## 0.0.22
 
 - Speed and roll: the F-4C's engines now take it level to Mach 2.2 high up and about 750 knots on the deck, as NASA's data has it; and at high speed down low it rolls a little slower (about 225 degrees a second at 600 knots, from 260).

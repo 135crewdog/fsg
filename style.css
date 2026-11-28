@@ -128,9 +128,12 @@ button:active { opacity: 0.6; }
 .card .sub, .card .about { font-size: 13px; color: #aeaeb2; }
 .btn { width: 100%; padding: 11px 16px; border-radius: 12px; font-size: 17px; font-weight: 600; background: rgba(255, 255, 255, 0.16); }
 .btn.primary, .btn.update { background: #007aff; }
-/* the pause screen's menu, as compact as Wings': four buttons (with an update offered) and three switches fit
-   an iPhone's landscape safe area, 348 points tall */
+/* the pause screen's menu, as compact as Wings': four buttons (with an update offered), three switches and the
+   airplane picker fit an iPhone's landscape safe area, 348 points tall */
 #screen-pause .card { padding: 10px 16px; gap: 5px; }
+/* 20 px wider than the other cards since the airplane picker came (milestone 3 re-planned, pull request 2), so the
+   longest airplane's name, "Cessna 172 (JSBSim's)", reads in full beside "Airplane" */
+#screen-pause .card { width: min(340px, 100%); }
 #screen-pause .btn { padding: 9px 8px; white-space: nowrap; }
 #screen-pause .row { padding: 0 4px 0 16px; }
 /* the credits: small print at the pause screen's foot, on the right, as a map's attribution (Wings' are along its map's foot) */
@@ -148,6 +151,18 @@ button:active { opacity: 0.6; }
 .switch[aria-checked="true"] { background: #34c759; }
 .switch[aria-checked="true"]::after { transform: translateX(20px); }
 .switch:active { opacity: 1; }
+/* the airplane picker (milestone 3 re-planned, pull request 2): the device's own picker, a <select>, as tall as a
+   switch so the pause menu still fits 348 points, and in a 16 px font or more, since iOS zooms in on a control
+   it focuses whose font is smaller. Its value reads on the right with a chevron, as in iOS Settings; it takes
+   the row's width beside its name, and only a name too long for that is cut short. */
+.picker {
+  height: 31px; min-width: 0; flex: 0 1 auto; box-sizing: border-box; margin: 0 0 0 10px; padding: 0 22px 0 8px; border: 0; border-radius: 8px;
+  font: inherit; font-size: 16px; color: inherit; background: rgba(120, 120, 128, 0.5) no-repeat right 8px center / 9px 14px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='9' height='14'%3E%3Cpath d='M1 5l3.5-3.5L8 5M1 9l3.5 3.5L8 9' fill='none' stroke='%23fff' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  -webkit-appearance: none; appearance: none; text-overflow: ellipsis; -webkit-tap-highlight-color: transparent;
+}
+.picker:disabled { opacity: 0.4; }
+.picker option { color: #000; }
 
 /* the rotate screen: iOS ignores orientation lock, so portrait gets this */
 #rotate {

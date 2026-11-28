@@ -39,7 +39,16 @@ const base = `http://127.0.0.1:${server.address().port}/fsg/`;
 const browser = await chromium.launch();
 // Motion access is allowed, as a pilot who taps Allow: this Chromium answers the app's question as an iPhone does.
 const MOTION = ['accelerometer', 'gyroscope', 'magnetometer'];
-const context = await browser.newContext({ viewport: { width: 852, height: 393 }, permissions: MOTION });   // an iPhone 16 in landscape
+// The parts below until part 11 were written for the F-4C (milestone 3, pull request 8). Since the airplane picker
+// (milestone 3 re-planned, pull request 2) the app flies the pilot's saved choice, so each of their visits picks the
+// F-4C itself, as a pilot would, unless something on that visit has already picked: fsg.aircraft is set to "f4c"
+// only when nothing is saved. Part 11 is the picker's own.
+const f4cContext = async (options) => {
+  const made = await browser.newContext(options);
+  await made.addInitScript(() => { try { if (localStorage.getItem('fsg.aircraft') === null) localStorage.setItem('fsg.aircraft', 'f4c'); } catch { /* not yet on the page's origin */ } });
+  return made;
+};
+const context = await f4cContext({ viewport: { width: 852, height: 393 }, permissions: MOTION });   // an iPhone 16 in landscape
 const page = await context.newPage();
 const errors = [];
 page.on('pageerror', (e) => errors.push(String(e)));
@@ -405,7 +414,7 @@ check(!js.error && js.build === 'weh' && (await text('#dev')).includes('wasm exc
 // 7. The fallback. Fresh visits with no service worker, so the fast build can be made to fail.
 {
   // (a) The fast build does not start: the app falls back to the second build by itself, and says why.
-  const broken = await browser.newContext({ viewport: { width: 852, height: 393 }, serviceWorkers: 'block', permissions: MOTION });
+  const broken = await f4cContext({ viewport: { width: 852, height: 393 }, serviceWorkers: 'block', permissions: MOTION });
   await broken.route('**/fdm-weh.wasm', (route) => route.abort());
   const p = await broken.newPage();
   await p.addInitScript(() => { try { localStorage.setItem('fsg.dev', 'on'); } catch { /* not yet on the page's origin */ } });
@@ -420,7 +429,7 @@ check(!js.error && js.build === 'weh' && (await text('#dev')).includes('wasm exc
   await broken.close();
 
   // (b) The marker is still set from a launch that died while starting the fast build: straight to the fallback.
-  const died = await browser.newContext({ viewport: { width: 852, height: 393 }, serviceWorkers: 'block', permissions: MOTION });
+  const died = await f4cContext({ viewport: { width: 852, height: 393 }, serviceWorkers: 'block', permissions: MOTION });
   const q = await died.newPage();
   const asked = [];
   q.on('request', (request) => { if (request.url().includes('/dist-wasm/')) asked.push(request.url().split('/').pop()); });
@@ -444,7 +453,7 @@ check(!js.error && js.build === 'weh' && (await text('#dev')).includes('wasm exc
 
   // (c) The Worker's own file fails to load, and fails while the aircraft files are still on their way.
   //     Neither build can start: the app must say so, not sit waiting, and Restart must try again.
-  const noWorker = await browser.newContext({ viewport: { width: 852, height: 393 }, serviceWorkers: 'block', permissions: MOTION });
+  const noWorker = await f4cContext({ viewport: { width: 852, height: 393 }, serviceWorkers: 'block', permissions: MOTION });
   await noWorker.route('**/src/sim/worker.js', (route) => route.abort());
   await noWorker.route('**/aircraft/f4c/**', async (route) => { await new Promise((done) => setTimeout(done, 400)); await route.continue(); });   // the F-4C's files (the Cessna's were in jsbsim-data/ until 0.0.19)
   const w = await noWorker.newPage();
@@ -478,7 +487,7 @@ check(!js.error && js.build === 'weh' && (await text('#dev')).includes('wasm exc
 // 8. A Worker made to fail in mid-flight: the crashed screen, and Restart gives a parked airplane in a fresh
 //    Worker. Its own page, so that the error it makes is not counted above.
 {
-  const failing = await browser.newContext({ viewport: { width: 852, height: 393 }, serviceWorkers: 'block', permissions: MOTION });
+  const failing = await f4cContext({ viewport: { width: 852, height: 393 }, serviceWorkers: 'block', permissions: MOTION });
   const g = await failing.newPage();
   await g.addInitScript(() => { try { localStorage.setItem('fsg.dev', 'on'); } catch { /* not yet on the page's origin */ } });
   await g.goto(base);
@@ -505,7 +514,7 @@ check(!js.error && js.build === 'weh' && (await text('#dev')).includes('wasm exc
 // 9. The app goes away in mid-flight, with time running (the pilot closes the app): the fast build had started
 //    long before, so the next launch must use it again, not the fallback. Found on the owner's phone at 0.0.5.
 {
-  const leaving = await browser.newContext({ viewport: { width: 852, height: 393 }, serviceWorkers: 'block', permissions: MOTION });
+  const leaving = await f4cContext({ viewport: { width: 852, height: 393 }, serviceWorkers: 'block', permissions: MOTION });
   const g = await leaving.newPage();
   await g.addInitScript(() => { try { localStorage.setItem('fsg.dev', 'on'); } catch { /* not yet on the page's origin */ } });
   await g.goto(base);
@@ -527,7 +536,7 @@ check(!js.error && js.build === 'weh' && (await text('#dev')).includes('wasm exc
 //     (docs/milestones/3.md, PR 8): until 0.0.19 they were flown on the Cessna, with its own numbers.
 {
   const F4C_STANDING_FT = 6.403;   // src/sim/aircraft/f4c.js, standingFt: its centre of gravity above the runway, parked
-  const flown = await browser.newContext({ viewport: { width: 852, height: 393 }, serviceWorkers: 'block', permissions: MOTION });
+  const flown = await f4cContext({ viewport: { width: 852, height: 393 }, serviceWorkers: 'block', permissions: MOTION });
   const c = await flown.newPage();
   const errs = [];
   c.on('pageerror', (error) => errs.push(String(error)));
@@ -907,7 +916,7 @@ check(!js.error && js.build === 'weh' && (await text('#dev')).includes('wasm exc
   // (This script's mouse taps each put a frame of headless Chromium's picture about 50 ms behind: PR F found it on the
   // Cessna. So the lever is pressed here, in a flight whose picture timing is not one of the lines.)
   {
-    const levered = await browser.newContext({ viewport: { width: 852, height: 393 }, serviceWorkers: 'block', permissions: MOTION });
+    const levered = await f4cContext({ viewport: { width: 852, height: 393 }, serviceWorkers: 'block', permissions: MOTION });
     const v = await levered.newPage();
     const leverErrs = [];
     v.on('pageerror', (error) => leverErrs.push(String(error)));
@@ -1047,7 +1056,7 @@ check(!js.error && js.build === 'weh' && (await text('#dev')).includes('wasm exc
   // The flap lever's pictures, on a screen as sharp as a phone's (two device pixels to the point; the flight above is
   // drawn at one): the F-4C on the numbers at "1/2", as every flight starts, and at "Full".
   {
-    const sharp = await browser.newContext({ viewport: { width: 852, height: 393 }, deviceScaleFactor: 2, serviceWorkers: 'block', permissions: MOTION });
+    const sharp = await f4cContext({ viewport: { width: 852, height: 393 }, deviceScaleFactor: 2, serviceWorkers: 'block', permissions: MOTION });
     const s = await sharp.newPage();
     await s.goto(base);
     await on(s).ready();
@@ -1065,7 +1074,7 @@ check(!js.error && js.build === 'weh' && (await text('#dev')).includes('wasm exc
   }
 
   // Motion refused: the motion-access screen, and no flight.
-  const refused = await browser.newContext({ viewport: { width: 852, height: 393 }, serviceWorkers: 'block' });
+  const refused = await f4cContext({ viewport: { width: 852, height: 393 }, serviceWorkers: 'block' });
   const r = await refused.newPage();
   // Not allowed here: the browser's own answer to the app's question is not "granted".
   await r.goto(base);
@@ -1078,7 +1087,7 @@ check(!js.error && js.build === 'weh' && (await text('#dev')).includes('wasm exc
   await refused.close();
 
   // The prompt takes focus from the app while it is up; then Allow: the flight flies.
-  const asked = await browser.newContext({ viewport: { width: 852, height: 393 }, serviceWorkers: 'block', permissions: MOTION });
+  const asked = await f4cContext({ viewport: { width: 852, height: 393 }, serviceWorkers: 'block', permissions: MOTION });
   const a = await asked.newPage();
   await a.addInitScript(() => {
     DeviceOrientationEvent.requestPermission = () => new Promise((allow) => { window.dispatchEvent(new Event('blur')); setTimeout(() => { window.dispatchEvent(new Event('focus')); allow('granted'); }, 600); });
@@ -1091,7 +1100,7 @@ check(!js.error && js.build === 'weh' && (await text('#dev')).includes('wasm exc
 
   // The device is turned upright while the prompt is up, then Allow: no flight starts behind the rotate screen.
   // It waits on the pause screen, held, for Resume.
-  const turned = await browser.newContext({ viewport: { width: 852, height: 393 }, serviceWorkers: 'block' });
+  const turned = await f4cContext({ viewport: { width: 852, height: 393 }, serviceWorkers: 'block' });
   const t = await turned.newPage();
   await t.addInitScript(() => { DeviceOrientationEvent.requestPermission = () => new Promise((allow) => { window.allow = () => allow('granted'); }); });
   await t.goto(base);
@@ -1118,6 +1127,154 @@ check(!js.error && js.build === 'weh' && (await text('#dev')).includes('wasm exc
   await t.click('#resume');
   check(await t.waitForFunction(() => window.fsg.picture.flying && window.fsg.picture.states > 0, null, { timeout: 3000 }).then(() => true, () => false), 'and Resume flies it');
   await turned.close();
+}
+
+// 11. The airplane picker (milestone 3 re-planned, pull request 2; docs/milestones/3-replan.md, PR 2). Its own visits,
+//     with the service worker, at two device pixels to the point as on a phone. The plan's lines: the row shows in
+//     Settings and when paused; it is disabled until Fly is enabled; pick the Cessna: within 5 s the start screen is
+//     back, and Fly puts the Cessna on the numbers with only Flaps and Brakes; reopen the app: still the Cessna, on the
+//     fast build; pick the F-4C: its five buttons and its plumes; a made-up saved name gives the first in the list;
+//     no console errors; it works after an offline reload. (The menu's fit with the row in it is part 10's last line.)
+{
+  const NAMES = ['F-4C (NASA data)', "Cessna 172 (JSBSim's)"];   // src/sim/aircraft/list.js
+  const picking = await browser.newContext({ viewport: { width: 852, height: 393 }, deviceScaleFactor: 2, permissions: MOTION });
+  const k = await picking.newPage();
+  const pickErrs = [];
+  k.on('pageerror', (error) => pickErrs.push(String(error)));
+  k.on('console', (m) => { if (m.type() === 'error') pickErrs.push(m.text()); });
+  // The first visit's F-4C files come slowly, so the time before Fly is ready can be watched: every 10 ms until Fly
+  // is enabled, whether the picker is live, and whether Fly and the picker go live in the same look.
+  let slow = true;
+  await picking.route('**/aircraft/f4c/**', async (route) => { if (slow) await new Promise((done) => setTimeout(done, 1500)); await route.continue(); });
+  await k.addInitScript(() => {
+    window.pickerWatch = { looks: 0, liveEarly: 0, deadLate: 0 };
+    const id = setInterval(() => {
+      const fly = document.getElementById('fly'), picker = document.getElementById('aircraft');
+      if (!fly || !picker) return;
+      window.pickerWatch.looks++;
+      if (fly.disabled && !picker.disabled) window.pickerWatch.liveEarly++;
+      if (!fly.disabled) { if (picker.disabled) window.pickerWatch.deadLate++; clearInterval(id); }
+    }, 10);
+  });
+  const pick = on(k);
+  const row = () => k.evaluate(() => {
+    const picker = document.getElementById('aircraft'), r = picker.closest('.row').getBoundingClientRect(), s = picker.getBoundingClientRect();
+    const sw = document.getElementById('dev-switch').closest('.row').getBoundingClientRect();
+    return {
+      shown: r.height > 0 && picker.checkVisibility(), label: document.getElementById('aircraft-label').textContent, names: [...picker.options].map((o) => o.text),
+      models: [...picker.options].map((o) => o.value), value: picker.value, disabled: picker.disabled, rowHeight: r.height, switchRowHeight: sw.height,
+      font: parseFloat(getComputedStyle(picker).fontSize), selectWidth: s.width, inCard: s.right <= picker.closest('.card').getBoundingClientRect().right,
+      // how wide the chosen name is in the picker's font, and the room it has inside the picker's padding
+      nameWidth: Object.assign(document.createElement('canvas').getContext('2d'), { font: getComputedStyle(picker).font }).measureText(picker.selectedOptions[0].text).width,
+      room: s.width - parseFloat(getComputedStyle(picker).paddingLeft) - parseFloat(getComputedStyle(picker).paddingRight),
+    };
+  });
+  const toggles = () => k.evaluate(() => [...document.querySelectorAll('#toggles button')].filter((b) => b.getClientRects().length > 0).map((b) => b.textContent));
+  await k.goto(base);
+  const early = await k.evaluate(() => ({ fly: document.getElementById('fly').disabled, picker: document.getElementById('aircraft').disabled }));
+  check(await pick.ready(), 'the picker: Fly is ready on a visit of its own');
+  slow = false;
+  const watched = await k.evaluate(() => window.pickerWatch);
+  const live = await row();
+  check(early.fly && early.picker && watched.looks > 20 && watched.liveEarly === 0 && watched.deadLate === 0 && !live.disabled,
+    'the Airplane row is disabled until Fly is enabled, and live with it', `${watched.looks} looks every 10 ms while Fly was not ready: live early in ${watched.liveEarly}, still dead once Fly was ready in ${watched.deadLate}; then ${live.disabled ? 'DISABLED' : 'live'}`);
+  check((await k.evaluate(() => window.fsg.aircraft)) === 'f4c' && live.value === 'f4c', 'with nothing saved, the first in the list: the F-4C', `${await k.evaluate(() => window.fsg.aircraft)}, the picker reads ${live.value}`);
+  // Settings: the row is there, under the switches, no taller than a switch's row, in a font iOS does not zoom.
+  await k.click('#settings');
+  const before = await row();
+  check(before.shown && before.label === 'Airplane' && before.names.join(' | ') === NAMES.join(' | ') && before.models.join(' ') === 'f4c c172p',
+    'Settings, before a flight: the row "Airplane" shows, with the list\'s two airplanes', `${before.names.join(', ')}`);
+  check(before.rowHeight <= 31 && before.rowHeight === before.switchRowHeight && before.font >= 16 && before.inCard, 'the row is as tall as a switch\'s, its font is 16 px or more, and it is inside the menu',
+    `row ${before.rowHeight} px (a switch's row ${before.switchRowHeight}); font ${before.font} px; the picker ${before.selectWidth.toFixed(0)} px wide`);
+  if (shots) await k.screenshot({ path: join(shots, 'picker-settings.png') });
+  // Pick the Cessna: the app reloads to the start screen, with the Cessna on the numbers.
+  const t0 = Date.now();
+  await Promise.all([k.waitForEvent('load'), k.selectOption('#aircraft', 'c172p')]);
+  const back = await k.waitForFunction(() => window.fsg?.aircraft === 'c172p' && !document.getElementById('screen-start').hidden, null, { timeout: 5000 }).then(() => true, () => false);
+  const took = Date.now() - t0;
+  check(back && took <= 5000 && (await k.evaluate(() => localStorage.getItem('fsg.aircraft'))) === 'c172p' && (await k.locator('#screen-start').isVisible()),
+    'pick the Cessna: within 5 s the start screen is back, and the choice is kept as fsg.aircraft', `${(took / 1000).toFixed(2)} s`);
+  check(await pick.ready(), 'and Fly is ready');
+  const cessnaJs = await pick.jsbsim();
+  check(await pick.fly(), 'Fly shows the Cessna\'s flight within 3 s');
+  await k.waitForTimeout(800);
+  // On the numbers as it was in 0.0.18: wheels on the runway within 1 in, its propeller turning at idle, flaps at the takeoff setting (10 degrees), brakes on.
+  const c1 = await pick.flight();
+  await k.waitForTimeout(300);
+  const c2 = await pick.flight();
+  const cessnaParked = (f) => f.wheelsDown === 3 && f.groundKt < 0.1 && Math.hypot(f.northFt, f.eastFt) < 1 && Math.abs(f.headingDeg - 90) < 0.1 && f.wheelsIn.every((inches) => Math.abs(inches) <= 1) &&
+    f.propellerRpm >= 700 && f.propellerRpm <= 900 && Math.abs(f.surfaces.flaps * 30 - 10) < 1 && f.engines === null && f.ended === null;
+  const cessnaWhere = (f) => `${Math.hypot(f.northFt, f.eastFt).toFixed(2)} ft from the numbers, heading ${f.headingDeg.toFixed(2)}, ${f.wheelsDown} wheels down (${f.wheelsIn.map((x) => x.toFixed(2)).join(', ')} in), ${f.groundKt.toFixed(2)} kt, ${f.propellerRpm?.toFixed(0)} RPM, flaps ${(f.surfaces.flaps * 30).toFixed(1)} deg`;
+  const shownCessna = await toggles();
+  const cessnaBits = await k.evaluate(() => ({ stripes: !document.querySelector('#throttle .ab').hidden, brake: window.fsg.pilot.brake, reads: document.getElementById('flaps-reads').textContent }));
+  check((await pick.mode()) === 'flying' && cessnaParked(c1) && cessnaParked(c2) && c2.discShown && c2.propellerTurn !== c1.propellerTurn && c2.sizeM < 12,
+    'Fly puts the Cessna on the numbers, its propeller turning on screen', `${cessnaWhere(c2)}; the propeller turned from ${c1.propellerTurn?.toFixed(3)} to ${c2.propellerTurn?.toFixed(3)}; ${c2.sizeM?.toFixed(1)} m long`);
+  check(shownCessna.join(', ') === 'Flaps Up, Flaps Down, Brakes On' && cessnaBits.reads === '10°' && cessnaBits.brake === true && !cessnaBits.stripes && c2.plumes.length === 0 && c2.reading?.jet === false,
+    'with only Flaps and Brakes: the flap lever reading 10°, Brakes On, no afterburner band on the throttle, no plumes, and the HUD\'s power a propeller airplane\'s', `buttons ${shownCessna.join(', ')}; the lever reads "${cessnaBits.reads}"; afterburner band ${cessnaBits.stripes ? 'SHOWN' : 'hidden'}; ${c2.plumes.length} plumes; jet ${c2.reading?.jet}`);
+  if (shots) await k.screenshot({ path: join(shots, 'picker-cessna-start.png') });
+  // Paused: the row shows, reading the Cessna, and is live.
+  await k.click('#pause');
+  const paused = await row();
+  check((await pick.mode()) === 'paused' && paused.shown && paused.value === 'c172p' && !paused.disabled && (await k.locator('#restart').isVisible()), 'paused: the row shows, reads the Cessna, and is live',
+    `"${paused.names[1]}" is ${paused.nameWidth.toFixed(1)} px wide in a picker with ${paused.room.toFixed(1)} px of room (reported: this browser's font is not the iPhone's)`);
+  if (shots) await k.screenshot({ path: join(shots, 'picker-paused.png') });
+  // Reopen the app: still the Cessna, on the fast build.
+  await k.reload();
+  check(await pick.ready(), 'reopened: Fly is ready');
+  const again = await pick.jsbsim();
+  check((await k.evaluate(() => window.fsg.aircraft)) === 'c172p' && (await row()).value === 'c172p' && !again.error && again.build === 'weh' && cessnaJs.build === 'weh',
+    'reopen the app: still the Cessna, on the fast build', `${await k.evaluate(() => window.fsg.aircraft)}; builds ${cessnaJs.build} after the pick, ${again.build} reopened`);
+  // Offline: the Cessna's files and model are in the app's download, so a reload with the network off flies it.
+  await k.waitForFunction(() => window.fsg.offline === 'yes', null, { timeout: 30000 }).catch(() => {});
+  await picking.setOffline(true);
+  await k.reload();
+  const offlineReady = await pick.ready();
+  const offlineFlew = offlineReady && (await pick.fly());
+  await k.waitForTimeout(800);
+  const c3 = await pick.flight();
+  check(offlineReady && offlineFlew && (await k.evaluate(() => window.fsg.aircraft)) === 'c172p' && cessnaParked(c3), 'offline: a reload flies the Cessna all the same', cessnaWhere(c3));
+  await k.click('#pause');
+  // Pick the F-4C, still offline: its five buttons and its plumes.
+  const t1 = Date.now();
+  await Promise.all([k.waitForEvent('load'), k.selectOption('#aircraft', 'f4c')]);
+  const backF4c = await k.waitForFunction(() => window.fsg?.aircraft === 'f4c' && !document.getElementById('screen-start').hidden, null, { timeout: 5000 }).then(() => true, () => false);
+  const took1 = Date.now() - t1;
+  check(backF4c && took1 <= 5000 && (await k.evaluate(() => localStorage.getItem('fsg.aircraft'))) === 'f4c', 'pick the F-4C (offline): within 5 s the start screen is back', `${(took1 / 1000).toFixed(2)} s`);
+  check((await pick.ready()) && (await pick.fly()), 'and Fly shows the F-4C\'s flight');
+  await k.waitForTimeout(800);
+  const f1 = await pick.flight();
+  const shownF4c = await toggles();
+  check(parked(f1) && shownF4c.join(', ') === 'Gear Down, Flaps Up, Flaps Down, Boards In, Brakes On' && (await k.locator('#flaps-reads').textContent()) === '1/2' && f1.plumes.length === 2 && f1.plumes.every((p) => !p.lit),
+    'the F-4C on the numbers with its five buttons, and its two plumes, out at idle', `${where(f1)}; buttons ${shownF4c.join(', ')}; ${f1.plumes.length} plumes`);
+  if (shots) await k.screenshot({ path: join(shots, 'picker-f4c-start.png') });
+  // Full afterburner on the brakes: both plumes light.
+  {
+    const thumb = await k.locator('#throttle .thumb').boundingBox();
+    await k.mouse.move(thumb.x + thumb.width / 2, thumb.y + thumb.height / 2);
+    await k.mouse.down();
+    await k.mouse.move(thumb.x + thumb.width / 2, 2, { steps: 10 });
+    await k.mouse.up();
+    const lit = await k.waitForFunction(() => window.fsg.picture.plumes.every((p) => p.lit), null, { timeout: 20000, polling: 50 }).then(() => true, () => false);
+    const f2 = await pick.flight();
+    check(lit && (await k.evaluate(() => window.fsg.pilot.throttle)) === 1, 'and at full afterburner both plumes light', `afterburners ${f2.engines.afterburner.map((x) => x.toFixed(2)).join(', ')}; plumes ${f2.plumes.map((p) => (p.lit ? `lit, ${p.lengthM} m` : 'out')).join(' and ')}`);
+    if (shots) await k.screenshot({ path: join(shots, 'picker-f4c-plumes.png') });
+  }
+  await picking.setOffline(false);
+  check(pickErrs.length === 0, 'no page errors or console errors with the picker', pickErrs.join(' | '));
+  await picking.close();
+
+  // A saved name that is not in the list (an airplane since taken out): the first in the list.
+  const madeUp = await browser.newContext({ viewport: { width: 852, height: 393 }, serviceWorkers: 'block', permissions: MOTION });
+  const m = await madeUp.newPage();
+  const madeErrs = [];
+  m.on('pageerror', (error) => madeErrs.push(String(error)));
+  m.on('console', (msg) => { if (msg.type() === 'error') madeErrs.push(msg.text()); });
+  await m.addInitScript(() => { try { localStorage.setItem('fsg.aircraft', 'f111'); } catch { /* not yet on the page's origin */ } });
+  await m.goto(base);
+  await on(m).ready();
+  const firstIs = await m.evaluate(() => ({ aircraft: window.fsg.aircraft, value: document.getElementById('aircraft').value }));
+  check(firstIs.aircraft === 'f4c' && firstIs.value === 'f4c' && (await on(m).fly()) && madeErrs.length === 0, 'a made-up saved name gives the first in the list, the F-4C, and it flies', `${firstIs.aircraft}; the picker reads ${firstIs.value}${madeErrs.length ? `; ${madeErrs.join(' | ')}` : ''}`);
+  await madeUp.close();
 }
 
 {

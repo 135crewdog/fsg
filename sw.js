@@ -7,7 +7,7 @@
 // skips waiting on its own; the app offers the update and posts
 // "skip-waiting" when the pilot accepts.
 
-const VERSION = '0.0.22';   // the same value as APP_VERSION in src/version.js
+const VERSION = '0.0.23';   // the same value as APP_VERSION in src/version.js
 const CACHE = `fsg-${VERSION}`;
 const FILES = [
   './',
@@ -35,7 +35,9 @@ const FILES = [
   './src/render/plume.js',
   './src/render/surfaces.js',
   './src/render/world.js',
+  './src/sim/aircraft/c172p.js',
   './src/sim/aircraft/f4c.js',
+  './src/sim/aircraft/list.js',
   './src/sim/assists.js',
   './src/sim/bench.js',
   './src/sim/buffet.js',
@@ -58,17 +60,22 @@ const FILES = [
   './vendor/three/examples/jsm/loaders/GLTFLoader.js',
   './vendor/three/examples/jsm/utils/BufferGeometryUtils.js',
   './vendor/three/examples/jsm/utils/SkeletonUtils.js',
-  // The F-4C's model, the owner's own (models/CREDITS.md).
+  // The airplanes' models (models/CREDITS.md): the F-4C's, the owner's own; the Cessna's, FlightGear's.
   './models/f4c.glb',
+  './models/c172p.glb',
   // JSBSim: two builds of it, each an Emscripten file and the .wasm it loads from beside itself.
   './jsbsim/dist-wasm/fdm-weh.mjs',
   './jsbsim/dist-wasm/fdm-weh.wasm',
   './jsbsim/dist-wasm/fdm-jseh.mjs',
   './jsbsim/dist-wasm/fdm-jseh.wasm',
-  // The three files JSBSim reads to load the F-4C the game flies (src/sim/aircraft/f4c.js): FSG's own, in aircraft/.
+  // The files JSBSim reads to load each airplane in the picker's list (src/sim/aircraft/list.js). The F-4C's
+  // (src/sim/aircraft/f4c.js) are FSG's own, in aircraft/; the Cessna's (c172p.js) are JSBSim's own data.
   './aircraft/f4c/f4c.xml',
   './aircraft/f4c/Engines/J79-GE-15.xml',
   './aircraft/f4c/Engines/direct.xml',
+  './jsbsim/jsbsim-data/aircraft/c172p/c172p.xml',
+  './jsbsim/jsbsim-data/engine/eng_io320.xml',
+  './jsbsim/jsbsim-data/engine/prop_75in2f.xml',
 ];
 
 self.addEventListener('install', (event) => {
