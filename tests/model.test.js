@@ -16,10 +16,12 @@ import { bounds, poseAt, poseOf, readAccessor, readGlb, verticesUnder, worldMatr
 import { engineExits, speedbrakeAt } from '../models/measure.mjs';
 import { C172P } from '../src/sim/aircraft/c172p.js';
 import { F4C } from '../src/sim/aircraft/f4c.js';
+import { F4C_SIMPLE } from '../src/sim/aircraft/f4c-simple.js';
 import { Flight } from '../src/sim/game.js';
 import { sha256 } from '../tools/from-fdm.mjs';
 import { SPEEDBRAKE_PANELS, THRUST_LINE_ABOVE_CG, THRUST_TILT } from './checkride/f4c-reference.js';
 import { bytesOf, moduleWith } from './checkride/files.js';
+import * as SIMPLE from './checkride/simple-reference.js';
 
 const here = (path) => new URL(`../${path}`, import.meta.url);
 const IN = 0.0254, FT = 0.3048, DEG = 180 / Math.PI;
@@ -42,7 +44,10 @@ const IN = 0.0254, FT = 0.3048, DEG = 180 / Math.PI;
 // leftOut   what a borrowed model must not have brought with it.
 // script    the script that made a borrowed model, which holds the numbers it was sat to.
 // engines   how many jet engines: the model has that many exits and the aircraft file that many thrust points.
-// thrust    the thrust line's reference numbers.
+// thrust    the thrust line's reference numbers (and, if they are not CR-2144's, whose they are and the line the test holds).
+// again     a second airplane that wears a model already in the table (milestone 3 re-planned, pull request 3: the simple
+//           F-4C wears the owner's F-4C). The model itself is checked once, by its first row; this row checks only what is
+//           the aircraft file's: its wheels and its engines against the model.
 // speedbrake  the reference number for the middle of the open panels.
 const MODELS = [
   {
@@ -79,6 +84,13 @@ const MODELS = [
     engines: 2, thrust: { tilt: THRUST_TILT, aboveCg: THRUST_LINE_ABOVE_CG }, speedbrake: SPEEDBRAKE_PANELS,
   },
 ];
+// The simple F-4C (aircraft/f4c-simple/; milestone 3 re-planned, pull request 3) wears the owner's F-4C too: the same model, the
+// data-built jet's wheels, and its thrust along the body's axis through the centre of gravity's height (Wings' rule). Its
+// speedbrakes' drag is a number of the simple physics, with no point of its own to check.
+MODELS.push({
+  ...MODELS.find((m) => m.aircraft === F4C), aircraft: F4C_SIMPLE, again: true, speedbrake: null,
+  thrust: { tilt: SIMPLE.THRUST_TILT, aboveCg: SIMPLE.THRUST_LINE_ABOVE_CG, whose: 'Wings\' rule', line: 'the simple F-4C\'s two thrust points are within 1 in of the model\'s engine exits fore and aft and sideways; in height and direction the thrust is along the body\'s axis through the centre of gravity' },
+});
 
 // docs/models.md's budget. Every model: under 2 MB and 50,000 triangles, its textures 1,024 pixels at most.
 const BUDGET = {
@@ -90,7 +102,7 @@ const REST = { gear: 1, flaps: 0, speedbrake: 0, elevator: 0.5, aileron: 0.5, ru
 
 test('every model in models/ is in the table above, and models/CREDITS.md says whose it is', () => {
   const found = readdirSync(here('models/')).filter((name) => name.endsWith('.glb')).map((name) => `models/${name}`).sort();
-  assert.deepEqual(MODELS.map((m) => m.file).sort(), found);
+  assert.deepEqual(MODELS.filter((m) => !m.again).map((m) => m.file).sort(), found);
   const credits = readFileSync(here('models/CREDITS.md'), 'utf8');
   for (const file of found) assert.ok(credits.includes(`## \`${file.slice('models/'.length)}\``), `${file} has its heading in models/CREDITS.md`);
   console.log(`  ${found.join(', ')}`);
@@ -113,8 +125,11 @@ for (const model of MODELS) {
   const span = (list, axis) => Math.max(...list.map((p) => p[axis])) - Math.min(...list.map((p) => p[axis]));
   const middle = (list, axis) => (Math.max(...list.map((p) => p[axis])) + Math.min(...list.map((p) => p[axis]))) / 2;
   const partsOf = (motion) => (Array.isArray(motions[motion]) ? motions[motion] : Object.keys(motions[motion]));
-  const say = (line) => console.log(`  ${file}: ${line}`);
-  const it = (name, ...rest) => test(`${file}: ${name}`, ...rest);
+  // The model itself is checked once (`it`); what an aircraft file must agree with it on, for every airplane that wears it (`wears`).
+  const label = model.again ? `${file}, as ${aircraft.model} wears it` : file;
+  const say = (line) => console.log(`  ${label}: ${line}`);
+  const it = (name, ...rest) => { if (!model.again) test(`${file}: ${name}`, ...rest); };
+  const wears = (name, ...rest) => test(`${label}: ${name}`, ...rest);
 
   if (model.from) {
     it('"The file is Wings\' byte for byte, locked in provenance.json"', () => {
@@ -277,7 +292,7 @@ for (const model of MODELS) {
     return answer;
   })());
 
-  it(`the wheels are where JSBSim's ${aircraft.model} has them: standing in JSBSim, every tyre within 1 in of its wheel fore and aft, sideways and in height`, async () => {
+  wears(`the wheels are where JSBSim's ${aircraft.model} has them: standing in JSBSim, every tyre within 1 in of its wheel fore and aft, sideways and in height`, async () => {
     const { cg, wheels, heightFt, pitch } = await standing();
     if (model.script) {
       // The numbers the script sat the model to are these, read back.
@@ -307,7 +322,7 @@ for (const model of MODELS) {
   });
 
   if (model.engines) {
-    it('"The file\'s two thrust points are within 1 in of the model\'s engine exits fore and aft and sideways ... In height the thrust line is CR-2144\'s; how far that is from the model\'s exits is reported"', async () => {
+    wears(model.thrust.line ?? '"The file\'s two thrust points are within 1 in of the model\'s engine exits fore and aft and sideways ... In height the thrust line is CR-2144\'s; how far that is from the model\'s exits is reported"', async () => {
       const { cg } = await standing(), { tilt, aboveCg } = model.thrust;
       // The model: each exit's middle and its opening (models/measure.mjs finds them by their shape), in feet forward, right and down.
       const exits = engineExits(glb);
@@ -323,7 +338,7 @@ for (const model of MODELS) {
         const rad = pitch / DEG, passes = ((x - cg[0]) * Math.sin(rad) + (z - cg[2]) * Math.cos(rad)) / 12;
         say(`${k ? 'right' : 'left'} engine: the exit's middle is [${exit.at.map((feet) => feet.toFixed(3)).join(', ')}] ft forward, right and down, its opening ${(2 * exit.radius).toFixed(2)} ft across`);
         say(`  the thrust point is ${behind.toFixed(2)} in behind it and ${right.toFixed(2)} in right of it; within 1 in`);
-        say(`  in height the thrust point is ${below.toFixed(2)} in below it (the thrust line passes ${(below * Math.cos(rad)).toFixed(2)} in from the exit's middle): the line is tilted ${pitch} degrees and passes ${passes.toFixed(3)} ft above the centre of gravity; CR-2144's is ${tilt.value} and ${aboveCg.value}`);
+        say(`  in height the thrust point is ${below.toFixed(2)} in below it (the thrust line passes ${(below * Math.cos(rad)).toFixed(2)} in from the exit's middle): the line is tilted ${pitch} degrees and passes ${passes.toFixed(3)} ft above the centre of gravity; ${model.thrust.whose ?? 'CR-2144\'s'} is ${tilt.value} and ${aboveCg.value}`);
         assert.ok(Math.abs(behind) <= 1, 'fore and aft');
         assert.ok(Math.abs(right) <= 1, 'sideways');
         assert.equal(pitch, tilt.value, 'the thrust line\'s tilt');
@@ -341,7 +356,7 @@ for (const model of MODELS) {
       at.forEach((feet, k) => assert.ok(Math.abs(feet - reference.value[k]) <= 0.005, 'the reference is the model\'s, to the hundredth of a foot'));
     });
 
-    it('"its speedbrake point within 1 in of the model\'s panels"', async () => {
+    wears('"its speedbrake point within 1 in of the model\'s panels"', async () => {
       // The aircraft file's speedbrakes (pull request 7): their drag is an external force, acting at a point in
       // the structural frame (inches, x aft, y right, z up), here from the centre of gravity as loaded.
       const { cg } = await standing();

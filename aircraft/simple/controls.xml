@@ -1,0 +1,197 @@
+<?xml version="1.0"?>
+<!--
+  The simple control run: from the stick to the surfaces, for every simple airplane, for JSBSim v1.3.3.
+  FSG's own file: new in FSG, milestone 3 re-planned (docs/milestones/3-replan.md, pull request 3). An
+  airplane's own file loads it with
+      <system file="../simple/controls"/>
+  beside the simple physics (aircraft/simple/aero.xml, which lists the numbers the airplane declares and
+  says where each rule came from).
+
+  What it is. The owner's design (28 November 2026): "Tilt moves the control surface directly, through one
+  curve against speed, as cables and pushrods would: slow, it moves a long way and does little; fast, it
+  moves a little and does a lot. No modes." The curve is Wings' rule (135crewdog/wings, src/sim/aero.js,
+  elevatorPower and aileronPower, commit 6d689b7), written here as how far the surface moves:
+    Pitch   Full back stick is all of the stabilator's travel below corner speed, where the wing stalls
+            before the g limit; faster, it is only as much travel as holds the g limit in a turn (the pull
+            back to the trim angle at that g's angle of attack, and the damping at that turn's pitch rate).
+            Forward stick has the stabilator's smaller travel the other way, and when fast as much of it as
+            holds the negative g limit.
+    Roll    Full stick is all of the ailerons' travel up to the roll rate's speed; faster, less, so that
+            the roll rate holds instead of growing.
+    Yaw     The rudder goes where it is asked. The simple airplanes have no pedals: the copilot's feet ask.
+  The trim and the stick are summed before the curve. So they add one for one, which is what the tests'
+  airborne start assumes when it turns JSBSim's own trim into a stick position (src/sim/game.js,
+  Flight.start); and the trim, like the stick, moves the stabilator less the faster the airplane goes.
+
+  In: JSBSim's own commands, fcs/elevator-cmd-norm (positive nose down), fcs/pitch-trim-cmd-norm,
+  fcs/aileron-cmd-norm (positive right), fcs/roll-trim-cmd-norm, fcs/rudder-cmd-norm (positive nose left).
+  Out: JSBSim's own names for the surfaces, which the game's state and the physics read:
+  fcs/elevator-pos-rad, fcs/left-aileron-pos-rad, fcs/right-aileron-pos-rad, fcs/rudder-pos-rad (and each
+  in degrees). The ailerons are written as an ordinary pair, one down and the other up by the same angle.
+
+  The nosewheel is JSBSim's own: it turns as fcs/steer-cmd-norm asks, to the limit the airplane's file gives
+  it. Tilt steering on the ground is pull request 4.
+-->
+<system name="simple controls">
+
+ <!--
+  The speed curve in pitch, back stick: the share of the stabilator's travel that full back stick gets,
+  1 when slow, less when fast. Wings' elevatorPower, with this file's names:
+    the angle of attack the g limit takes at this speed, but no more than the full-back angle;
+    the g that angle really holds, and the pitch rate of a level turn at that g;
+    the moment that holds both: the nose's stiffness over the way from the trim angle, and the damping.
+  Over the tail's power, that is the share. Slow, the stiffness part alone is the whole of the tail's power
+  (that is how the stiffness is set, aero.xml), so the share is 1.
+ -->
+ <function name="simple/angle-per-g-rad">
+  <quotient> <property> inertia/weight-lbs </property> <product> <property> simple/qs </property> <property> simple/lift-slope </property> </product> </quotient>
+ </function>
+ <function name="simple/back-angle-rad">
+  <min> <product> <property> simple/g-limit </property> <property> simple/angle-per-g-rad </property> </product> <property> simple/full-back-angle-rad </property> </min>
+ </function>
+ <function name="simple/back-g">
+  <quotient> <property> simple/back-angle-rad </property> <property> simple/angle-per-g-rad </property> </quotient>
+ </function>
+ <function name="simple/back-moment">
+  <sum>
+   <product>
+    <value> -1 </value> <property> simple/nose-stiffness </property>
+    <difference> <sin> <property> simple/back-angle-rad </property> </sin> <sin> <property> simple/trim-angle-rad </property> </sin> </difference>
+   </product>
+   <product>
+    <value> -1 </value> <property> simple/pitch-damping </property> <property> simple/c2v </property>
+    <quotient>
+     <product> <value> 32.174 </value> <max> <value> 0 </value> <difference> <property> simple/back-g </property> <quotient> <value> 1 </value> <max> <property> simple/back-g </property> <value> 1 </value> </max> </quotient> </difference> </max> </product>
+     <property> simple/v-fps </property>
+    </quotient>
+   </product>
+  </sum>
+ </function>
+ <function name="simple/pitch-gearing">
+  <max> <value> 0.02 </value> <min> <value> 1 </value> <quotient> <property> simple/back-moment </property> <property> simple/tail-power </property> </quotient> </min> </max>
+ </function>
+
+ <!--
+  The same for forward stick. Its power at full travel is the back stick's times the travel down over the
+  travel up. Slow, that holds a nose-down angle of attack (the forward angle); fast, the share is what
+  holds the negative g limit.
+ -->
+ <function name="simple/forward-power">
+  <quotient> <product> <property> simple/tail-power </property> <property> simple/elevator-down-deg </property> </product> <property> simple/elevator-up-deg </property> </quotient>
+ </function>
+ <function name="simple/forward-angle-rad">
+  <min>
+   <product> <property> simple/g-limit-push </property> <property> simple/angle-per-g-rad </property> </product>
+   <asin>
+    <max> <value> -1 </value> <min> <value> 1 </value>
+     <difference>
+      <quotient> <property> simple/forward-power </property> <product> <value> -1 </value> <property> simple/nose-stiffness </property> </product> </quotient>
+      <sin> <property> simple/trim-angle-rad </property> </sin>
+     </difference>
+    </min> </max>
+   </asin>
+  </min>
+ </function>
+ <function name="simple/forward-g">
+  <quotient> <property> simple/forward-angle-rad </property> <property> simple/angle-per-g-rad </property> </quotient>
+ </function>
+ <function name="simple/forward-moment">
+  <sum>
+   <product>
+    <value> -1 </value> <property> simple/nose-stiffness </property>
+    <sum> <sin> <property> simple/forward-angle-rad </property> </sin> <sin> <property> simple/trim-angle-rad </property> </sin> </sum>
+   </product>
+   <product>
+    <value> -1 </value> <property> simple/pitch-damping </property> <property> simple/c2v </property>
+    <quotient>
+     <product> <value> 32.174 </value> <max> <value> 0 </value> <difference> <property> simple/forward-g </property> <quotient> <value> 1 </value> <max> <property> simple/forward-g </property> <value> 1 </value> </max> </quotient> </difference> </max> </product>
+     <property> simple/v-fps </property>
+    </quotient>
+   </product>
+  </sum>
+ </function>
+ <function name="simple/push-gearing">
+  <max> <value> 0.02 </value> <min> <value> 1 </value> <quotient> <property> simple/forward-moment </property> <property> simple/forward-power </property> </quotient> </min> </max>
+ </function>
+
+ <!--
+  The speed curve in roll: 1 up to the roll rate's speed, then falling as one over the airspeed (Wings: the
+  square root of the dynamic pressure at that speed over the dynamic pressure now).
+ -->
+ <function name="simple/roll-gearing">
+  <min>
+   <value> 1 </value>
+   <pow>
+    <quotient>
+     <product> <property> simple/q-per-kt2 </property> <property> simple/roll-rate-at-kt </property> <property> simple/roll-rate-at-kt </property> </product>
+     <max> <property> aero/qbar-psf </property> <value> 1 </value> </max>
+    </quotient>
+    <value> 0.5 </value>
+   </pow>
+  </min>
+ </function>
+
+ <channel name="Pitch">
+  <!-- The stick and the trim, summed before the curve: -1 full back to 1 full forward (JSBSim's sense). -->
+  <summer name="simple/pitch-asked">
+   <input> fcs/elevator-cmd-norm </input>
+   <input> fcs/pitch-trim-cmd-norm </input>
+   <clipto>
+    <min> -1 </min>
+    <max> 1 </max>
+   </clipto>
+  </summer>
+  <!-- The stabilator, degrees, trailing edge down positive: back stick through its curve to the travel up, forward stick through its own to the travel down. -->
+  <fcs_function name="simple/stabilator-deg">
+   <function>
+    <ifthen>
+     <lt> <property> simple/pitch-asked </property> <value> 0 </value> </lt>
+     <product> <property> simple/pitch-asked </property> <property> simple/elevator-up-deg </property> <property> simple/pitch-gearing </property> </product>
+     <product> <property> simple/pitch-asked </property> <property> simple/elevator-down-deg </property> <property> simple/push-gearing </property> </product>
+    </ifthen>
+   </function>
+   <output> fcs/elevator-pos-deg </output>
+  </fcs_function>
+ </channel>
+
+ <channel name="Roll">
+  <summer name="simple/roll-asked">
+   <input> fcs/aileron-cmd-norm </input>
+   <input> fcs/roll-trim-cmd-norm </input>
+   <clipto>
+    <min> -1 </min>
+    <max> 1 </max>
+   </clipto>
+  </summer>
+  <!-- The left aileron, degrees, trailing edge down for a roll to the right; the right one the other way. -->
+  <fcs_function name="simple/left-aileron-deg">
+   <function>
+    <product> <property> simple/roll-asked </property> <property> simple/aileron-deg </property> <property> simple/roll-gearing </property> </product>
+   </function>
+   <output> fcs/left-aileron-pos-deg </output>
+  </fcs_function>
+  <pure_gain name="simple/right-aileron-deg">
+   <input> simple/left-aileron-deg </input>
+   <gain> -1 </gain>
+   <output> fcs/right-aileron-pos-deg </output>
+  </pure_gain>
+ </channel>
+
+ <channel name="Yaw">
+  <!-- The rudder, degrees, trailing edge left positive: where it is asked, to its travel. -->
+  <summer name="simple/rudder-asked">
+   <input> fcs/rudder-cmd-norm </input>
+   <clipto>
+    <min> -1 </min>
+    <max> 1 </max>
+   </clipto>
+  </summer>
+  <fcs_function name="simple/rudder-pos-deg">
+   <function>
+    <product> <property> simple/rudder-asked </property> <property> simple/rudder-deg </property> </product>
+   </function>
+   <output> fcs/rudder-pos-deg </output>
+  </fcs_function>
+ </channel>
+
+</system>
